@@ -22,6 +22,7 @@ class KavlingRequestModel extends Model
         'keterangan',
         'status',
         'alasan_tolak',
+        'alasan_batal',
         'catatan_planning',
         'created_by',
         'processed_by',

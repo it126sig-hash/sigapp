@@ -122,7 +122,10 @@ class TransaksiRepository extends Model
     public function getSpptbData(int $idKavling, int $idMkdt): ?object
     {
         return $this->db->table('kavling')
-            ->select('
+            ->select("
+            mkdt.*,
+            `kavling`.`id_kavling`,
+            `kavling`.`status_tanah`,
             `proyek`.`nama_proyek`,
             `proyek`.`id_proyek`,
             `proyek`.`alamat_proyek`,
@@ -135,15 +138,23 @@ class TransaksiRepository extends Model
             `jalan`.`nama_jalan`,
             `tipe`.`no_tipe_rumah`,
             `tipe`.`tipe_rumah`,
-            tipe.lb,
+            `tipe`.`lb`,
             `kavling`.`no_kavling`,
-            kavling.luas_tanah,
-            hargajual.id_tipe AS tipe_pricelist,
-            mkdt.*,
+            CASE
+                WHEN `kavling`.`status_tanah` = 'Kelebihan Tanah' AND COALESCE(`kavling`.`luas_tanah`, 0) > 0
+                    THEN `kavling`.`luas_tanah`
+                ELSE COALESCE(
+                    NULLIF(`hargajual`.`lt`, 0),
+                    NULLIF(`tipe`.`lt`, 0),
+                    NULLIF(`kavling`.`luas_tanah`, 0),
+                    0
+                )
+            END AS luas_tanah,
+            `hargajual`.`id_tipe` AS tipe_pricelist,
             `konsumen`.`no_spptb`,
             `konsumen`.`kode_referal`,
-            referrer.nama_konsumen as referred_by_nama,
-            referrer.kode_referal as referred_by_kode,
+            `referrer`.`nama_konsumen` AS referred_by_nama,
+            `referrer`.`kode_referal` AS referred_by_kode,
             `konsumen`.`nama_konsumen`,
             `konsumen`.`nik`,
             `konsumen`.`npwp`,
@@ -157,7 +168,6 @@ class TransaksiRepository extends Model
             `konsumen`.`sales`,
             `konsumen`.`nama_instansi`,
             `konsumen`.`alamat_instansi`,
-            `konsumen`.`tel_instansi`,
             `konsumen`.`email_instansi`,
             `konsumen`.`alamat_surat`,
             `konsumen`.`pekerjaan`,
@@ -168,9 +178,8 @@ class TransaksiRepository extends Model
             `konsumen`.`hp_pasangan`,
             `konsumen`.`nik_pasangan`,
             `konsumen`.`nama_pasangan`,
-            `konsumen`.`instansi_pasangan`,
-            
-        ')
+            `konsumen`.`instansi_pasangan`
+        ", false)
             ->join('jalan', 'jalan.id_jalan = kavling.id_jalan')
             ->join('cluster', 'cluster.id_cluster = jalan.id_cluster')
             ->join('proyek', 'cluster.id_proyek = proyek.id_proyek')

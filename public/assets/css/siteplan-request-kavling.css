@@ -689,6 +689,7 @@
 }
 
 #modal-request-kavling .rk-status-pill,
+#modal-request-kavling .rk-status-badge,
 #modal-request-kavling .rk-jenis-pill {
     border-radius: 999px;
     display: inline-flex;
@@ -716,6 +717,13 @@
     background: #fef2f2;
     border: 1px solid #dc2626;
     color: #991b1b;
+}
+
+#modal-request-kavling .rk-status-pill.is-cancelled,
+#modal-request-kavling .rk-status-badge.is-cancelled {
+    background: #f3f4f6;
+    border: 1px solid #6b7280;
+    color: #4b5563;
 }
 
 #modal-request-kavling .rk-jenis-pill.is-tambah {
@@ -753,6 +761,78 @@
     background: #fef2f2;
     border-color: #fecaca;
     color: #991b1b;
+}
+
+#modal-request-kavling .rk-note-box.is-cancelled {
+    background: #f8fafc;
+    border-color: #cbd5e1;
+    color: #475569;
+}
+
+#modal-request-kavling .rk-table th.rk-check-col,
+#modal-request-kavling .rk-table td.rk-check-col {
+    width: 38px;
+    min-width: 38px;
+    max-width: 38px;
+    text-align: center;
+    vertical-align: middle;
+    padding-left: .4rem;
+    padding-right: .4rem;
+}
+
+#modal-request-kavling .rk-row-checkbox {
+    width: 17px;
+    height: 17px;
+    cursor: pointer;
+    vertical-align: middle;
+    margin: 0;
+    accent-color: #2057a3;
+}
+
+#modal-request-kavling .rk-row-checkbox:disabled {
+    cursor: not-allowed;
+    opacity: .45;
+}
+
+#modal-request-kavling .rk-batch-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: .55rem;
+    background: #fef2f2;
+    border: 1px solid #fecaca;
+    border-radius: 6px;
+    color: #991b1b;
+    margin: .65rem .85rem;
+    padding: .55rem .85rem;
+}
+
+#modal-request-kavling .rk-batch-info {
+    display: inline-flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: .45rem;
+    font-size: .8rem;
+    font-weight: 600;
+}
+
+#modal-request-kavling .rk-batch-count-badge {
+    background: #fee2e2;
+    border: 1px solid #fca5a5;
+    border-radius: 999px;
+    color: #991b1b;
+    font-size: .74rem;
+    font-weight: 700;
+    padding: .14rem .55rem;
+    white-space: nowrap;
+}
+
+#modal-request-kavling .rk-batch-actions {
+    display: inline-flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: .4rem;
 }
 
 #modal-request-kavling .rk-action-stack {
@@ -1128,6 +1208,20 @@
         grid-template-columns: minmax(0, 1fr);
     }
 
+    #modal-request-kavling .rk-batch-toolbar {
+        flex-direction: column;
+        align-items: stretch;
+        margin: .6rem .65rem;
+    }
+
+    #modal-request-kavling .rk-batch-actions {
+        width: 100%;
+    }
+
+    #modal-request-kavling .rk-batch-actions .btn {
+        flex: 1 1 auto;
+    }
+
     #rk-canvas-picker-bar {
         top: 8px;
         left: 8px;
@@ -1265,6 +1359,31 @@
 
 .dark-layout #modal-request-kavling .rk-table tbody tr:hover {
     background: rgba(255, 255, 255, .03);
+}
+
+.dark-layout #modal-request-kavling .rk-status-pill.is-cancelled,
+.dark-layout #modal-request-kavling .rk-status-badge.is-cancelled {
+    background: rgba(107, 114, 128, .24);
+    border-color: #6b7280;
+    color: #d1d5db;
+}
+
+.dark-layout #modal-request-kavling .rk-note-box.is-cancelled {
+    background: rgba(107, 114, 128, .14);
+    border-color: rgba(148, 163, 184, .28);
+    color: #e5e7eb;
+}
+
+.dark-layout #modal-request-kavling .rk-batch-toolbar {
+    background: rgba(220, 38, 38, .14);
+    border-color: rgba(248, 113, 113, .35);
+    color: #fecaca;
+}
+
+.dark-layout #modal-request-kavling .rk-batch-count-badge {
+    background: rgba(220, 38, 38, .28);
+    border-color: rgba(248, 113, 113, .45);
+    color: #fecaca;
 }
 
 .dark-layout #rk-canvas-picker-bar .rk-canvas-picker-card {

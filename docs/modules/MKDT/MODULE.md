@@ -2,7 +2,7 @@
 
 **Status:** `REFACTORED`  
 **Readiness Score:** `100/100`  
-**Last Synced:** `2026-11-20 14:08:39` @ `991140c`  
+**Last Synced:** `2026-11-21 18:36:03` @ `004ca42`  
 
 ## Purpose
 Manajemen Konsumen dan Transaksi (MKDT): tata kelola siklus transaksi konsumen mulai dari NUP, booking unit, verifikasi data konsumen, posisi kavling, wawancara perbankan, persetujuan SP3K, akad indent (PPJB), akad AJB, mutasi/pergantian konsumen, hingga pembatalan unit (`mkdt`, `konsumen`, `mkdt_kavling_history`).
@@ -198,7 +198,7 @@ Termasuk di dalamnya subfitur pelaporan performa penjualan dan konversi transaks
 - `app/Repositories/Mkdt/MkdtHistoryRepository.php` (55 baris, 4 public methods: `hasTable()`, `insert(array $fields)`, `countByKavling(int $idKavling)`, `getByKavling(int $idKavling, int $limit, int $offset)`)
 - `app/Repositories/Mkdt/PosisiKonsumenRepository.php` (639 baris, 15 public methods: `getBaseQuery($status = "Booking")`, `getQueryBatal()`, `getRiwayatExport($id_proyek, $status)`, `insertRiwayatExport($data)`, `getFirstProyek()`, `getPphList()`, `getPpnList()`, `getLiKeu()`, `getConfigShapeMap()`, `getChecklistSubItemsWithGroup()`, `getHakAksesByUser(int $userId, ?string $namaHak = null)`, `normalizeStatusKavling(?string $statusKavling)`, `applyStatusKavlingFilter(BaseBuilder $builder, string $statusKavling)`, `getRawDataTables(array $params, ?string $status = null)`, `getRawDataTablesBatal(array $params)`)
 - `app/Repositories/Mkdt/KonsumenRepository.php` (60 baris, 1 public methods: `getKonsumenTransaksi(int $idMkdt, $select = [])`)
-- `app/Repositories/Mkdt/NupRepository.php` (412 baris, 10 public methods: `getNupListByProyek(int $idProyek, ?string $search = null)`, `getNupDetail(int $idMkdt, bool $lock = false)`, `getKavlingRow(int $idKavling, bool $lock = false)`, `getKavlingLabel(?int $idKavling)`, `getProyekIdByKavling(?int $idKavling)`, `getKavlingOptionsForTransfer(int $idProyek, ?string $search = null, ?int $currentIdKavling = null, ?int $lastIdKavling = null, ?string $filterHargaJual = null)`, `insertKavlingHistory(array $data)`, `getKavlingHistory(int $idMkdt = 0, int $idKavling = 0)`, `isNoNupExists(string $noNup, int $idProyek, int $excludeIdMkdt = 0)`, `generateNextNupNumber(int $idProyek)`)
+- `app/Repositories/Mkdt/NupRepository.php` (439 baris, 10 public methods: `getNupListByProyek(int $idProyek, ?string $search = null)`, `getNupDetail(int $idMkdt, bool $lock = false)`, `getKavlingRow(int $idKavling, bool $lock = false)`, `getKavlingLabel(?int $idKavling)`, `getProyekIdByKavling(?int $idKavling)`, `getKavlingOptionsForTransfer(int $idProyek, ?string $search = null, ?int $currentIdKavling = null, ?int $lastIdKavling = null, ?string $filterHargaJual = null)`, `insertKavlingHistory(array $data)`, `getKavlingHistory(int $idMkdt = 0, int $idKavling = 0)`, `isNoNupExists(string $noNup, int $idProyek, int $excludeIdMkdt = 0)`, `generateNextNupNumber(int $idProyek)`)
 - `app/Repositories/Mkdt/PromoRepository.php` (201 baris, 7 public methods: `getProyekList()`, `getDataTables(array $params)`, `getAll(?int $idProyek = null, string $search = '')`, `getById(int $id)`, `insert(array $fields)`, `updateById(int $id, array $fields)`, `deactivate(int $id, int $actorId, string $timestamp)`)
 - `app/Repositories/Mkdt/BookingAkadReportRepository.php` (659 baris, 8 public methods: `getAvailableYears(int $idProyek)`, `getAvailableYearBounds(int $idProyek)`, `getMonthlyBookingTotals(int $idProyek, array $years)`, `getMonthlyAkadTotals(int $idProyek, array $years)`, `getMonthlyStatusTotals(int $idProyek, array $years)`, `getMonthlySummaryTotals(int $idProyek, array $years)`, `getSummary(int $idProyek, int $year)`, `getDetailRows(int $idProyek, int $year, int $month, string $category, array $dataTable = [])`)
 - `app/Repositories/Mkdt/StockRepository.php` (162 baris, 1 public methods: `getStockListDataTables(array $params)`)
@@ -216,7 +216,7 @@ Termasuk di dalamnya subfitur pelaporan performa penjualan dan konversi transaks
 - `app/Views/laporan` (3 file: `booking-akad.php`, `cash-in.php`, `hasil-akad.php`)
 
 ### JavaScript (2 file)
-- `public/assets/js/siteplan/mkdt.js` (3381 baris)
+- `public/assets/js/siteplan/mkdt.js` (3396 baris)
 - `public/assets/js/laporan-booking-akad.js` (691 baris)
 
 ### Zero-Downtime Shims (19 file)

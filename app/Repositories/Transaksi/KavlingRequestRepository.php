@@ -240,6 +240,7 @@ class KavlingRequestRepository
         }
 
         $hasAppliedCol    = $this->db->fieldExists('applied_id_tipe', 'kavling_request');
+        $hasAlasanBatal   = $this->db->fieldExists('alasan_batal', 'kavling_request');
         $hasCatatanCol    = $this->db->fieldExists('catatan_planning', 'kavling_request');
         $hasProcessedBy   = $this->db->fieldExists('processed_by', 'kavling_request');
         $hasProcessedAt   = $this->db->fieldExists('processed_at', 'kavling_request');
@@ -269,6 +270,9 @@ class KavlingRequestRepository
 
         if (! $hasAppliedCol) {
             $builder->select('NULL as applied_id_tipe', false);
+        }
+        if (! $hasAlasanBatal) {
+            $builder->select('NULL as alasan_batal', false);
         }
         if (! $hasCatatanCol) {
             $builder->select('NULL as catatan_planning', false);
@@ -316,7 +320,7 @@ class KavlingRequestRepository
     }
 
     /**
-     * @return array{all: int, pending: int, tambah_baru_pending: int, ubah_tipe_pending: int, approved: int, rejected: int, history: int}
+     * @return array{all: int, pending: int, tambah_baru_pending: int, ubah_tipe_pending: int, approved: int, rejected: int, cancelled: int, history: int}
      */
     public function getStatusCounts(int $idProyek): array
     {
@@ -328,6 +332,7 @@ class KavlingRequestRepository
                 'ubah_tipe_pending'   => 0,
                 'approved'            => 0,
                 'rejected'            => 0,
+                'cancelled'           => 0,
                 'history'             => 0,
             ];
         }
@@ -339,14 +344,16 @@ class KavlingRequestRepository
                 COUNT(CASE WHEN status = 'pending' AND jenis_request = 'tambah_baru' THEN 1 END) AS tambah_baru_pending_count,
                 COUNT(CASE WHEN status = 'pending' AND jenis_request = 'ubah_tipe' THEN 1 END) AS ubah_tipe_pending_count,
                 COUNT(CASE WHEN status = 'approved' THEN 1 END) AS approved_count,
-                COUNT(CASE WHEN status = 'rejected' THEN 1 END) AS rejected_count
+                COUNT(CASE WHEN status = 'rejected' THEN 1 END) AS rejected_count,
+                COUNT(CASE WHEN status = 'cancelled' THEN 1 END) AS cancelled_count
             ", false)
             ->where('id_proyek', $idProyek)
             ->get()
             ->getRow();
 
-        $approved = (int) ($row->approved_count ?? 0);
-        $rejected = (int) ($row->rejected_count ?? 0);
+        $approved  = (int) ($row->approved_count ?? 0);
+        $rejected  = (int) ($row->rejected_count ?? 0);
+        $cancelled = (int) ($row->cancelled_count ?? 0);
 
         return [
             'all'                 => (int) ($row->total_count ?? 0),
@@ -355,7 +362,8 @@ class KavlingRequestRepository
             'ubah_tipe_pending'   => (int) ($row->ubah_tipe_pending_count ?? 0),
             'approved'            => $approved,
             'rejected'            => $rejected,
-            'history'             => $approved + $rejected,
+            'cancelled'           => $cancelled,
+            'history'             => $approved + $rejected + $cancelled,
         ];
     }
 
@@ -371,6 +379,78 @@ class KavlingRequestRepository
         $this->applyListFilters($builder, 'kavling_request', $jenisRequest, $status);
 
         return (int) $builder->countAllResults();
+    }
+
+    /**
+     * @param int[] $idRequests
+     * @return object[]
+     */
+    public function findRequestsByIdsAndProyek(int $idProyek, array $idRequests): array
+    {
+        $ids = $this->normalizeIds($idRequests);
+        if ($idProyek <= 0 || $ids === [] || ! $this->db->tableExists('kavling_request')) {
+            return [];
+        }
+
+        $rows = $this->db->table('kavling_request')
+            ->where('id_proyek', $idProyek)
+            ->whereIn('id_request', $ids)
+            ->orderBy('id_request', 'ASC')
+            ->get()
+            ->getResult();
+
+        if ($rows === []) {
+            return [];
+        }
+
+        $foundIds = array_map(static fn (object $r): int => (int) $r->id_request, $rows);
+        if ($this->db->tableExists('kavling') && $this->db->tableExists('jalan') && $this->db->tableExists('tipe')) {
+            $kavlingMap = $this->loadKavlingsForRequests($foundIds, $rows);
+            foreach ($rows as $row) {
+                $row->kavlings = $kavlingMap[(int) $row->id_request] ?? [];
+            }
+        } else {
+            foreach ($rows as $row) {
+                $row->kavlings = [];
+            }
+        }
+
+        return $rows;
+    }
+
+    /**
+     * @param int[] $idRequests
+     */
+    public function markRequestsCancelled(array $idRequests, int $userId, ?string $alasanBatal, string $now): int
+    {
+        $ids = $this->normalizeIds($idRequests);
+        if ($ids === [] || ! $this->db->tableExists('kavling_request')) {
+            return 0;
+        }
+
+        $fields = [
+            'status' => 'cancelled',
+        ];
+
+        if ($this->db->fieldExists('alasan_batal', 'kavling_request')) {
+            $fields['alasan_batal'] = $alasanBatal;
+        }
+        if ($this->db->fieldExists('processed_by', 'kavling_request')) {
+            $fields['processed_by'] = $userId > 0 ? $userId : null;
+        }
+        if ($this->db->fieldExists('processed_at', 'kavling_request')) {
+            $fields['processed_at'] = $now;
+        }
+        if ($this->db->fieldExists('updated_at', 'kavling_request')) {
+            $fields['updated_at'] = $now;
+        }
+
+        $this->db->table('kavling_request')
+            ->whereIn('id_request', $ids)
+            ->where('status', 'pending')
+            ->update($fields);
+
+        return (int) $this->db->affectedRows();
     }
 
     /**
@@ -577,10 +657,10 @@ class KavlingRequestRepository
         }
 
         if ($status !== null && $status !== '') {
-            if (in_array($status, ['pending', 'approved', 'rejected'], true)) {
+            if (in_array($status, ['pending', 'approved', 'rejected', 'cancelled'], true)) {
                 $builder->where("{$tableAlias}.status", $status);
             } elseif ($status === 'history') {
-                $builder->whereIn("{$tableAlias}.status", ['approved', 'rejected']);
+                $builder->whereIn("{$tableAlias}.status", ['approved', 'rejected', 'cancelled']);
             }
         }
     }

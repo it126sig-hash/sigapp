@@ -101,6 +101,7 @@ Date.prototype.toDateInputValue = (function() {
     //declare layer
     var siteplan = new Konva.Layer(), //siteplan layer
         masked = new Konva.Layer(), //selection layer
+        targetOverlayLayer = new Konva.Layer({ listening: false }), // overlay border luar target layer
         tiketOverlayLayer = new Konva.Layer({ listening: false }), // overlay tiket masalah layer
         // datal = new Konva.Layer(), //kavling shape layer
         group = new Konva.Group({ //group for tooltip
@@ -156,6 +157,93 @@ Date.prototype.toDateInputValue = (function() {
         siteplanOthersRequest = null,
         siteplanLoadSequence = 0;
     let siteplanProblemItems = { kavling: [], others: [] };
+    let siteplanTargetItems = [];
+
+    function targetGapBridgeStorageKey() {
+        const proyekId = (typeof dt_proyek !== 'undefined' && dt_proyek && dt_proyek.id_proyek)
+            ? dt_proyek.id_proyek
+            : 'default';
+        return 'sigapp_siteplan_target_gap_bridge_' + proyekId;
+    }
+
+    function getSavedTargetGapBridge() {
+        const fallback = (typeof SiteplanTargetOverlay !== 'undefined' && typeof SiteplanTargetOverlay.DEFAULT_GAP_BRIDGE === 'number')
+            ? SiteplanTargetOverlay.DEFAULT_GAP_BRIDGE
+            : 2;
+        try {
+            const storage = getSiteplanStorage();
+            if (!storage) return fallback;
+            const raw = storage.getItem(targetGapBridgeStorageKey());
+            if (raw === null || raw === '') return fallback;
+            if (typeof SiteplanTargetOverlay !== 'undefined' && typeof SiteplanTargetOverlay.normalizeGapBridge === 'function') {
+                return SiteplanTargetOverlay.normalizeGapBridge(raw);
+            }
+            const num = Number(raw);
+            return Number.isFinite(num) ? Math.max(0, Math.min(12, Math.round(num * 10) / 10)) : fallback;
+        } catch (error) {
+            return fallback;
+        }
+    }
+
+    function getTargetGapBridge() {
+        const $input = $('#input-target-gap-bridge');
+        const rawVal = $input.length ? $input.val() : undefined;
+        if (typeof SiteplanTargetOverlay !== 'undefined' && typeof SiteplanTargetOverlay.normalizeGapBridge === 'function') {
+            return SiteplanTargetOverlay.normalizeGapBridge(rawVal);
+        }
+        const num = Number(rawVal);
+        if (rawVal === undefined || rawVal === null || rawVal === '' || !Number.isFinite(num)) {
+            return 2;
+        }
+        return Math.max(0, Math.min(12, Math.round(num * 10) / 10));
+    }
+
+    function applyTargetGapBridgeUI(value, persist) {
+        const normalized = (typeof SiteplanTargetOverlay !== 'undefined' && typeof SiteplanTargetOverlay.normalizeGapBridge === 'function')
+            ? SiteplanTargetOverlay.normalizeGapBridge(value)
+            : (Number.isFinite(Number(value)) && String(value).trim() !== '' ? Math.max(0, Math.min(12, Math.round(Number(value) * 10) / 10)) : 2);
+        $('#input-target-gap-bridge-range').val(normalized);
+        $('#input-target-gap-bridge').val(normalized);
+        $('#target-gap-bridge-value').text(normalized + ' px');
+        if (persist === true) {
+            try {
+                const storage = getSiteplanStorage();
+                if (storage) {
+                    storage.setItem(targetGapBridgeStorageKey(), String(normalized));
+                }
+            } catch (error) {
+                // ignore storage errors
+            }
+        }
+        return normalized;
+    }
+
+    function clearSiteplanTargetOverlay() {
+        if (typeof SiteplanTargetOverlay !== 'undefined' && typeof SiteplanTargetOverlay.clearOverlay === 'function') {
+            SiteplanTargetOverlay.clearOverlay(targetOverlayLayer);
+        } else if (typeof targetOverlayLayer !== 'undefined' && targetOverlayLayer) {
+            targetOverlayLayer.destroyChildren();
+            targetOverlayLayer.batchDraw();
+        }
+    }
+
+    function syncSiteplanTargetOverlay() {
+        if (typeof SiteplanTargetOverlay === 'undefined' || !targetOverlayLayer) return;
+        if (!isTargetFilterActive() || siteplanTargetItems.length === 0) {
+            clearSiteplanTargetOverlay();
+            return;
+        }
+        const isBaseVisible = function(targetId) {
+            const baseNode = siteplan.findOne('#' + targetId);
+            if (!baseNode) return false;
+            return typeof baseNode.visible === 'function' ? baseNode.visible() : true;
+        };
+        SiteplanTargetOverlay.buildOverlayShapes(Konva, targetOverlayLayer, siteplanTargetItems, isBaseVisible, {
+            strokeColor: '#000000',
+            borderWidth: 2.5,
+            gapBridge: getTargetGapBridge()
+        });
+    }
 
     function syncSiteplanTiketOverlay() {
         if (typeof SiteplanTiketOverlay === 'undefined' || !tiketOverlayLayer) return;
@@ -326,6 +414,8 @@ Date.prototype.toDateInputValue = (function() {
         clearShapeFilterSelection();
         siteplan.find('.siteplan-data-shape').forEach(shape => shape.destroy());
         siteplanProblemItems = { kavling: [], others: [] };
+        siteplanTargetItems = [];
+        clearSiteplanTargetOverlay();
         if (typeof SiteplanTiketOverlay !== 'undefined' && typeof SiteplanTiketOverlay.clearOverlay === 'function') {
             SiteplanTiketOverlay.clearOverlay(tiketOverlayLayer);
         } else if (typeof tiketOverlayLayer !== 'undefined' && tiketOverlayLayer) {
@@ -666,8 +756,6 @@ Date.prototype.toDateInputValue = (function() {
         const hasConsumer = isAkad || isBooking;
         const otherMode = selectedTargetOtherMode();
         const targetMode = selectedTargetKavlingMode();
-        const targetStroke = isTargetKavling ? '#000000' : undefined;
-        const targetStrokeWidth = isTargetKavling ? 2.5 : 0;
 
         // 1. Kavling dengan konsumen aktif (Akad / Booking) — berlaku untuk target maupun selain target
         if (hasConsumer) {
@@ -675,8 +763,9 @@ Date.prototype.toDateInputValue = (function() {
                 return {
                     hit: defaultHit,
                     preserveDefaultVisual: true,
-                    targetStroke: targetStroke,
-                    targetStrokeWidth: targetStrokeWidth
+                    isTargetKavling: isTargetKavling,
+                    targetStroke: undefined,
+                    targetStrokeWidth: 0
                 };
             }
 
@@ -691,8 +780,9 @@ Date.prototype.toDateInputValue = (function() {
                         tipe: 'Target'
                     },
                     preserveDefaultVisual: false,
-                    targetStroke: targetStroke,
-                    targetStrokeWidth: targetStrokeWidth
+                    isTargetKavling: isTargetKavling,
+                    targetStroke: undefined,
+                    targetStrokeWidth: 0
                 };
             }
 
@@ -703,8 +793,9 @@ Date.prototype.toDateInputValue = (function() {
                         tipe: 'Target'
                     },
                     preserveDefaultVisual: false,
-                    targetStroke: targetStroke,
-                    targetStrokeWidth: targetStrokeWidth
+                    isTargetKavling: isTargetKavling,
+                    targetStroke: undefined,
+                    targetStrokeWidth: 0
                 };
             }
 
@@ -714,8 +805,9 @@ Date.prototype.toDateInputValue = (function() {
                     tipe: 'Target'
                 },
                 preserveDefaultVisual: false,
-                targetStroke: targetStroke,
-                targetStrokeWidth: targetStrokeWidth
+                isTargetKavling: isTargetKavling,
+                targetStroke: undefined,
+                targetStrokeWidth: 0
             };
         }
 
@@ -725,6 +817,7 @@ Date.prototype.toDateInputValue = (function() {
                 return {
                     hit: defaultHit,
                     preserveDefaultVisual: true,
+                    isTargetKavling: isTargetKavling,
                     targetStroke: undefined,
                     targetStrokeWidth: 0
                 };
@@ -737,6 +830,7 @@ Date.prototype.toDateInputValue = (function() {
                     tipe: 'Target'
                 },
                 preserveDefaultVisual: false,
+                isTargetKavling: isTargetKavling,
                 targetStroke: undefined,
                 targetStrokeWidth: 0
             };
@@ -750,8 +844,9 @@ Date.prototype.toDateInputValue = (function() {
                     tipe: 'Target'
                 },
                 preserveDefaultVisual: false,
-                targetStroke: targetStroke,
-                targetStrokeWidth: targetStrokeWidth
+                isTargetKavling: isTargetKavling,
+                targetStroke: undefined,
+                targetStrokeWidth: 0
             };
         }
 
@@ -767,8 +862,9 @@ Date.prototype.toDateInputValue = (function() {
                     tipe: 'Tipe Target'
                 },
                 preserveDefaultVisual: false,
-                targetStroke: targetStroke,
-                targetStrokeWidth: targetStrokeWidth
+                isTargetKavling: isTargetKavling,
+                targetStroke: undefined,
+                targetStrokeWidth: 0
             };
         }
 
@@ -777,8 +873,9 @@ Date.prototype.toDateInputValue = (function() {
             return {
                 hit: defaultHit,
                 preserveDefaultVisual: true,
-                targetStroke: targetStroke,
-                targetStrokeWidth: targetStrokeWidth
+                isTargetKavling: isTargetKavling,
+                targetStroke: undefined,
+                targetStrokeWidth: 0
             };
         }
 
@@ -789,8 +886,9 @@ Date.prototype.toDateInputValue = (function() {
                     tipe: targetSubsidi
                 },
                 preserveDefaultVisual: false,
-                targetStroke: targetStroke,
-                targetStrokeWidth: targetStrokeWidth
+                isTargetKavling: isTargetKavling,
+                targetStroke: undefined,
+                targetStrokeWidth: 0
             };
         }
 
@@ -802,8 +900,9 @@ Date.prototype.toDateInputValue = (function() {
                     tipe: 'Target'
                 },
                 preserveDefaultVisual: false,
-                targetStroke: targetStroke,
-                targetStrokeWidth: targetStrokeWidth
+                isTargetKavling: isTargetKavling,
+                targetStroke: undefined,
+                targetStrokeWidth: 0
             };
         }
 
@@ -813,8 +912,9 @@ Date.prototype.toDateInputValue = (function() {
                 tipe: 'Target'
             },
             preserveDefaultVisual: false,
-            targetStroke: targetStroke,
-            targetStrokeWidth: targetStrokeWidth
+            isTargetKavling: isTargetKavling,
+            targetStroke: undefined,
+            targetStrokeWidth: 0
         };
     }
 
@@ -844,6 +944,42 @@ Date.prototype.toDateInputValue = (function() {
     $("#filter-target-other-mode, #filter-target-kavling-mode").on("change", function() {
         if (isTargetFilterActive() && typeof window.apply_server_filter === "function") {
             window.apply_server_filter();
+        }
+    });
+
+    $(document).on('click', '#btn-toggle-target-border-settings', function() {
+        const $btn = $(this);
+        const $panel = $('#target-border-settings-panel');
+        if (!$panel.length) return;
+        const willOpen = !$panel.is(':visible');
+        $btn.toggleClass('is-active', willOpen);
+        $btn.attr('aria-expanded', willOpen ? 'true' : 'false');
+        $panel.stop(true, true).slideToggle(180, function() {
+            const isOpen = $panel.is(':visible');
+            $btn.toggleClass('is-active', isOpen);
+            $btn.attr('aria-expanded', isOpen ? 'true' : 'false');
+        });
+    });
+
+    $(document).on('input change', '#input-target-gap-bridge-range', function() {
+        applyTargetGapBridgeUI(this.value, true);
+        if (isTargetFilterActive()) {
+            syncSiteplanTargetOverlay();
+        }
+    });
+
+    $(document).on('input change', '#input-target-gap-bridge', function() {
+        if (this.value === '') return;
+        applyTargetGapBridgeUI(this.value, true);
+        if (isTargetFilterActive()) {
+            syncSiteplanTargetOverlay();
+        }
+    });
+
+    $(document).on('blur', '#input-target-gap-bridge', function() {
+        applyTargetGapBridgeUI(this.value, true);
+        if (isTargetFilterActive()) {
+            syncSiteplanTargetOverlay();
         }
     });
 
@@ -1369,6 +1505,7 @@ Date.prototype.toDateInputValue = (function() {
             node.visible(SiteplanShapeFilter.shouldShow(filterable, legendKeys, selectedShapeLegendKeys));
         });
 
+        syncSiteplanTargetOverlay();
         siteplan.batchDraw();
         masked.batchDraw();
     }
@@ -1545,6 +1682,8 @@ Date.prototype.toDateInputValue = (function() {
 
         siteplan.find('.siteplan-data-shape').forEach(shape => shape.destroy());
         siteplanProblemItems = { kavling: [], others: [] };
+        siteplanTargetItems = [];
+        clearSiteplanTargetOverlay();
         if (typeof SiteplanTiketOverlay !== 'undefined' && typeof SiteplanTiketOverlay.clearOverlay === 'function') {
             SiteplanTiketOverlay.clearOverlay(tiketOverlayLayer);
         } else if (typeof tiketOverlayLayer !== 'undefined' && tiketOverlayLayer) {
@@ -1588,6 +1727,7 @@ Date.prototype.toDateInputValue = (function() {
                     tp_rumah,
                     subsidi;
 
+                siteplanTargetItems = [];
                 targetTipeColorMap = {};
                 filterwarna['Tipe Target'] = null;
                 syncTargetYearDropdown(targetYears);
@@ -1917,9 +2057,6 @@ Date.prototype.toDateInputValue = (function() {
                         hit = targetPlan.hit;
                     }
                     const preserveTargetDefault = Boolean(targetPlan && targetPlan.preserveDefaultVisual);
-                    const targetStroke = targetPlan ? targetPlan.targetStroke : undefined;
-                    const targetStrokeWidth = targetPlan ? (Number(targetPlan.targetStrokeWidth) || 0) : 0;
-
                     const fieldChecks = {
                         'sertifikat_is_balik_nama': (val) => val === 'Sudah',
                         'pbb_is_balik_nama':        (val) => val === 'Sudah',
@@ -2058,6 +2195,12 @@ Date.prototype.toDateInputValue = (function() {
                     };
 
                     const pointsArr = JSON.parse("[" + r[p].points + "]");
+                    if (isTargetMode && targetPlan && targetPlan.isTargetKavling) {
+                        siteplanTargetItems.push({
+                            id_kavling: r[p].id_kavling,
+                            points: pointsArr
+                        });
+                    }
 
                     if (useCompositeShape) {
                         kav = SiteplanCompositeShape.createKonvaShape(Konva, {
@@ -2071,8 +2214,8 @@ Date.prototype.toDateInputValue = (function() {
                             tooltipRows: tooltipRows,
                             legendKeys: legendKeys,
                             strokeWidthResolver: get_kategori_stroke_width,
-                            stroke: targetStroke || '#000',
-                            strokeWidth: targetStrokeWidth,
+                            stroke: undefined,
+                            strokeWidth: 0,
                             opacity: 1,
                             globalCompositeOperation: 'source-over'
                         }, get_kategori_color);
@@ -2081,8 +2224,8 @@ Date.prototype.toDateInputValue = (function() {
                         kav = new Konva.Line({
                             points: pointsArr,
                             fill: get_kategori_color(hitColorConfig),
-                            stroke: targetStroke,
-                            strokeWidth: targetStrokeWidth,
+                            stroke: undefined,
+                            strokeWidth: 0,
                             lineJoin: 'round',
                             lineCap: 'round',
                             strokeScaleEnabled: true,
@@ -2111,6 +2254,7 @@ Date.prototype.toDateInputValue = (function() {
                     }
                 }
                 siteplanProblemItems.kavling = problemKavlings;
+                syncSiteplanTargetOverlay();
                 syncSiteplanTiketOverlay();
                 if (window.isTargetSetModeActive() && typeof window.renderTargetStagedCanvasHighlights === 'function') {
                     window.renderTargetStagedCanvasHighlights();
@@ -2827,6 +2971,7 @@ Date.prototype.toDateInputValue = (function() {
         const rawClusterVal = $('#filter-id_cluster').val();
         const preservedClusters = selectedClusterIds();
         $('#form-filter-kategori')[0].reset();
+        applyTargetGapBridgeUI(getSavedTargetGapBridge(), false);
         $('#filter-id_cluster').val(rawClusterVal).trigger('change.select2');
         $('#filter-id_jalan').val(null).trigger('change.select2');
         $('#pilih-divisi').val('0').trigger('change.select2');
@@ -2845,6 +2990,7 @@ Date.prototype.toDateInputValue = (function() {
     }
 
     $(document).ready(function() {
+        applyTargetGapBridgeUI(getSavedTargetGapBridge(), false);
         fetch_kategori_options();
     });
 
@@ -2978,7 +3124,7 @@ Date.prototype.toDateInputValue = (function() {
         window.apply_server_filter();
     }
     // stage.add(siteplan, masked, datal);
-    stage.add(siteplan, tiketOverlayLayer, masked);
+    stage.add(siteplan, targetOverlayLayer, tiketOverlayLayer, masked);
     stage.draw();
     siteplanStageReady = true;
     tryInitSiteplanCanvas();

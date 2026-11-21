@@ -221,6 +221,8 @@ class NupRepository
                 k.harga_akhir,
                 k.harga_akhir_tgl,
                 k.harga_akhir_oleh,
+                k.status_tanah,
+                k.luas_tanah,
                 j.nama_jalan,
                 j.id_cluster,
                 cl.nama_cluster,
@@ -231,6 +233,7 @@ class NupRepository
                 t.lt,
                 hj.id AS id_hargajual,
                 hj.hargajual AS nominal_hargajual,
+                hj.lt AS hj_lt,
                 m.status_mkdt,
                 m.is_batal,
                 c.nama_konsumen AS active_nama_konsumen
@@ -291,6 +294,28 @@ class NupRepository
             $nominalHj    = (float) ($r['nominal_hargajual'] ?? 0);
             $hasHargaJual = $idHargaJual > 0 && $nominalHj > 0;
 
+            $statusTanahRaw = trim((string) ($r['status_tanah'] ?? ''));
+            $statusTanah    = $statusTanahRaw !== '' ? $statusTanahRaw : 'Standar';
+            $kavlingLuas    = (float) ($r['luas_tanah'] ?? 0);
+            $hjLt           = (float) ($r['hj_lt'] ?? 0);
+            $tipeLt         = (float) ($r['lt'] ?? 0);
+
+            if (strcasecmp($statusTanah, 'Kelebihan Tanah') === 0 && $kavlingLuas > 0) {
+                $rawEffectiveLt = $kavlingLuas;
+            } elseif ($hjLt > 0) {
+                $rawEffectiveLt = $hjLt;
+            } elseif ($tipeLt > 0) {
+                $rawEffectiveLt = $tipeLt;
+            } elseif ($kavlingLuas > 0) {
+                $rawEffectiveLt = $kavlingLuas;
+            } else {
+                $rawEffectiveLt = 0.0;
+            }
+
+            $effectiveLuasTanah = ($rawEffectiveLt == (int) $rawEffectiveLt)
+                ? (int) $rawEffectiveLt
+                : $rawEffectiveLt;
+
             $results[] = [
                 'id_kavling'        => $idKav,
                 'nama_jalan'        => $r['nama_jalan'] ?? '',
@@ -301,6 +326,8 @@ class NupRepository
                 'no_tipe_rumah'     => $r['no_tipe_rumah'] ?? '',
                 'lb'                => $r['lb'] ?? '',
                 'lt'                => $r['lt'] ?? '',
+                'status_tanah'      => $statusTanah,
+                'luas_tanah'        => $effectiveLuasTanah,
                 'has_hargajual'     => $hasHargaJual,
                 'harga_akhir'       => $hasHargaJual ? (string) ($r['harga_akhir'] ?: $idHargaJual) : '-',
                 'id_hargajual'      => $hasHargaJual ? (string) $idHargaJual : '-',

@@ -574,12 +574,27 @@ function bindKavlingContext(sh) {
   ui.fields.id_kavling.val(state.id_kavling);
   ui.fields.id_mkdt.val(state.id_mkdt);
 
+  const pendingCtx = window.SIGAPP_NUP && window.SIGAPP_NUP.pendingTransferContext;
+  const hasPendingTransfer = Boolean(
+    pendingCtx &&
+      String(pendingCtx.to_id_kavling || "") === String(state.id_kavling || "") &&
+      String(pendingCtx.id_mkdt || "") === String(state.id_mkdt || ""),
+  );
+
   // tombol print
   if (state.id_mkdt == null) {
     ui.btn.printSPPTB
       .attr(
         "onclick",
         `return swal('error', 'Data konsumen harus disimpan terlebih dahulu');`,
+      )
+      .attr("target", "")
+      .prop("href", "#");
+  } else if (hasPendingTransfer) {
+    ui.btn.printSPPTB
+      .attr(
+        "onclick",
+        `swal('warning', 'Simpan perubahan Pindah Kavling terlebih dahulu sebelum mencetak SPPTB'); return false;`,
       )
       .attr("target", "")
       .prop("href", "#");

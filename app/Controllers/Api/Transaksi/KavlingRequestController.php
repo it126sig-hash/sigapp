@@ -193,10 +193,10 @@ class KavlingRequestController extends BaseApiController
         }
 
         $rawStatus    = isset($input['status']) ? trim((string) $input['status']) : '';
-        $statusFilter = in_array($rawStatus, ['pending', 'approved', 'rejected', 'history'], true) ? $rawStatus : null;
+        $statusFilter = in_array($rawStatus, ['pending', 'approved', 'rejected', 'cancelled', 'history'], true) ? $rawStatus : null;
         if ($rawStatus !== '' && $rawStatus !== 'all' && $statusFilter === null) {
             return $this->error('Filter status tidak valid.', 422, [
-                'status' => 'Status harus bernilai pending, approved, rejected, history, atau all.',
+                'status' => 'Status harus bernilai pending, approved, rejected, cancelled, history, atau all.',
             ]);
         }
 
@@ -206,8 +206,18 @@ class KavlingRequestController extends BaseApiController
             ? min(100, max(1, (int) ($input['per_page'] ?? 25)))
             : 500;
 
+        $currentUserId = (int) (function_exists('user_id') ? (user_id() ?? 0) : 0);
+        $isAdmin       = in_groups(['1']);
+        $isMkdt        = in_groups(['4']);
+
         try {
             $data   = $this->service->getList($idProyek, $statusFilter, $page, $perPage, $jenisFilter);
+            $data   = array_map(static function (array $item) use ($currentUserId, $isAdmin, $isMkdt): array {
+                $item['can_cancel'] = ($item['status'] ?? '') === 'pending'
+                    && ($isAdmin || ($isMkdt && (int) ($item['created_by'] ?? 0) === $currentUserId));
+
+                return $item;
+            }, $data);
             $counts = $this->service->getStatusCounts($idProyek);
             $total  = $this->service->countFiltered($idProyek, $jenisFilter, $statusFilter);
 
@@ -224,6 +234,7 @@ class KavlingRequestController extends BaseApiController
                         'can_submit'             => in_groups(['1', '4']),
                         'can_process'            => in_groups(['1', '6']),
                         'can_apply_ubah_kavling' => in_groups(['1', '6']),
+                        'can_cancel'             => ($isAdmin || $isMkdt),
                     ],
                 ],
                 'token'    => csrf_hash(),
@@ -315,6 +326,81 @@ class KavlingRequestController extends BaseApiController
             $code = str_contains(strtolower($e->getMessage()), 'tidak ditemukan') ? 404 : 400;
 
             return $this->error($e->getMessage(), $code);
+        }
+    }
+
+    /**
+     * Batalkan satu atau beberapa request kavling berstatus pending (Admin / MKDT pemilik pengajuan)
+     */
+    public function cancel(): ResponseInterface
+    {
+        $userId = (int) (function_exists('user_id') ? (user_id() ?? 0) : 0);
+        if ($userId <= 0) {
+            return $this->error('Sesi telah berakhir, silakan login kembali.', 401);
+        }
+
+        if (! in_groups(['1', '4'])) {
+            return $this->error('Akses ditolak. Hanya Admin atau MKDT yang dapat membatalkan request kavling.', 403);
+        }
+
+        $input = $this->getRequestData();
+        $rules = [
+            'id_proyek'    => 'required|is_natural_no_zero',
+            'alasan_batal' => 'permit_empty|string|max_length[1000]',
+        ];
+
+        $idRequests = [];
+        if (array_key_exists('id_requests', $input) && $input['id_requests'] !== null && $input['id_requests'] !== '') {
+            if (is_array($input['id_requests'])) {
+                foreach ($input['id_requests'] as $rawId) {
+                    if (is_scalar($rawId) && (int) $rawId > 0) {
+                        $idRequests[] = (int) $rawId;
+                    }
+                }
+            } elseif (is_scalar($input['id_requests'])) {
+                foreach (preg_split('/[;,]+/', (string) $input['id_requests']) ?: [] as $rawId) {
+                    $parsed = (int) trim($rawId);
+                    if ($parsed > 0) {
+                        $idRequests[] = $parsed;
+                    }
+                }
+            }
+        }
+        if (! empty($input['id_request']) && is_scalar($input['id_request']) && (int) $input['id_request'] > 0) {
+            $idRequests[] = (int) $input['id_request'];
+        }
+        $idRequests = array_values(array_unique($idRequests));
+
+        $errors = [];
+        if (! $this->validateData($input, $rules)) {
+            $errors = $this->validator->getErrors();
+        }
+        if ($idRequests === []) {
+            $errors['id_requests'] = 'Minimal 1 request harus dipilih untuk dibatalkan.';
+        }
+        if ($errors !== []) {
+            return $this->error('Validasi gagal', 422, $errors);
+        }
+
+        $alasanBatal = array_key_exists('alasan_batal', $input) && $input['alasan_batal'] !== null
+            ? trim((string) $input['alasan_batal'])
+            : null;
+        if ($alasanBatal === '') {
+            $alasanBatal = null;
+        }
+
+        try {
+            $result = $this->service->cancelRequests(
+                (int) $input['id_proyek'],
+                $idRequests,
+                $userId,
+                in_groups(['1']),
+                $alasanBatal
+            );
+
+            return $this->success($result, $result['message']);
+        } catch (Throwable $e) {
+            return $this->error($e->getMessage(), 400);
         }
     }
 

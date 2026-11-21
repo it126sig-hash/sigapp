@@ -157,6 +157,66 @@ $rkProyekNama             = isset($data['proyek']->nama_proyek) ? (string) $data
                         </div>
                         <?php endif; ?>
 
+                        <?php if ($canCreateRequestKavling && ! $canProcessRequestKavling): ?>
+                        <div class="divider divider-left">
+                            <div class="divider-text">Pengajuan Tambah Kavling Menunggu (Pending)</div>
+                        </div>
+                        <div class="card rk-card mb-0" id="rk-mkdt-tambah-card">
+                            <div class="rk-card-header">
+                                <div class="d-flex align-items-center flex-wrap" style="gap: .5rem;">
+                                    <span class="rk-status-pill is-pending">
+                                        <i class="fas fa-clock"></i> Menunggu (<span id="rk-mkdt-tambah-pending-count">0</span>)
+                                    </span>
+                                    <small class="text-muted">Centang pengajuan milik Anda untuk dibatalkan sekaligus.</small>
+                                </div>
+                                <button type="button" id="btn-rk-mkdt-refresh-tambah" class="btn btn-outline-secondary btn-sm">
+                                    <i class="fas fa-sync-alt mr-25"></i>Refresh
+                                </button>
+                            </div>
+                            <div id="rk-mkdt-tambah-batch-bar" class="rk-batch-toolbar" hidden>
+                                <div class="rk-batch-info">
+                                    <span class="rk-batch-count-badge"><span id="rk-mkdt-tambah-selected-count">0</span> dipilih</span>
+                                    <span class="rk-batch-text">Pengajuan tambah kavling siap dibatalkan</span>
+                                </div>
+                                <div class="rk-batch-actions">
+                                    <button type="button" id="btn-rk-mkdt-batch-cancel-tambah" class="btn btn-danger btn-sm">
+                                        <i class="fas fa-ban mr-25"></i>Batalkan Terpilih
+                                    </button>
+                                    <button type="button" id="btn-rk-mkdt-clear-tambah" class="btn btn-outline-secondary btn-sm">
+                                        <i class="fas fa-times mr-25"></i>Batal Pilih
+                                    </button>
+                                </div>
+                            </div>
+                            <div id="rk-mkdt-tambah-loading" class="rk-loading-box" hidden>
+                                <div class="spinner-border text-primary spinner-border-sm mr-50" role="status"></div>
+                                <span>Memuat pengajuan tambah kavling menunggu...</span>
+                            </div>
+                            <div id="rk-mkdt-tambah-table-wrap" class="table-responsive">
+                                <table id="table-rk-mkdt-tambah" class="table table-hover table-sm mb-0 rk-table">
+                                    <thead>
+                                        <tr>
+                                            <th class="text-center rk-check-col">
+                                                <input type="checkbox" id="rk-mkdt-tambah-check-all" class="rk-row-checkbox" aria-label="Pilih semua pengajuan tambah kavling menunggu">
+                                            </th>
+                                            <th class="text-center" style="width: 48px;">No</th>
+                                            <th style="min-width: 150px;">Tanggal &amp; Pengaju</th>
+                                            <th style="min-width: 190px;">Daftar Jalan</th>
+                                            <th style="min-width: 185px;">Tipe Rumah Usulan</th>
+                                            <th style="min-width: 220px;">Keterangan MKDT</th>
+                                            <th class="text-center" style="width: 110px;">Aksi</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="tbody-rk-mkdt-tambah"></tbody>
+                                </table>
+                            </div>
+                            <div id="rk-mkdt-tambah-empty" class="rk-empty-box" hidden>
+                                <i class="fas fa-inbox d-block"></i>
+                                <div class="font-weight-bold">Belum ada pengajuan tambah kavling menunggu</div>
+                                <small class="text-muted">Pengajuan yang Anda kirim dan masih menunggu tindak lanjut Planning akan tampil di sini.</small>
+                            </div>
+                        </div>
+                        <?php endif; ?>
+
                         <?php if ($canProcessRequestKavling): ?>
                         <div class="divider divider-left <?= $canCreateRequestKavling ? '' : 'mt-0' ?>">
                             <div class="divider-text">Antrean Request Tambah Kavling (Planning)</div>
@@ -262,6 +322,66 @@ $rkProyekNama             = isset($data['proyek']->nama_proyek) ? (string) $data
                         </div>
                         <?php endif; ?>
 
+                        <?php if ($canCreateRequestKavling && ! $canProcessRequestKavling): ?>
+                        <div class="divider divider-left">
+                            <div class="divider-text">Pengajuan Ubah Kavling Menunggu (Pending)</div>
+                        </div>
+                        <div class="card rk-card mb-0" id="rk-mkdt-ubah-card">
+                            <div class="rk-card-header">
+                                <div class="d-flex align-items-center flex-wrap" style="gap: .5rem;">
+                                    <span class="rk-status-pill is-pending">
+                                        <i class="fas fa-clock"></i> Menunggu (<span id="rk-mkdt-ubah-pending-count">0</span>)
+                                    </span>
+                                    <small class="text-muted">Centang pengajuan milik Anda untuk dibatalkan sekaligus.</small>
+                                </div>
+                                <button type="button" id="btn-rk-mkdt-refresh-ubah" class="btn btn-outline-secondary btn-sm">
+                                    <i class="fas fa-sync-alt mr-25"></i>Refresh
+                                </button>
+                            </div>
+                            <div id="rk-mkdt-ubah-batch-bar" class="rk-batch-toolbar" hidden>
+                                <div class="rk-batch-info">
+                                    <span class="rk-batch-count-badge"><span id="rk-mkdt-ubah-selected-count">0</span> dipilih</span>
+                                    <span class="rk-batch-text">Pengajuan ubah kavling siap dibatalkan</span>
+                                </div>
+                                <div class="rk-batch-actions">
+                                    <button type="button" id="btn-rk-mkdt-batch-cancel-ubah" class="btn btn-danger btn-sm">
+                                        <i class="fas fa-ban mr-25"></i>Batalkan Terpilih
+                                    </button>
+                                    <button type="button" id="btn-rk-mkdt-clear-ubah" class="btn btn-outline-secondary btn-sm">
+                                        <i class="fas fa-times mr-25"></i>Batal Pilih
+                                    </button>
+                                </div>
+                            </div>
+                            <div id="rk-mkdt-ubah-loading" class="rk-loading-box" hidden>
+                                <div class="spinner-border text-primary spinner-border-sm mr-50" role="status"></div>
+                                <span>Memuat pengajuan ubah kavling menunggu...</span>
+                            </div>
+                            <div id="rk-mkdt-ubah-table-wrap" class="table-responsive">
+                                <table id="table-rk-mkdt-ubah" class="table table-hover table-sm mb-0 rk-table">
+                                    <thead>
+                                        <tr>
+                                            <th class="text-center rk-check-col">
+                                                <input type="checkbox" id="rk-mkdt-ubah-check-all" class="rk-row-checkbox" aria-label="Pilih semua pengajuan ubah kavling menunggu">
+                                            </th>
+                                            <th class="text-center" style="width: 48px;">No</th>
+                                            <th style="min-width: 150px;">Tanggal &amp; Pengaju</th>
+                                            <th style="min-width: 230px;">Daftar Kavling &amp; Info Konsumen</th>
+                                            <th style="min-width: 185px;">Tipe Rumah Usulan</th>
+                                            <th style="min-width: 210px;">Keterangan MKDT</th>
+                                            <th class="text-center" style="width: 110px;">Aksi</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="tbody-rk-mkdt-ubah"></tbody>
+                                </table>
+                            </div>
+                            <div id="rk-mkdt-ubah-empty" class="rk-empty-box" hidden>
+                                <i class="fas fa-inbox d-block"></i>
+                                <div class="font-weight-bold">Belum ada pengajuan ubah kavling menunggu</div>
+                                <small class="text-muted">Pengajuan yang Anda kirim dan masih menunggu tindak lanjut Planning akan tampil di sini.</small>
+                            </div>
+                        </div>
+                        <?php endif; ?>
+
                         <?php if ($canProcessRequestKavling): ?>
                         <div class="divider divider-left <?= $canCreateRequestKavling ? '' : 'mt-0' ?>">
                             <div class="divider-text">Antrean Request Ubah Tipe Kavling (Planning)</div>
@@ -329,6 +449,9 @@ $rkProyekNama             = isset($data['proyek']->nama_proyek) ? (string) $data
                                         <button type="button" class="rk-filter-pill" data-status="rejected">
                                             Ditolak (<span id="rk-riwayat-count-rejected">0</span>)
                                         </button>
+                                        <button type="button" class="rk-filter-pill" data-status="cancelled">
+                                            Dibatalkan (<span id="rk-riwayat-count-cancelled">0</span>)
+                                        </button>
                                     </div>
 
                                     <div class="d-flex flex-wrap align-items-center" style="gap: .5rem;">
@@ -350,6 +473,22 @@ $rkProyekNama             = isset($data['proyek']->nama_proyek) ? (string) $data
                         </div>
 
                         <div class="card rk-card mb-0">
+                            <?php if ($canCreateRequestKavling): ?>
+                            <div id="rk-riwayat-batch-bar" class="rk-batch-toolbar" hidden>
+                                <div class="rk-batch-info">
+                                    <span class="rk-batch-count-badge"><span id="rk-riwayat-selected-count">0</span> dipilih</span>
+                                    <span class="rk-batch-text">Request menunggu siap dibatalkan</span>
+                                </div>
+                                <div class="rk-batch-actions">
+                                    <button type="button" id="btn-rk-riwayat-batch-cancel" class="btn btn-danger btn-sm">
+                                        <i class="fas fa-ban mr-25"></i>Batalkan Terpilih
+                                    </button>
+                                    <button type="button" id="btn-rk-riwayat-clear-select" class="btn btn-outline-secondary btn-sm">
+                                        <i class="fas fa-times mr-25"></i>Batal Pilih
+                                    </button>
+                                </div>
+                            </div>
+                            <?php endif; ?>
                             <div id="rk-riwayat-loading" class="rk-loading-box" hidden>
                                 <div class="spinner-border text-primary spinner-border-sm mr-50" role="status"></div>
                                 <span>Memuat riwayat pengajuan request kavling...</span>
@@ -358,6 +497,11 @@ $rkProyekNama             = isset($data['proyek']->nama_proyek) ? (string) $data
                                 <table id="table-rk-riwayat" class="table table-hover table-sm mb-0 rk-table">
                                     <thead>
                                         <tr>
+                                            <?php if ($canCreateRequestKavling): ?>
+                                            <th class="text-center rk-check-col">
+                                                <input type="checkbox" id="rk-riwayat-check-all" class="rk-row-checkbox" aria-label="Pilih semua request menunggu yang dapat dibatalkan">
+                                            </th>
+                                            <?php endif; ?>
                                             <th class="text-center" style="width: 48px;">No</th>
                                             <th style="min-width: 145px;">Tanggal &amp; Pengaju</th>
                                             <th class="text-center" style="width: 130px;">Jenis Request</th>
@@ -365,7 +509,10 @@ $rkProyekNama             = isset($data['proyek']->nama_proyek) ? (string) $data
                                             <th style="min-width: 195px;">Tipe Usulan &amp; Diterapkan</th>
                                             <th style="min-width: 190px;">Keterangan MKDT</th>
                                             <th class="text-center" style="width: 115px;">Status</th>
-                                            <th style="min-width: 210px;">Catatan / Notes Planning</th>
+                                            <th style="min-width: 210px;">Catatan / Info Proses</th>
+                                            <?php if ($canCreateRequestKavling): ?>
+                                            <th class="text-center" style="width: 110px;">Aksi</th>
+                                            <?php endif; ?>
                                         </tr>
                                     </thead>
                                     <tbody id="tbody-rk-riwayat"></tbody>

@@ -122,6 +122,7 @@ class ModuleCatalog
                     'siteplan-detail-modal.js',
                     'siteplan/target.js',
                     'siteplan/tiket-overlay.js',
+                    'siteplan/target-overlay.js',
                 ],
                 'assets_css' => [
                     'siteplan-target.css',

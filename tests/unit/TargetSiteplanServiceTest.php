@@ -987,6 +987,237 @@ final class TargetSiteplanServiceTest extends CIUnitTestCase
         $this->assertStringContainsString('Custom 31/72: 2 kavling', $notif['data']->message);
     }
 
+    public function testKavlingRequestCancelSingleAndBatchReleasesPendingKavlingAndNotifiesPlanning(): void
+    {
+        $this->conn->query('DROP TABLE IF EXISTS db_proyek');
+        $this->conn->query('CREATE TABLE db_proyek (
+            id_proyek INTEGER PRIMARY KEY,
+            nama_proyek TEXT
+        )');
+        $this->conn->table('proyek')->insert([
+            'id_proyek'   => 1,
+            'nama_proyek' => 'Proyek Uji',
+        ]);
+
+        $this->conn->query('DROP TABLE IF EXISTS db_users');
+        $this->conn->query('CREATE TABLE db_users (
+            id INTEGER PRIMARY KEY,
+            username TEXT,
+            name TEXT NULL
+        )');
+        $this->conn->table('users')->insertBatch([
+            ['id' => 1, 'username' => 'admin_user', 'name' => 'Admin Utama'],
+            ['id' => 7, 'username' => 'mkdt_user', 'name' => 'MKDT Satu'],
+            ['id' => 8, 'username' => 'mkdt_other', 'name' => 'MKDT Dua'],
+        ]);
+
+        $this->conn->query('DROP TABLE IF EXISTS db_kavling_request_jalan');
+        $this->conn->query('DROP TABLE IF EXISTS db_kavling_request_kavling');
+        $this->conn->query('DROP TABLE IF EXISTS db_kavling_request');
+        $this->conn->query('CREATE TABLE db_kavling_request (
+            id_request INTEGER PRIMARY KEY AUTOINCREMENT,
+            id_proyek INTEGER,
+            jenis_request TEXT,
+            id_kavling INTEGER NULL,
+            id_cluster INTEGER NULL,
+            id_jalan INTEGER NULL,
+            id_tipe INTEGER NULL,
+            applied_id_tipe INTEGER NULL,
+            tipe_manual TEXT NULL,
+            keterangan TEXT NULL,
+            status TEXT DEFAULT "pending",
+            alasan_tolak TEXT NULL,
+            alasan_batal TEXT NULL,
+            catatan_planning TEXT NULL,
+            created_by INTEGER NULL,
+            processed_by INTEGER NULL,
+            processed_at TEXT NULL,
+            created_at TEXT NULL,
+            updated_at TEXT NULL
+        )');
+        $this->conn->query('CREATE TABLE db_kavling_request_jalan (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            id_request INTEGER,
+            id_jalan INTEGER,
+            created_at TEXT NULL
+        )');
+        $this->conn->query('CREATE TABLE db_kavling_request_kavling (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            id_request INTEGER,
+            id_kavling INTEGER,
+            old_id_tipe INTEGER NULL,
+            created_at TEXT NULL
+        )');
+        $this->conn->resetDataCache();
+
+        $capturedNotifications = [];
+        $notifStub = new class ($capturedNotifications) extends \App\Services\NotifikasiService {
+            private array $captured;
+
+            public function __construct(array &$captured)
+            {
+                $this->captured = &$captured;
+            }
+
+            public function create(\App\Data\NotificationData $data, \App\Data\NotificationAudience $audience): int
+            {
+                $this->captured[] = [
+                    'data'     => $data,
+                    'audience' => $audience,
+                ];
+
+                return count($this->captured);
+            }
+        };
+
+        $reqModel   = new \App\Models\KavlingRequestModel($this->conn);
+        $reqService = new \App\Services\Transaksi\KavlingRequestService($this->conn, $reqModel, $notifStub);
+
+        // 1. MKDT user 7 submits: req #1 (ubah_tipe kavling 101), req #2 (tambah_baru), req #3 (ubah_tipe kavling 102)
+        $r1 = $reqService->submitRequest([
+            'id_proyek'     => 1,
+            'jenis_request' => 'ubah_tipe',
+            'id_kavlings'   => [101],
+            'id_tipe'       => 12,
+            'keterangan'    => 'Salah pilih tipe',
+        ], 7);
+        $r2 = $reqService->submitRequest([
+            'id_proyek'     => 1,
+            'jenis_request' => 'tambah_baru',
+            'id_cluster'    => 1,
+            'id_jalans'     => [1],
+            'id_tipe'       => 10,
+            'keterangan'    => 'Tambah blok A',
+        ], 7);
+        $r3 = $reqService->submitRequest([
+            'id_proyek'     => 1,
+            'jenis_request' => 'ubah_tipe',
+            'id_kavlings'   => [102],
+            'id_tipe'       => 12,
+            'keterangan'    => 'Revisi kavling 102',
+        ], 7);
+        // MKDT user 8 submits req #4 (tambah_baru)
+        $r4 = $reqService->submitRequest([
+            'id_proyek'     => 1,
+            'jenis_request' => 'tambah_baru',
+            'id_cluster'    => 1,
+            'id_jalans'     => [1],
+            'id_tipe'       => 10,
+            'keterangan'    => 'Pengajuan MKDT lain',
+        ], 8);
+        // Mark r3 as approved so it is non-pending
+        $this->conn->table('kavling_request')
+            ->where('id_request', $r3['id_request'])
+            ->update(['status' => 'approved']);
+
+        $capturedNotifications = [];
+
+        // 2. Non-owner MKDT (user 8) cannot cancel req #1 owned by user 7
+        try {
+            $reqService->cancelRequests(1, [$r1['id_request']], 8, false, 'Coba batal punya orang');
+            $this->fail('Seharusnya menolak pembatalan oleh MKDT bukan pemilik.');
+        } catch (RuntimeException $e) {
+            $this->assertStringContainsString('milik sendiri', strtolower($e->getMessage()));
+        }
+
+        // 3. Non-pending request (r3 = approved) cannot be cancelled
+        try {
+            $reqService->cancelRequests(1, [$r3['id_request']], 7, false, 'Sudah ACC');
+            $this->fail('Seharusnya menolak pembatalan request yang sudah diproses.');
+        } catch (RuntimeException $e) {
+            $this->assertStringContainsString('sudah diproses', strtolower($e->getMessage()));
+        }
+
+        // 4. Single cancel req #1 by owner MKDT (user 7)
+        $singleRes = $reqService->cancelRequests(1, [$r1['id_request']], 7, false, 'Revisi ukuran unit');
+        $this->assertSame([$r1['id_request']], $singleRes['cancelled_ids']);
+        $this->assertSame(1, $singleRes['cancelled_count']);
+        $this->assertSame(0, $singleRes['skipped_count']);
+        $this->assertSame(1, $singleRes['counts']['cancelled']);
+        $this->assertSame(2, $singleRes['counts']['history']); // 1 approved + 1 cancelled
+
+        $row1 = $this->conn->table('kavling_request')->where('id_request', $r1['id_request'])->get()->getRow();
+        $this->assertSame('cancelled', $row1->status);
+        $this->assertSame('Revisi ukuran unit', $row1->alasan_batal);
+        $this->assertSame(7, (int) $row1->processed_by);
+        $this->assertNotEmpty($row1->processed_at);
+
+        // Verify 1 summary notification sent to Planning (group 6)
+        $this->assertCount(1, $capturedNotifications);
+        $this->assertSame(\App\Enums\NotificationEvent::REQUEST_KAVLING, $capturedNotifications[0]['data']->eventType);
+        $this->assertSame('6', $capturedNotifications[0]['audience']->legacyGroupTarget());
+        $this->assertSame('siteplan/view', $capturedNotifications[0]['data']->actionUrl);
+        $this->assertStringContainsString('MKDT Satu', $capturedNotifications[0]['data']->message);
+        $this->assertStringContainsString('Proyek Uji', $capturedNotifications[0]['data']->message);
+        $this->assertStringContainsString('Alasan: Revisi ukuran unit', $capturedNotifications[0]['data']->message);
+
+        // 5. Pending lock on kavling 101 is released: MKDT 7 can submit a fresh ubah_tipe request for kavling 101!
+        $reSubmitted = $reqService->submitRequest([
+            'id_proyek'     => 1,
+            'jenis_request' => 'ubah_tipe',
+            'id_kavlings'   => [101],
+            'id_tipe'       => 12,
+            'keterangan'    => 'Pengajuan ulang setelah dibatalkan',
+        ], 7);
+        $this->assertGreaterThan($r4['id_request'], $reSubmitted['id_request']);
+
+        // 6. Planning cannot updateStatus on a cancelled request
+        try {
+            $reqService->updateStatus($r1['id_request'], 'approved', 6, 'Telat proses');
+            $this->fail('Seharusnya menolak updateStatus untuk request cancelled.');
+        } catch (RuntimeException $e) {
+            $this->assertStringContainsString('dibatalkan', strtolower($e->getMessage()));
+        }
+
+        // 7. Batch cancel by MKDT 7 mixing: own pending (r2), non-owner pending (r4), and approved (r3)
+        $capturedNotifications = [];
+        $batchMkdt = $reqService->cancelRequests(
+            1,
+            [$r2['id_request'], $r4['id_request'], $r3['id_request']],
+            7,
+            false,
+            '   '
+        );
+        $this->assertSame([$r2['id_request']], $batchMkdt['cancelled_ids']);
+        $this->assertSame(1, $batchMkdt['cancelled_count']);
+        $this->assertSame(2, $batchMkdt['skipped_count']);
+        $this->assertCount(1, $capturedNotifications);
+        $this->assertStringNotContainsString('Alasan:', $capturedNotifications[0]['data']->message);
+
+        // 8. Admin (user 1, $isAdmin = true) CAN cancel pending requests owned by another user (r4 & reSubmitted)
+        $capturedNotifications = [];
+        $batchAdmin = $reqService->cancelRequests(
+            1,
+            [$r4['id_request'], $reSubmitted['id_request']],
+            1,
+            true,
+            'Dibatalkan oleh Admin'
+        );
+        $this->assertSame([$r4['id_request'], $reSubmitted['id_request']], $batchAdmin['cancelled_ids']);
+        $this->assertSame(2, $batchAdmin['cancelled_count']);
+        $this->assertSame(0, $batchAdmin['skipped_count']);
+        $this->assertSame(4, $batchAdmin['counts']['cancelled']);
+        $this->assertSame(1, $batchAdmin['counts']['approved']);
+        $this->assertSame(0, $batchAdmin['counts']['pending']);
+        $this->assertSame(5, $batchAdmin['counts']['history']); // 1 approved + 4 cancelled
+        $this->assertCount(1, $capturedNotifications);
+        $this->assertStringContainsString('2 request kavling', $capturedNotifications[0]['data']->message);
+
+        // 9. getList filters & DTO alasan_batal check
+        $cancelledList = $reqService->getList(1, 'cancelled');
+        $this->assertCount(4, $cancelledList);
+        $historyList = $reqService->getList(1, 'history');
+        $this->assertCount(5, $historyList);
+
+        $byReqId = [];
+        foreach ($cancelledList as $dto) {
+            $byReqId[$dto['id_request']] = $dto;
+        }
+        $this->assertSame('Revisi ukuran unit', $byReqId[$r1['id_request']]['alasan_batal']);
+        $this->assertNull($byReqId[$r2['id_request']]['alasan_batal']);
+        $this->assertSame('Dibatalkan oleh Admin', $byReqId[$r4['id_request']]['alasan_batal']);
+    }
+
     public function testRemoveKavlingBatchRecordsSingleHistoryAndBatchSummary(): void
     {
         $created = $this->service->addKavlingToYear([

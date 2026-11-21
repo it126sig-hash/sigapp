@@ -164,6 +164,7 @@
       });
 
       $('#modal-isi_data_konsumen').on('hidden.bs.modal', function () {
+        self.pendingTransferContext = null;
         self.clearPendingTransferBanner();
       });
 
@@ -626,6 +627,27 @@
       });
     },
 
+    formatKavlingLtInfo: function (item) {
+      if (!item) return { hasLt: false, ltDisplay: '', isKt: false };
+      const primaryLt = Number(item.luas_tanah);
+      const fallbackLt = Number(item.lt);
+      const effectiveLt = Number.isFinite(primaryLt) && primaryLt > 0
+        ? primaryLt
+        : (Number.isFinite(fallbackLt) && fallbackLt > 0 ? fallbackLt : 0);
+      if (effectiveLt <= 0) {
+        return { hasLt: false, ltDisplay: '', isKt: false };
+      }
+      const ltDisplay = Number.isInteger(effectiveLt)
+        ? String(effectiveLt)
+        : String(Number(effectiveLt.toFixed(2)));
+      const isKt = String(item.status_tanah || '').trim().toLowerCase() === 'kelebihan tanah';
+      return {
+        hasLt: true,
+        ltDisplay: ltDisplay,
+        isKt: isKt
+      };
+    },
+
     initKavlingSelect2: function (currentIdKavling, lastIdKavling) {
       const self = this;
       const $sel = $('#select-target-kavling-nup');
@@ -675,11 +697,17 @@
           if (item.loading) return item.text;
           const label = escHtml($.trim((item.nama_jalan || '') + ' No. ' + (item.no_kavling || '-')));
           const tipe = item.tipe_rumah ? ' (' + escHtml(item.tipe_rumah) + ')' : '';
+          const ltInfo = self.formatKavlingLtInfo(item);
+          const ltBadge = ltInfo.hasLt
+            ? ' <span class="badge badge-light-secondary ml-50" title="' +
+              (ltInfo.isKt ? 'Luas Tanah Efektif (Kelebihan Tanah)' : 'Luas Tanah Standar') +
+              '">LT ' + escHtml(ltInfo.ltDisplay) + ' m²' + (ltInfo.isKt ? ' · KT' : '') + '</span>'
+            : '';
 
           if (item.is_current) {
             return $(
               '<div class="nup-kavling-opt-occupied">' +
-                '<i class="fas fa-ban mr-50"></i>' + label + tipe +
+                '<i class="fas fa-ban mr-50"></i>' + label + tipe + ltBadge +
                 ' <span class="badge badge-danger ml-50">Kavling Saat Ini</span>' +
               '</div>'
             );
@@ -691,7 +719,7 @@
               : 'Sudah Terisi Konsumen Aktif';
             return $(
               '<div class="nup-kavling-opt-occupied">' +
-                '<i class="fas fa-lock mr-50"></i>' + label + tipe +
+                '<i class="fas fa-lock mr-50"></i>' + label + tipe + ltBadge +
                 ' <span class="badge badge-light-danger ml-50">' + occInfo + '</span>' +
               '</div>'
             );
@@ -707,7 +735,7 @@
 
           return $(
             '<div class="nup-kavling-opt-available">' +
-              '<i class="fas fa-check-circle text-success mr-50"></i>' + label + tipe + lastBadge + priceBadge +
+              '<i class="fas fa-check-circle text-success mr-50"></i>' + label + tipe + ltBadge + lastBadge + priceBadge +
             '</div>'
           );
         },
@@ -715,8 +743,12 @@
           if (!item || !item.id) return item.text || '';
           const label = $.trim((item.nama_jalan || '') + ' No. ' + (item.no_kavling || '-'));
           const tipe = item.tipe_rumah ? ' (' + item.tipe_rumah + ')' : '';
+          const ltInfo = self.formatKavlingLtInfo(item);
+          const ltText = ltInfo.hasLt
+            ? ' · LT ' + ltInfo.ltDisplay + ' m²' + (ltInfo.isKt ? ' (Kelebihan Tanah)' : '')
+            : '';
           const price = item.has_hargajual ? ' [' + formatRupiah(item.nominal_hargajual || 0) + ']' : (item.nominal_hargajual ? '' : ' [Belum Ada Harga Jual]');
-          return label + tipe + price;
+          return label + tipe + ltText + price;
         }
       });
 

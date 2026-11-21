@@ -2,7 +2,7 @@
 
 **Status:** `REFACTORED`  
 **Readiness Score:** `100/100`  
-**Last Synced:** `2026-11-21 14:14:26` @ `f541f7f`  
+**Last Synced:** `2026-11-21 18:36:02` @ `004ca42`  
 
 ## Purpose
 Modul inti (*Core Domain*) yang bertanggung jawab atas eksekusi transaksi jual-beli unit kavling, pengelolaan master daftar harga (*pricelist* `hargajual` & lampiran dokumen SK `file_hargajual`), penetapan harga jual akhir unit kavling (`set_harga`), pergantian konsumen (*consumer replacement*), pembaruan status transaksi & perintah bangun, serta alur pengajuan dan persetujuan pembukaan/request unit kavling (`kavling_request`). Dibangun dengan arsitektur modular **Thin Controller → Service → Repository**, pemisahan tegas antara Web Controller dan API Controller, serta dukungan penuh kontrak **`RAW_JSON_READY`** (`?format=raw` dan endpoint `/meta`) untuk kesiapan integrasi SPA/Mobile.
@@ -97,6 +97,7 @@ Modul inti (*Core Domain*) yang bertanggung jawab atas eksekusi transaksi jual-b
 | `POST` | `/api/kavling-request/list` | `Explicit` | `KavlingRequestController::list` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
 | `POST` | `/api/kavling-request/update-status` | `Explicit` | `KavlingRequestController::updateStatus` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
 | `POST` | `/api/kavling-request/apply-ubah-kavling` | `Explicit` | `KavlingRequestController::applyUbahKavling` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `/api/kavling-request/cancel` | `Explicit` | `KavlingRequestController::cancel` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
 | `POST` | `/kavling/list/ambil` | `Explicit` | `KavlingController::getList` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
 | `POST` | `/kavling/getList` | `Explicit` | `KavlingController::getList` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
 | `GET` | `/api/kavling/list` | `Explicit` | `KavlingController::getList` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
@@ -122,6 +123,7 @@ Modul inti (*Core Domain*) yang bertanggung jawab atas eksekusi transaksi jual-b
 - `countFiltered(int $idProyek, ?string $jenisRequest = null, ?string $status = null)`
 - `updateStatus(int $idRequest, string $newStatus, int $userId, ?string $catatanPlanning = null)`
 - `applyUbahTipeKavling(int $idRequest, int $idTipe, int $userId, ?string $catatanPlanning = null)`
+- `cancelRequests(int $idProyek, array $idRequests, int $userId, bool $isAdmin, ?string $alasanBatal = null)`
 #### `HargaJualService.php`
 - `hasAccess(int $userId)`
 - `getProyekList()`
@@ -141,19 +143,19 @@ Modul inti (*Core Domain*) yang bertanggung jawab atas eksekusi transaksi jual-b
 - `app/Controllers/Api/Transaksi/HargajualController.php` (155 baris, 8 public methods: `meta()`, `getDataTable()`, `getAll()`, `getOne()`, `add()`, `edit($id = null)`, `remove()`, `set_harga()`)
 - `app/Controllers/Api/Transaksi/TransaksiController.php` (344 baris, 6 public methods: `meta()`, `getByID()`, `getStatusByID()`, `saveTransaksi()`, `replaceConsumer()`, `saveStatus()`)
 - `app/Controllers/Api/Transaksi/MkdtController.php` (67 baris, 2 public methods: `history()`, `consumerReplacementHistory()`)
-- `app/Controllers/Api/Transaksi/KavlingRequestController.php` (338 baris, 5 public methods: `submit()`, `kavlingList()`, `list()`, `updateStatus()`, `applyUbahKavling()`)
+- `app/Controllers/Api/Transaksi/KavlingRequestController.php` (424 baris, 6 public methods: `submit()`, `kavlingList()`, `list()`, `updateStatus()`, `applyUbahKavling()`, `cancel()`)
 - `app/Controllers/Api/Transaksi/KavlingController.php` (45 baris, 1 public methods: `getList()`)
 
 ### Services (3)
 - `app/Services/Transaksi/TransaksiService.php` (1027 baris, 9 public methods)
-- `app/Services/Transaksi/KavlingRequestService.php` (1222 baris, 7 public methods)
+- `app/Services/Transaksi/KavlingRequestService.php` (1385 baris, 8 public methods)
 - `app/Services/Transaksi/HargaJualService.php` (576 baris, 11 public methods)
 
 ### Repositories (4)
-- `app/Repositories/Transaksi/TransaksiRepository.php` (231 baris, 6 public methods: `getKonsumenTransaksi(int $idMkdt)`, `findNikUsage(string $nik, ?int $excludeMkdt = null, ?int $excludeKonsumen = null)`, `getKonsumenByIdKavling($idKavling)`, `getSpptbData(int $idKavling, int $idMkdt)`, `lockConsumerReplacementContext(int $idMkdt, int $idKavling)`, `getLegacyReplacementSpptbData(int $idKavling, int $currentIdMkdt)`)
+- `app/Repositories/Transaksi/TransaksiRepository.php` (240 baris, 6 public methods: `getKonsumenTransaksi(int $idMkdt)`, `findNikUsage(string $nik, ?int $excludeMkdt = null, ?int $excludeKonsumen = null)`, `getKonsumenByIdKavling($idKavling)`, `getSpptbData(int $idKavling, int $idMkdt)`, `lockConsumerReplacementContext(int $idMkdt, int $idKavling)`, `getLegacyReplacementSpptbData(int $idKavling, int $currentIdMkdt)`)
 - `app/Repositories/Transaksi/HargaJualRepository.php` (270 baris, 14 public methods: `getHargaJualById(int $id)`, `hasModuleAccess(int $userId, string $module = 'Hargajual')`, `getProyekList()`, `getDetailById(int $id)`, `getActiveByProyek(?int $idProyek, string $search = '')`, `getDataTableRows(array $var, ?int $idProyek)`, `getDataTableFilteredCount(array $var, ?int $idProyek)`, `getDataTableTotalCount(?int $idProyek)`, `insertFileHargajual(array $data)`, `insertHargaJual(array $data)`, `updateHargaJual(int $id, array $data)`, `findKavlingById(int $idKavling)`, `updateKavlingHarga(int $idKavling, array $data)`, `getPricelistRowById(int $id)`)
 - `app/Repositories/Transaksi/KavlingRepository.php` (851 baris, 13 public methods: `getKavlingByIdMkdt(int $id_mkdt)`, `getIdProyekByIdMkdt(int $id_mkdt)`, `getIdProyekByKavling(int $id_kavling)`, `getKavlingById(int $idKavling)`, `getKavlingByIds(array $idKavlings)`, `getKavlingList($id_proyek = null, $search = "", $limit = null, $is_cashout_subkon = 0, $id_cluster = null, $id_jalan = null, $only_available = 0)`, `getKavlingListForRequest(int $idProyek, string $search = '', int $limit = 50)`, `getDiskresiByKavlingId(int $idKavling)`, `getAll($id_proyek, $id_cluster = null, $id_jalan = null, $id_divisi = null, $kategoriFilters = [])`, `getPerintahBangun($id_kavling)`, `setPerintahBangun($id, $data)`, `getKategoriOptions(int $idProyek)`, `applyKategoriFilter(BaseBuilder $builder, array $filters)`)
-- `app/Repositories/Transaksi/KavlingRequestRepository.php` (830 baris, 16 public methods: `insertJalans(int $idRequest, array $idJalans)`, `insertKavlings(int $idRequest, array $kavlingRows)`, `findPendingUbahTipeMap(int $idProyek, array $idKavlings)`, `getKavlingEligibilityRows(int $idProyek, array $idKavlings)`, `getJalanRowsByProyek(int $idProyek, array $idJalans)`, `findTipeByIdAndProyek(int $idTipe, int $idProyek)`, `getList(int $idProyek, ?string $jenisRequest = null, ?string $status = null, ?int $page = null, ?int $perPage = null)`, `getStatusCounts(int $idProyek)`, `countFiltered(int $idProyek, ?string $jenisRequest = null, ?string $status = null)`, `getKavlingsByRequestId(int $idRequest)`, `updateKavlingsTipe(array $idKavlings, int $idTipe, int $userId, string $now)`, `getProyekName(int $idProyek)`, `getUserDisplayName(int $userId)`, `getClusterName(int $idCluster)`, `getJalanName(int $idJalan)`, `getKavlingLabels(array $idKavlings)`)
+- `app/Repositories/Transaksi/KavlingRequestRepository.php` (910 baris, 18 public methods: `insertJalans(int $idRequest, array $idJalans)`, `insertKavlings(int $idRequest, array $kavlingRows)`, `findPendingUbahTipeMap(int $idProyek, array $idKavlings)`, `getKavlingEligibilityRows(int $idProyek, array $idKavlings)`, `getJalanRowsByProyek(int $idProyek, array $idJalans)`, `findTipeByIdAndProyek(int $idTipe, int $idProyek)`, `getList(int $idProyek, ?string $jenisRequest = null, ?string $status = null, ?int $page = null, ?int $perPage = null)`, `getStatusCounts(int $idProyek)`, `countFiltered(int $idProyek, ?string $jenisRequest = null, ?string $status = null)`, `findRequestsByIdsAndProyek(int $idProyek, array $idRequests)`, `markRequestsCancelled(array $idRequests, int $userId, ?string $alasanBatal, string $now)`, `getKavlingsByRequestId(int $idRequest)`, `updateKavlingsTipe(array $idKavlings, int $idTipe, int $userId, string $now)`, `getProyekName(int $idProyek)`, `getUserDisplayName(int $userId)`, `getClusterName(int $idCluster)`, `getJalanName(int $idJalan)`, `getKavlingLabels(array $idKavlings)`)
 
 ### Models (3)
 - `app/Models/KavlingModel.php`
@@ -166,10 +168,7 @@ Modul inti (*Core Domain*) yang bertanggung jawab atas eksekusi transaksi jual-b
 ### JavaScript (3 file)
 - `public/assets/js/hargajual.js` (843 baris)
 - `public/assets/js/siteplan/sales.js` (525 baris)
-- `public/assets/js/siteplan/request-kavling.js` (2051 baris)
-
-### CSS (1 file)
-- `public/assets/css/hargajual.css` (423 baris) *(CSS khusus Request Kavling `public/assets/css/siteplan-request-kavling.css` [1295 baris] tercatat pada modul `Siteplan`)*
+- `public/assets/js/siteplan/request-kavling.js` (2598 baris)
 
 ### Zero-Downtime Shims (11 file)
 - `app/Controllers/Transaksi.php`

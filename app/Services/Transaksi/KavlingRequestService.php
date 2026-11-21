@@ -740,7 +740,7 @@ class KavlingRequestService
     }
 
     /**
-     * @return array{all: int, pending: int, tambah_baru_pending: int, ubah_tipe_pending: int, approved: int, rejected: int, history: int}
+     * @return array{all: int, pending: int, tambah_baru_pending: int, ubah_tipe_pending: int, approved: int, rejected: int, cancelled: int, history: int}
      */
     public function getStatusCounts(int $idProyek): array
     {
@@ -764,6 +764,10 @@ class KavlingRequestService
         $request = $this->requestModel->find($idRequest);
         if (! $request) {
             throw new RuntimeException('Data request tidak ditemukan.');
+        }
+
+        if (strtolower((string) ($request->status ?? '')) === 'cancelled') {
+            throw new RuntimeException('Pengajuan ini sudah dibatalkan dan tidak dapat diproses.');
         }
 
         $cleanNote = $catatanPlanning !== null ? trim($catatanPlanning) : null;
@@ -986,6 +990,164 @@ class KavlingRequestService
         ];
     }
 
+    /**
+     * Batalkan satu atau beberapa request kavling berstatus pending (Admin atau pemilik pengajuan MKDT)
+     *
+     * @param int[] $idRequests
+     */
+    public function cancelRequests(int $idProyek, array $idRequests, int $userId, bool $isAdmin, ?string $alasanBatal = null): array
+    {
+        if ($idProyek <= 0) {
+            throw new RuntimeException('Proyek tidak valid.');
+        }
+
+        if ($userId <= 0) {
+            throw new RuntimeException('User tidak valid.');
+        }
+
+        $ids = $this->normalizeIntList($idRequests);
+        if ($ids === []) {
+            throw new RuntimeException('Minimal 1 request harus dipilih untuk dibatalkan.');
+        }
+
+        $cleanAlasan = $alasanBatal !== null ? trim($alasanBatal) : null;
+        if ($cleanAlasan === '') {
+            $cleanAlasan = null;
+        }
+        if ($cleanAlasan !== null && mb_strlen($cleanAlasan) > 1000) {
+            throw new RuntimeException('Alasan pembatalan maksimal 1000 karakter.');
+        }
+
+        $existingRows = $this->requestRepo->findRequestsByIdsAndProyek($idProyek, $ids);
+        $byId         = [];
+        foreach ($existingRows as $row) {
+            $byId[(int) $row->id_request] = $row;
+        }
+
+        $eligibleIds  = [];
+        $eligibleRows = [];
+        $skipped      = [];
+
+        foreach ($ids as $reqId) {
+            if (! isset($byId[$reqId])) {
+                $skipped[] = [
+                    'id_request' => $reqId,
+                    'reason'     => 'Request tidak ditemukan pada proyek ini.',
+                ];
+                continue;
+            }
+
+            $row = $byId[$reqId];
+            if (strtolower((string) ($row->status ?? '')) !== 'pending') {
+                $skipped[] = [
+                    'id_request' => $reqId,
+                    'reason'     => 'Request sudah diproses atau dibatalkan sebelumnya.',
+                ];
+                continue;
+            }
+
+            if (! $isAdmin && (int) ($row->created_by ?? 0) !== $userId) {
+                $skipped[] = [
+                    'id_request' => $reqId,
+                    'reason'     => 'Anda hanya dapat membatalkan pengajuan milik sendiri.',
+                ];
+                continue;
+            }
+
+            $eligibleIds[]  = $reqId;
+            $eligibleRows[] = $row;
+        }
+
+        if ($eligibleIds === []) {
+            throw new RuntimeException($skipped[0]['reason'] ?? 'Tidak ada request yang memenuhi syarat untuk dibatalkan.');
+        }
+
+        $now = date('Y-m-d H:i:s');
+
+        $this->db->transStart();
+
+        $affected = $this->requestRepo->markRequestsCancelled($eligibleIds, $userId, $cleanAlasan, $now);
+        if ($affected <= 0) {
+            $this->db->transRollback();
+            throw new RuntimeException('Gagal membatalkan request kavling.');
+        }
+
+        [$namaProyek, $pembatal] = $this->resolveProyekAndUserLabels($idProyek, $userId);
+        $tambahCount             = 0;
+        $ubahCount               = 0;
+        $kavlingCount            = 0;
+
+        foreach ($eligibleRows as $row) {
+            if ((string) ($row->jenis_request ?? '') === 'ubah_tipe') {
+                $ubahCount++;
+                $rowKavCount   = ! empty($row->kavlings) && is_array($row->kavlings)
+                    ? count($row->kavlings)
+                    : (! empty($row->id_kavling) ? 1 : 0);
+                $kavlingCount += $rowKavCount;
+            } else {
+                $tambahCount++;
+            }
+        }
+
+        $jenisParts = [];
+        if ($tambahCount > 0) {
+            $jenisParts[] = "{$tambahCount} Tambah Kavling";
+        }
+        if ($ubahCount > 0) {
+            $jenisParts[] = $kavlingCount > 0
+                ? "{$ubahCount} Ubah Kavling ({$kavlingCount} kavling)"
+                : "{$ubahCount} Ubah Kavling";
+        }
+        $jenisSummary = implode(', ', $jenisParts);
+
+        $cancelledCount = count($eligibleIds);
+        $pesanNotif     = $cancelledCount === 1
+            ? "[Request Siteplan] {$pembatal} membatalkan 1 request kavling (#{$eligibleIds[0]}: {$jenisSummary}) di {$namaProyek}."
+            : "[Request Siteplan] {$pembatal} membatalkan {$cancelledCount} request kavling ({$jenisSummary}) di {$namaProyek}.";
+
+        if ($cleanAlasan !== null) {
+            $pesanNotif .= " Alasan: {$cleanAlasan}";
+        }
+
+        $notifData = new NotificationData(
+            message: $pesanNotif,
+            actorUserId: $userId,
+            idKavling: null,
+            idKonsumen: null,
+            type: NotificationEvent::REQUEST_KAVLING,
+            idProyek: $idProyek,
+            actionUrl: 'siteplan/view',
+            eventType: NotificationEvent::REQUEST_KAVLING
+        );
+
+        $this->notifikasiService->create($notifData, NotificationAudience::forGroups([6]));
+
+        $this->db->transComplete();
+
+        if ($this->db->transStatus() === false) {
+            throw new RuntimeException('Gagal memproses transaksi pembatalan request kavling.');
+        }
+
+        $counts       = $this->getStatusCounts($idProyek);
+        $skippedCount = count($skipped);
+        $message      = $cancelledCount === 1
+            ? '1 request kavling berhasil dibatalkan.'
+            : "{$cancelledCount} request kavling berhasil dibatalkan.";
+
+        if ($skippedCount > 0) {
+            $message .= " ({$skippedCount} dilewati.)";
+        }
+
+        return [
+            'cancelled_ids'   => $eligibleIds,
+            'cancelled_count' => $cancelledCount,
+            'skipped_count'   => $skippedCount,
+            'skipped'         => $skipped,
+            'counts'          => $counts,
+            'message'         => $message,
+        ];
+    }
+
     private function sendStatusFeedbackNotification(
         object $request,
         string $newStatus,
@@ -1104,6 +1266,7 @@ class KavlingRequestService
             'keterangan'          => (string) ($row->keterangan ?? ''),
             'catatan_planning'    => $row->catatan_planning ?? null,
             'alasan_tolak'        => $row->alasan_tolak ?? null,
+            'alasan_batal'        => $row->alasan_batal ?? null,
             'created_by'          => ! empty($row->created_by) ? (int) $row->created_by : null,
             'pengaju_name'        => $pengajuName,
             'pengaju_username'    => $row->pengaju_username ?? null,

@@ -13,10 +13,5 @@
         "layer": "Service",
         "file": "HargaJualService.php",
         "name": "update"
-    },
-    {
-        "layer": "Repository",
-        "file": "TransaksiRepository.php",
-        "name": "getKonsumenByIdKavling"
     }
 ]

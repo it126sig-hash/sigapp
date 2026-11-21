@@ -1046,6 +1046,7 @@ $routes->group('api/kavling-request', ['namespace' => 'App\Controllers\Api\Trans
     $routes->post('list', 'KavlingRequestController::list');
     $routes->post('update-status', 'KavlingRequestController::updateStatus');
     $routes->post('apply-ubah-kavling', 'KavlingRequestController::applyUbahKavling');
+    $routes->post('cancel', 'KavlingRequestController::cancel');
 });
 
 // ─────────────────────────────────────────────────────────────────────────────

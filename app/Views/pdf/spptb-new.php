@@ -479,7 +479,7 @@ if (is_file($logoSrc) && ($logoDims = @getimagesize($logoSrc))) {
             </td>
             <td width="198" valign="top">
                 <p>
-                    : ± <?= $data->luas_tanah ?> m <sup>2</sup>
+                    : ± <?= (isset($data->luas_tanah) && $data->luas_tanah !== '') ? esc($data->luas_tanah) : '-' ?> m <sup>2</sup>
                 </p>
             </td>
         </tr>

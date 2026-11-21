@@ -1347,9 +1347,30 @@ $canProcessRequestKavling = in_array((int) $k, [1, 6], true);
                                 </div>
 
                                 <div class="siteplan-target-filter-box">
-                                    <div class="custom-control custom-switch siteplan-target-switch-wrap">
-                                        <input type="checkbox" class="custom-control-input" id="toggle-tampilkan-target">
-                                        <label class="custom-control-label siteplan-target-switch-label" for="toggle-tampilkan-target">Tampilkan Target</label>
+                                    <div class="siteplan-target-header-row">
+                                        <div class="custom-control custom-switch siteplan-target-switch-wrap">
+                                            <input type="checkbox" class="custom-control-input" id="toggle-tampilkan-target">
+                                            <label class="custom-control-label siteplan-target-switch-label" for="toggle-tampilkan-target">Tampilkan Target</label>
+                                        </div>
+                                        <button type="button"
+                                            id="btn-toggle-target-border-settings"
+                                            class="btn btn-sm siteplan-target-settings-btn"
+                                            title="Pengaturan toleransi border target"
+                                            aria-label="Pengaturan toleransi border target"
+                                            aria-expanded="false"
+                                            aria-controls="target-border-settings-panel">
+                                            <i class="fas fa-sliders-h" aria-hidden="true"></i>
+                                        </button>
+                                    </div>
+                                    <div id="target-border-settings-panel" class="siteplan-target-settings-panel" style="display:none;">
+                                        <div class="siteplan-target-settings-row">
+                                            <label for="input-target-gap-bridge" class="siteplan-target-subfilter-label mb-0">Toleransi Celah</label>
+                                            <span id="target-gap-bridge-value" class="siteplan-target-settings-value">2 px</span>
+                                        </div>
+                                        <div class="siteplan-target-settings-controls">
+                                            <input type="range" id="input-target-gap-bridge-range" class="custom-range siteplan-target-gap-range" min="0" max="12" step="0.5" value="2" aria-label="Toleransi celah border target">
+                                            <input type="number" id="input-target-gap-bridge" class="form-control form-control-sm siteplan-target-gap-input" min="0" max="12" step="0.5" value="2" inputmode="decimal" aria-label="Nilai toleransi celah dalam piksel">
+                                        </div>
                                     </div>
                                     <div id="filter-target-tahun-container" class="siteplan-target-year-box" style="display:none;">
                                         <label for="filter-tahun-target" class="siteplan-target-year-label">Tahun Target</label>
@@ -1461,6 +1482,7 @@ $canProcessRequestKavling = in_array((int) $k, [1, 6], true);
 <script src="<?= base_url() ?>assets/js/siteplan/shape-filter.js?v=<?= filemtime(FCPATH . 'assets/js/siteplan/shape-filter.js') ?>"></script>
 <script src="<?= base_url() ?>assets/js/siteplan/tiket-overlay.js?v=<?= filemtime(FCPATH . 'assets/js/siteplan/tiket-overlay.js') ?>"></script>
 <script src="<?= base_url() ?>assets/js/siteplan/export-helper.js?v=<?= filemtime(FCPATH . 'assets/js/siteplan/export-helper.js') ?>"></script>
+<script src="<?= base_url() ?>assets/js/siteplan/target-overlay.js?v=<?= filemtime(FCPATH . 'assets/js/siteplan/target-overlay.js') ?>"></script>
 <script src="<?= base_url() ?>assets/js/siteplan/master.js?v=<?= filemtime(FCPATH . 'assets/js/siteplan/master.js') ?>"></script>
 <script src="<?= base_url() ?>assets/js/siteplan-detail-modal.js?<?= filemtime(FCPATH . 'assets/js/siteplan-detail-modal.js') ?>"></script>
 

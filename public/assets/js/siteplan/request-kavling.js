@@ -34,12 +34,23 @@
             ubah_tipe_pending: 0,
             approved: 0,
             rejected: 0,
+            cancelled: 0,
             history: 0
         },
         tambahFilterStatus: 'pending',
         ubahFilterStatus: 'pending',
         riwayatFilterStatus: 'all',
         riwayatFilterJenis: 'all',
+        selectedCancelIds: {
+            tambah: new Set(),
+            ubah: new Set(),
+            riwayat: new Set()
+        },
+        visibleCancellableIds: {
+            tambah: [],
+            ubah: [],
+            riwayat: []
+        },
         canvasPickActive: false,
         canvasPickedItems: [],
         canvasPickRestoreItems: [],
@@ -47,6 +58,7 @@
         isSubmittingTambah: false,
         isSubmittingUbah: false,
         isSubmittingApply: false,
+        isCancelling: false,
         isRefreshingTipes: false
     };
 
@@ -56,6 +68,17 @@
         const cleanPath = String(path || '').replace(/^\/+/, '');
         return cleanBase + '/' + cleanPath;
     }
+
+    const rkEndpoints = {
+        jalans: rkApiUrl('api/jalan/all'),
+        tipes: rkApiUrl('api/tipe/all?only_active=1&format=raw'),
+        kavlingList: rkApiUrl('api/kavling-request/kavling-list'),
+        list: rkApiUrl('api/kavling-request/list'),
+        submit: rkApiUrl('api/kavling-request/submit'),
+        updateStatus: rkApiUrl('api/kavling-request/update-status'),
+        applyUbahKavling: rkApiUrl('api/kavling-request/apply-ubah-kavling'),
+        cancel: rkApiUrl('api/kavling-request/cancel')
+    };
 
     function getProyekId() {
         const fromInput = parseInt($('#req-id_proyek').val() || '0', 10);
@@ -376,6 +399,7 @@
                 ubah_tipe_pending: Number(counts.ubah_tipe_pending || 0),
                 approved: Number(counts.approved || 0),
                 rejected: Number(counts.rejected || 0),
+                cancelled: Number(counts.cancelled || 0),
                 history: Number(counts.history || 0)
             };
         }
@@ -406,10 +430,13 @@
 
         $('#rk-tambah-count-pending').text(c.tambah_baru_pending);
         $('#rk-ubah-count-pending').text(c.ubah_tipe_pending);
+        $('#rk-mkdt-tambah-pending-count').text(c.tambah_baru_pending);
+        $('#rk-mkdt-ubah-pending-count').text(c.ubah_tipe_pending);
         $('#rk-riwayat-count-all').text(c.all);
         $('#rk-riwayat-count-pending').text(c.pending);
         $('#rk-riwayat-count-approved').text(c.approved);
         $('#rk-riwayat-count-rejected').text(c.rejected);
+        $('#rk-riwayat-count-cancelled').text(c.cancelled);
     }
 
     function cacheRequests(rows) {
@@ -866,8 +893,241 @@
     }
 
     // ─────────────────────────────────────────────────────────────────────────
-    // RENDERING TABEL PLANNING & RIWAYAT
+    // RENDERING TABEL PLANNING, MKDT PENDING & RIWAYAT + PEMBATALAN
     // ─────────────────────────────────────────────────────────────────────────
+
+    const cancelContextUiMap = {
+        tambah: {
+            batchBar: '#rk-mkdt-tambah-batch-bar',
+            selectedCount: '#rk-mkdt-tambah-selected-count',
+            checkAll: '#rk-mkdt-tambah-check-all',
+            tbody: '#tbody-rk-mkdt-tambah'
+        },
+        ubah: {
+            batchBar: '#rk-mkdt-ubah-batch-bar',
+            selectedCount: '#rk-mkdt-ubah-selected-count',
+            checkAll: '#rk-mkdt-ubah-check-all',
+            tbody: '#tbody-rk-mkdt-ubah'
+        },
+        riwayat: {
+            batchBar: '#rk-riwayat-batch-bar',
+            selectedCount: '#rk-riwayat-selected-count',
+            checkAll: '#rk-riwayat-check-all',
+            tbody: '#tbody-rk-riwayat'
+        }
+    };
+
+    function isItemCancellable(item) {
+        if (!item || !canCreate) return false;
+        const status = String(item.status || '').toLowerCase();
+        if (status !== 'pending') return false;
+        return Boolean(item.can_cancel);
+    }
+
+    function syncCancelBatchUI(context) {
+        const ui = cancelContextUiMap[context];
+        const selectedSet = rkState.selectedCancelIds[context];
+        const visibleIds = rkState.visibleCancellableIds[context] || [];
+        if (!ui || !selectedSet) return;
+
+        const selectedCount = selectedSet.size;
+        const totalCancellable = visibleIds.length;
+
+        $(ui.selectedCount).text(selectedCount);
+        const $batchBar = $(ui.batchBar);
+        if ($batchBar.length) {
+            if (selectedCount > 0) {
+                $batchBar.removeAttr('hidden');
+            } else {
+                $batchBar.attr('hidden', true);
+            }
+        }
+
+        const $checkAll = $(ui.checkAll);
+        if ($checkAll.length) {
+            const allSelected = totalCancellable > 0 && selectedCount === totalCancellable;
+            const partialSelected = selectedCount > 0 && selectedCount < totalCancellable;
+            $checkAll.prop('disabled', totalCancellable === 0);
+            $checkAll.prop('checked', allSelected);
+            $checkAll.prop('indeterminate', partialSelected);
+        }
+    }
+
+    function pruneStaleSelections(context, rows) {
+        const selectedSet = rkState.selectedCancelIds[context];
+        if (!selectedSet) return;
+
+        const cancellableIds = [];
+        const cancellableLookup = new Set();
+        (Array.isArray(rows) ? rows : []).forEach(function (item) {
+            if (isItemCancellable(item)) {
+                const idNum = Number(item.id_request);
+                if (idNum > 0 && !cancellableLookup.has(idNum)) {
+                    cancellableLookup.add(idNum);
+                    cancellableIds.push(idNum);
+                }
+            }
+        });
+
+        rkState.visibleCancellableIds[context] = cancellableIds;
+        Array.from(selectedSet).forEach(function (idNum) {
+            if (!cancellableLookup.has(Number(idNum))) {
+                selectedSet.delete(idNum);
+            }
+        });
+
+        syncCancelBatchUI(context);
+    }
+
+    function clearCancelSelection(context) {
+        const selectedSet = rkState.selectedCancelIds[context];
+        const ui = cancelContextUiMap[context];
+        if (!selectedSet) return;
+        selectedSet.clear();
+        if (ui && ui.tbody) {
+            $(ui.tbody).find('.rk-cancel-checkbox').prop('checked', false);
+        }
+        syncCancelBatchUI(context);
+    }
+
+    function clearCancelledIdsFromAllContexts(ids) {
+        const idLookup = new Set((Array.isArray(ids) ? ids : []).map(Number));
+        Object.keys(rkState.selectedCancelIds).forEach(function (ctx) {
+            const set = rkState.selectedCancelIds[ctx];
+            idLookup.forEach(function (idNum) {
+                set.delete(idNum);
+            });
+            syncCancelBatchUI(ctx);
+        });
+    }
+
+    function buildCancelSummaryText(ids) {
+        const list = Array.isArray(ids) ? ids : [];
+        if (list.length === 0) return '';
+        if (list.length === 1) {
+            const item = rkState.requestMap[String(list[0])];
+            if (!item) {
+                return 'Request #' + list[0] + ' akan dibatalkan.';
+            }
+            const jenisLabel = item.jenis_request === 'ubah_tipe' ? 'Ubah Kavling' : 'Tambah Kavling';
+            const pengaju = item.pengaju_name || item.pengaju_username || 'Pengaju';
+            return 'Req #' + item.id_request + ' (' + jenisLabel + ' · ' + pengaju + ') akan dibatalkan.';
+        }
+        const previewIds = list.slice(0, 5).map(function (id) { return '#' + id; }).join(', ');
+        const suffix = list.length > 5 ? ', +' + (list.length - 5) + ' lainnya' : '';
+        return list.length + ' request menunggu (' + previewIds + suffix + ') akan dibatalkan.';
+    }
+
+    function setCancelControlsDisabled(disabled) {
+        $modal.find('.btn-rk-action-cancel, #btn-rk-mkdt-batch-cancel-tambah, #btn-rk-mkdt-batch-cancel-ubah, #btn-rk-riwayat-batch-cancel')
+            .prop('disabled', Boolean(disabled));
+    }
+
+    function confirmAndCancelRequests(ids, summaryText) {
+        if (!canCreate || rkState.isCancelling) return;
+
+        const cleanIds = Array.from(new Set(
+            (Array.isArray(ids) ? ids : [ids]).map(Number).filter(function (id) { return id > 0; })
+        ));
+        if (cleanIds.length === 0) {
+            showToast('warning', 'Belum ada pilihan', 'Pilih minimal 1 request menunggu untuk dibatalkan.');
+            return;
+        }
+
+        const isSingle = cleanIds.length === 1;
+        const resolvedSummary = summaryText || buildCancelSummaryText(cleanIds);
+
+        Swal.fire({
+            title: isSingle ? 'Batalkan 1 Request?' : ('Batalkan ' + cleanIds.length + ' Request Terpilih?'),
+            html: '<div class="small text-muted mb-50">' + escapeHtml(resolvedSummary) + '</div>'
+                + '<div class="small text-danger font-weight-bold">Pengajuan yang dibatalkan tidak dapat diproses lagi oleh Planning.</div>',
+            input: 'textarea',
+            inputLabel: 'Alasan Pembatalan (Opsional)',
+            inputPlaceholder: 'Tulis alasan pembatalan jika ada (opsional)...',
+            inputAttributes: {
+                'aria-label': 'Alasan Pembatalan (Opsional)',
+                maxlength: '1000'
+            },
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#dc2626',
+            cancelButtonColor: '#6c757d',
+            confirmButtonText: isSingle ? 'Ya, Batalkan Request' : ('Ya, Batalkan ' + cleanIds.length + ' Request'),
+            cancelButtonText: 'Kembali'
+        }).then(function (result) {
+            if (!result.isConfirmed) return;
+            if (rkState.isCancelling) return;
+
+            const idProyek = getProyekId();
+            if (!idProyek) {
+                Swal.fire({ icon: 'warning', title: 'Perhatian', text: 'Proyek aktif tidak ditemukan.' });
+                return;
+            }
+
+            rkState.isCancelling = true;
+            setCancelControlsDisabled(true);
+
+            $.ajax({
+                url: rkEndpoints.cancel,
+                type: 'POST',
+                data: {
+                    [csrfName]: csrfHash,
+                    id_proyek: idProyek,
+                    id_requests: cleanIds,
+                    alasan_batal: $.trim(result.value || '')
+                },
+                dataType: 'json'
+            }).done(function (res) {
+                updateCsrf(res && res.token);
+                if (res && res.success) {
+                    const resData = res.data && typeof res.data === 'object' ? res.data : {};
+                    const cancelledIds = Array.isArray(resData.cancelled_ids) && resData.cancelled_ids.length > 0
+                        ? resData.cancelled_ids
+                        : cleanIds;
+                    const skippedCount = Number(resData.skipped_count || 0);
+                    const skippedItems = Array.isArray(resData.skipped) ? resData.skipped : [];
+                    const successMsg = resData.message || res.messages || 'Request kavling berhasil dibatalkan.';
+
+                    clearCancelledIdsFromAllContexts(cleanIds);
+                    clearCancelledIdsFromAllContexts(cancelledIds);
+
+                    if (resData.counts) {
+                        updateBadgesAndCounters(resData.counts);
+                    }
+
+                    if (skippedCount > 0) {
+                        const skipReasons = skippedItems.slice(0, 3).map(function (sk) {
+                            return 'Req #' + Number(sk.id_request || 0) + ': ' + String(sk.reason || 'Dilewati');
+                        }).join(' | ');
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Pembatalan Diproses',
+                            text: successMsg + (skipReasons ? (' (' + skipReasons + ')') : '')
+                        });
+                    } else {
+                        showToast('success', 'Request Dibatalkan', successMsg);
+                    }
+
+                    refreshAllVisibleLists();
+                } else {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Gagal Membatalkan',
+                        text: (res && res.messages) || 'Gagal membatalkan request kavling.'
+                    });
+                }
+            }).fail(function (xhr) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Gagal Membatalkan',
+                    text: extractErrorMessage(xhr, 'Terjadi kesalahan saat membatalkan request kavling.')
+                });
+            }).always(function () {
+                rkState.isCancelling = false;
+                setCancelControlsDisabled(false);
+            });
+        });
+    }
 
     function renderStatusBadge(status) {
         const s = String(status || 'pending').toLowerCase();
@@ -876,6 +1136,9 @@
         }
         if (s === 'rejected') {
             return '<span class="rk-status-pill is-rejected"><i class="fas fa-times-circle"></i> Ditolak</span>';
+        }
+        if (s === 'cancelled') {
+            return '<span class="rk-status-pill rk-status-badge is-cancelled"><i class="fas fa-ban"></i> Dibatalkan</span>';
         }
         return '<span class="rk-status-pill is-pending"><i class="fas fa-clock"></i> Menunggu</span>';
     }
@@ -980,7 +1243,8 @@
 
     function renderPlanningRowActions(item, jenis) {
         const idReq = Number(item.id_request);
-        if (item.status === 'pending') {
+        const statusLower = String(item.status || 'pending').toLowerCase();
+        if (statusLower === 'pending') {
             let btns = '<div class="rk-action-stack">';
             if (jenis === 'ubah_tipe') {
                 btns += '<button type="button" class="btn btn-primary btn-sm btn-rk-action-apply" data-id="' + idReq + '">'
@@ -990,8 +1254,26 @@
                 + '<i class="fas fa-check mr-25"></i>Selesai</button>';
             btns += '<button type="button" class="btn btn-danger btn-sm btn-rk-action-reject" data-id="' + idReq + '">'
                 + '<i class="fas fa-times mr-25"></i>Tolak</button>';
+            if (isItemCancellable(item)) {
+                btns += '<button type="button" class="btn btn-outline-danger btn-sm btn-rk-action-cancel" data-id="' + idReq + '">'
+                    + '<i class="fas fa-ban mr-25"></i>Batalkan</button>';
+            }
             btns += '</div>';
             return btns;
+        }
+
+        if (statusLower === 'cancelled') {
+            const canceller = item.processed_by_name ? escapeHtml(item.processed_by_name) : '-';
+            const cancelledAt = item.processed_at ? escapeHtml(formatDateTime(item.processed_at)) : '';
+            const cancelReason = item.alasan_batal && String(item.alasan_batal).trim()
+                ? escapeHtml(String(item.alasan_batal).trim())
+                : '<span class="text-muted font-italic">Tanpa catatan pembatalan</span>';
+
+            return '<div class="small text-left">'
+                + '<div class="text-muted">Dibatalkan oleh: <strong>' + canceller + '</strong></div>'
+                + (cancelledAt ? '<div class="rk-meta-time">' + cancelledAt + '</div>' : '')
+                + '<div class="rk-note-box is-cancelled mt-25">' + cancelReason + '</div>'
+                + '</div>';
         }
 
         const processor = item.processed_by_name ? escapeHtml(item.processed_by_name) : '-';
@@ -1003,6 +1285,107 @@
             + (processedAt ? '<div class="rk-meta-time">' + processedAt + '</div>' : '')
             + (noteText ? '<div class="rk-note-box mt-25">' + escapeHtml(noteText) + '</div>' : '')
             + '</div>';
+    }
+
+    function loadMkdtPendingList(jenis) {
+        if (!canCreate || canProcess) return $.Deferred().resolve([]).promise();
+        const idProyek = getProyekId();
+        if (!idProyek) return $.Deferred().resolve([]).promise();
+
+        const isUbah = jenis === 'ubah_tipe';
+        const ctx = isUbah ? 'ubah' : 'tambah';
+        const $loading = isUbah ? $('#rk-mkdt-ubah-loading') : $('#rk-mkdt-tambah-loading');
+        const $wrap = isUbah ? $('#rk-mkdt-ubah-table-wrap') : $('#rk-mkdt-tambah-table-wrap');
+        const $empty = isUbah ? $('#rk-mkdt-ubah-empty') : $('#rk-mkdt-tambah-empty');
+        const $tbody = isUbah ? $('#tbody-rk-mkdt-ubah') : $('#tbody-rk-mkdt-tambah');
+
+        if (!$tbody.length) return $.Deferred().resolve([]).promise();
+
+        $loading.removeAttr('hidden');
+        $wrap.attr('hidden', true);
+        $empty.attr('hidden', true);
+
+        return $.ajax({
+            url: rkEndpoints.list,
+            type: 'POST',
+            data: {
+                [csrfName]: csrfHash,
+                id_proyek: idProyek,
+                jenis_request: jenis,
+                status: 'pending'
+            },
+            dataType: 'json'
+        }).done(function (res) {
+            updateCsrf(res && res.token);
+            $loading.attr('hidden', true);
+
+            if (res && res.counts) {
+                updateBadgesAndCounters(res.counts);
+            }
+
+            const rows = (res && res.success && Array.isArray(res.data)) ? res.data : [];
+            cacheRequests(rows);
+            pruneStaleSelections(ctx, rows);
+
+            if (!res || !res.counts) {
+                $(isUbah ? '#rk-mkdt-ubah-pending-count' : '#rk-mkdt-tambah-pending-count').text(rows.length);
+            }
+
+            if (rows.length === 0) {
+                $tbody.empty();
+                $wrap.attr('hidden', true);
+                $empty.removeAttr('hidden');
+                return;
+            }
+
+            const selectedSet = rkState.selectedCancelIds[ctx];
+            const html = rows.map(function (item, idx) {
+                const idReq = Number(item.id_request);
+                const tanggal = escapeHtml(formatDateTime(item.created_at));
+                const pengaju = escapeHtml(item.pengaju_name || item.pengaju_username || 'User');
+                const detailCol = isUbah ? renderKavlingsCell(item) : renderJalansCell(item);
+                const cancellable = isItemCancellable(item);
+                const isChecked = cancellable && selectedSet.has(idReq);
+
+                const checkCell = cancellable
+                    ? '<input type="checkbox" class="rk-row-checkbox rk-cancel-checkbox"'
+                        + ' data-context="' + ctx + '" value="' + idReq + '"'
+                        + (isChecked ? ' checked' : '')
+                        + ' aria-label="Pilih request #' + idReq + '">'
+                    : '<span class="text-muted small" title="Hanya pengaju atau Admin yang dapat membatalkan">&mdash;</span>';
+
+                const actionCell = cancellable
+                    ? '<button type="button" class="btn btn-outline-danger btn-sm btn-rk-action-cancel"'
+                        + ' data-id="' + idReq + '" data-context="' + ctx + '">'
+                        + '<i class="fas fa-ban mr-25"></i>Batal</button>'
+                    : '<span class="text-muted small">Pengaju lain</span>';
+
+                return '<tr>'
+                    + '<td class="text-center rk-check-col">' + checkCell + '</td>'
+                    + '<td class="text-center font-weight-bold">' + (idx + 1) + '</td>'
+                    + '<td>'
+                    + '<div class="font-weight-bold">' + pengaju + '</div>'
+                    + '<div class="rk-meta-time mt-25"><i class="far fa-calendar-alt mr-25"></i>' + tanggal + '</div>'
+                    + '<div class="small text-muted">Req #' + idReq + '</div>'
+                    + '</td>'
+                    + '<td>' + detailCol + '</td>'
+                    + '<td>' + renderTipeSummaryCell(item, false) + '</td>'
+                    + '<td><div class="rk-note-box">' + escapeHtml(item.keterangan || '-') + '</div></td>'
+                    + '<td class="text-center">' + actionCell + '</td>'
+                    + '</tr>';
+            }).join('');
+
+            $tbody.html(html);
+            $empty.attr('hidden', true);
+            $wrap.removeAttr('hidden');
+            syncCancelBatchUI(ctx);
+        }).fail(function (xhr) {
+            $loading.attr('hidden', true);
+            $wrap.attr('hidden', true);
+            $empty.removeAttr('hidden');
+            pruneStaleSelections(ctx, []);
+            showToast('error', 'Gagal memuat data', extractErrorMessage(xhr, 'Gagal memuat pengajuan menunggu.'));
+        });
     }
 
     function loadPlanningList(jenis) {
@@ -1022,7 +1405,7 @@
         $empty.attr('hidden', true);
 
         return $.ajax({
-            url: rkApiUrl('api/kavling-request/list'),
+            url: rkEndpoints.list,
             type: 'POST',
             data: {
                 [csrfName]: csrfHash,
@@ -1094,7 +1477,7 @@
         $empty.attr('hidden', true);
 
         return $.ajax({
-            url: rkApiUrl('api/kavling-request/list'),
+            url: rkEndpoints.list,
             type: 'POST',
             data: {
                 [csrfName]: csrfHash,
@@ -1113,6 +1496,9 @@
 
             const rows = (res && res.success && Array.isArray(res.data)) ? res.data : [];
             cacheRequests(rows);
+            if (canCreate) {
+                pruneStaleSelections('riwayat', rows);
+            }
 
             if (rows.length === 0) {
                 $tbody.empty();
@@ -1121,61 +1507,133 @@
                 return;
             }
 
+            const selectedSet = rkState.selectedCancelIds.riwayat;
             const html = rows.map(function (item, idx) {
+                const idReq = Number(item.id_request);
                 const tanggal = escapeHtml(formatDateTime(item.created_at));
                 const pengaju = escapeHtml(item.pengaju_name || item.pengaju_username || 'User');
                 const detailCol = item.jenis_request === 'ubah_tipe'
                     ? renderKavlingsCell(item)
                     : renderJalansCell(item);
 
-                const notes = item.catatan_planning || item.alasan_tolak || '';
-                const noteClass = item.status === 'rejected'
-                    ? ' is-planning-rejected'
-                    : (item.status === 'approved' ? ' is-planning-approved' : '');
-                const processedMeta = item.processed_by_name
-                    ? '<div class="small text-muted mt-25">Oleh: <strong>' + escapeHtml(item.processed_by_name) + '</strong>'
-                        + (item.processed_at ? ' · <span class="rk-meta-time">' + escapeHtml(formatDateTime(item.processed_at)) + '</span>' : '')
-                        + '</div>'
+                const statusLower = String(item.status || 'pending').toLowerCase();
+                let processInfoHtml = '<span class="text-muted small">-</span>';
+
+                if (statusLower === 'cancelled') {
+                    const canceller = escapeHtml(item.processed_by_name || item.pengaju_name || item.pengaju_username || '-');
+                    const cancelledAt = item.processed_at
+                        ? ' &bull; <span class="rk-meta-time">' + escapeHtml(formatDateTime(item.processed_at)) + '</span>'
+                        : '';
+                    const cancelMeta = '<div class="small text-muted mb-25">Dibatalkan oleh <strong>' + canceller + '</strong>' + cancelledAt + '</div>';
+                    const alasanBatal = item.alasan_batal && String(item.alasan_batal).trim()
+                        ? escapeHtml(String(item.alasan_batal).trim())
+                        : '<span class="text-muted font-italic">Tanpa catatan pembatalan</span>';
+                    processInfoHtml = cancelMeta + '<div class="rk-note-box is-cancelled">' + alasanBatal + '</div>';
+                } else {
+                    const notes = item.catatan_planning || item.alasan_tolak || '';
+                    const noteClass = statusLower === 'rejected'
+                        ? ' is-planning-rejected'
+                        : (statusLower === 'approved' ? ' is-planning-approved' : '');
+                    const processedMeta = item.processed_by_name
+                        ? '<div class="small text-muted mt-25">Oleh: <strong>' + escapeHtml(item.processed_by_name) + '</strong>'
+                            + (item.processed_at ? ' · <span class="rk-meta-time">' + escapeHtml(formatDateTime(item.processed_at)) + '</span>' : '')
+                            + '</div>'
+                        : '';
+
+                    if (notes) {
+                        processInfoHtml = '<div class="rk-note-box' + noteClass + '">' + escapeHtml(notes) + '</div>' + processedMeta;
+                    } else if (processedMeta) {
+                        processInfoHtml = processedMeta;
+                    }
+                }
+
+                const cancellable = isItemCancellable(item);
+                const isChecked = cancellable && selectedSet.has(idReq);
+
+                const checkColHtml = canCreate
+                    ? ('<td class="text-center rk-check-col">'
+                        + (cancellable
+                            ? '<input type="checkbox" class="rk-row-checkbox rk-cancel-checkbox"'
+                                + ' data-context="riwayat" value="' + idReq + '"'
+                                + (isChecked ? ' checked' : '')
+                                + ' aria-label="Pilih request #' + idReq + '">'
+                            : '')
+                        + '</td>')
                     : '';
 
-                const planningNoteHtml = notes
-                    ? '<div class="rk-note-box' + noteClass + '">' + escapeHtml(notes) + '</div>' + processedMeta
-                    : (processedMeta || '<span class="text-muted small">-</span>');
+                const actionColHtml = canCreate
+                    ? ('<td class="text-center">'
+                        + (cancellable
+                            ? '<button type="button" class="btn btn-outline-danger btn-sm btn-rk-action-cancel"'
+                                + ' data-id="' + idReq + '" data-context="riwayat">'
+                                + '<i class="fas fa-ban mr-25"></i>Batal</button>'
+                            : '<span class="text-muted small">-</span>')
+                        + '</td>')
+                    : '';
 
                 return '<tr>'
+                    + checkColHtml
                     + '<td class="text-center font-weight-bold">' + (idx + 1) + '</td>'
                     + '<td>'
                     + '<div class="font-weight-bold">' + pengaju + '</div>'
                     + '<div class="rk-meta-time mt-25"><i class="far fa-calendar-alt mr-25"></i>' + tanggal + '</div>'
-                    + '<div class="small text-muted">Req #' + Number(item.id_request) + '</div>'
+                    + '<div class="small text-muted">Req #' + idReq + '</div>'
                     + '</td>'
                     + '<td class="text-center">' + renderJenisBadge(item.jenis_request) + '</td>'
                     + '<td>' + detailCol + '</td>'
                     + '<td>' + renderTipeSummaryCell(item, true) + '</td>'
                     + '<td><div class="rk-note-box">' + escapeHtml(item.keterangan || '-') + '</div></td>'
                     + '<td class="text-center">' + renderStatusBadge(item.status) + '</td>'
-                    + '<td>' + planningNoteHtml + '</td>'
+                    + '<td>' + processInfoHtml + '</td>'
+                    + actionColHtml
                     + '</tr>';
             }).join('');
 
             $tbody.html(html);
             $empty.attr('hidden', true);
             $wrap.removeAttr('hidden');
+            if (canCreate) {
+                syncCancelBatchUI('riwayat');
+            }
         }).fail(function (xhr) {
             $loading.attr('hidden', true);
             $wrap.attr('hidden', true);
             $empty.removeAttr('hidden');
+            if (canCreate) {
+                pruneStaleSelections('riwayat', []);
+            }
             showToast('error', 'Gagal memuat riwayat', extractErrorMessage(xhr, 'Gagal memuat riwayat request.'));
         });
     }
 
-    function refreshAllVisibleLists() {
-        loadCountsSummary();
+    function loadTambahTab() {
         if (canProcess) {
-            loadPlanningList('tambah_baru');
-            loadPlanningList('ubah_tipe');
+            return loadPlanningList('tambah_baru');
         }
-        loadRiwayatList();
+        if (canCreate) {
+            return loadMkdtPendingList('tambah_baru');
+        }
+        return $.Deferred().resolve([]).promise();
+    }
+
+    function loadUbahTab() {
+        if (canProcess) {
+            return loadPlanningList('ubah_tipe');
+        }
+        if (canCreate) {
+            return loadMkdtPendingList('ubah_tipe');
+        }
+        return $.Deferred().resolve([]).promise();
+    }
+
+    function loadRiwayatTab() {
+        return loadRiwayatList();
+    }
+
+    function refreshAllVisibleLists() {
+        loadTambahTab();
+        loadUbahTab();
+        loadRiwayatTab();
     }
 
     // ─────────────────────────────────────────────────────────────────────────
@@ -1618,8 +2076,91 @@
     }
 
     // ─────────────────────────────────────────────────────────────────────────
-    // TAB RIWAYAT & PREVIEW TRIGGERS
+    // TAB RIWAYAT, PEMBATALAN (SATUAN & BATCH) & PREVIEW TRIGGERS
     // ─────────────────────────────────────────────────────────────────────────
+
+    if (canCreate) {
+        $('#btn-rk-mkdt-refresh-tambah').on('click', function () {
+            loadMkdtPendingList('tambah_baru');
+        });
+
+        $('#btn-rk-mkdt-refresh-ubah').on('click', function () {
+            loadMkdtPendingList('ubah_tipe');
+        });
+
+        $modal.on('change', '.rk-cancel-checkbox', function () {
+            const ctx = String($(this).attr('data-context') || '');
+            const idReq = Number($(this).val() || 0);
+            const selectedSet = rkState.selectedCancelIds[ctx];
+            if (!selectedSet || idReq <= 0) return;
+
+            if (this.checked) {
+                selectedSet.add(idReq);
+            } else {
+                selectedSet.delete(idReq);
+            }
+            syncCancelBatchUI(ctx);
+        });
+
+        $('#rk-mkdt-tambah-check-all, #rk-mkdt-ubah-check-all, #rk-riwayat-check-all').on('change', function () {
+            const elemId = String(this.id || '');
+            let ctx = 'riwayat';
+            if (elemId === 'rk-mkdt-tambah-check-all') {
+                ctx = 'tambah';
+            } else if (elemId === 'rk-mkdt-ubah-check-all') {
+                ctx = 'ubah';
+            }
+
+            const selectedSet = rkState.selectedCancelIds[ctx];
+            const visibleIds = rkState.visibleCancellableIds[ctx] || [];
+            const ui = cancelContextUiMap[ctx];
+            if (!selectedSet || !ui) return;
+
+            const shouldCheck = Boolean(this.checked);
+            selectedSet.clear();
+            if (shouldCheck) {
+                visibleIds.forEach(function (idNum) {
+                    selectedSet.add(Number(idNum));
+                });
+            }
+
+            $(ui.tbody).find('.rk-cancel-checkbox').prop('checked', shouldCheck);
+            syncCancelBatchUI(ctx);
+        });
+
+        $('#btn-rk-mkdt-clear-tambah').on('click', function () {
+            clearCancelSelection('tambah');
+        });
+
+        $('#btn-rk-mkdt-clear-ubah').on('click', function () {
+            clearCancelSelection('ubah');
+        });
+
+        $('#btn-rk-riwayat-clear-select').on('click', function () {
+            clearCancelSelection('riwayat');
+        });
+
+        $('#btn-rk-mkdt-batch-cancel-tambah').on('click', function () {
+            const ids = Array.from(rkState.selectedCancelIds.tambah);
+            confirmAndCancelRequests(ids, buildCancelSummaryText(ids));
+        });
+
+        $('#btn-rk-mkdt-batch-cancel-ubah').on('click', function () {
+            const ids = Array.from(rkState.selectedCancelIds.ubah);
+            confirmAndCancelRequests(ids, buildCancelSummaryText(ids));
+        });
+
+        $('#btn-rk-riwayat-batch-cancel').on('click', function () {
+            const ids = Array.from(rkState.selectedCancelIds.riwayat);
+            confirmAndCancelRequests(ids, buildCancelSummaryText(ids));
+        });
+
+        $modal.on('click', '.btn-rk-action-cancel', function () {
+            const idReq = Number($(this).attr('data-id') || $(this).data('id') || 0);
+            if (!idReq) return;
+            confirmAndCancelRequests([idReq], buildCancelSummaryText([idReq]));
+        });
+    }
 
     $('#rk-riwayat-status-pills').on('click', '.rk-filter-pill', function () {
         const status = String($(this).data('status') || 'all');
@@ -1947,6 +2488,12 @@
 
         initCreateSelect2Controls();
 
+        if (canCreate) {
+            clearCancelSelection('tambah');
+            clearCancelSelection('ubah');
+            clearCancelSelection('riwayat');
+        }
+
         let targetTab = '#tab-rk-tambah';
         if (options.tab === 'ubah') {
             targetTab = '#tab-rk-ubah';
@@ -2038,12 +2585,12 @@
 
         $('#rk-modal-tablist a[data-toggle="pill"]').on('shown.bs.tab', function (e) {
             const href = $(e.target).attr('href');
-            if (href === '#panel-rk-tambah' && canProcess) {
-                loadPlanningList('tambah_baru');
-            } else if (href === '#panel-rk-ubah' && canProcess) {
-                loadPlanningList('ubah_tipe');
+            if (href === '#panel-rk-tambah') {
+                loadTambahTab();
+            } else if (href === '#panel-rk-ubah') {
+                loadUbahTab();
             } else if (href === '#panel-rk-riwayat') {
-                loadRiwayatList();
+                loadRiwayatTab();
             }
         });
     });
