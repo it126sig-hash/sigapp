@@ -28,9 +28,9 @@ Watermark footer dirancang minimalis dan rapi agar tidak mengganggu layout dokum
     *(Catatan: Bagian `oleh {username}` otomatis diisi dari session pengguna aktif via Myth/Auth `user()->username` jika pengguna sedang login).*
   - **Kolom Kanan (30%, rata kanan)**:
     ```text
-    Hal. {PAGENO} / {nbpg}
+    Hal. {PAGENO}
     ```
-    *(Menggunakan tag makro bawaan mPDF untuk nomor halaman saat ini dan total halaman).*
+    *(Menggunakan tag makro bawaan mPDF untuk nomor halaman saat ini).*
 
 ---
 
@@ -105,7 +105,7 @@ Beberapa dokumen seperti Kuitansi mendefinisikan footer khusus menggunakan tag b
 ### 3. Dokumen Berupa Array Halaman (Contoh: SPPTB Multi-Page)
 Untuk dokumen yang di-pass berupa array halaman (`is_array($html)`):
 - Halaman array bertipe asosiatif (`['html' => '...', 'footer' => '...']`): footer bawaan halaman digabungkan dengan watermark.
-- Halaman array biasa: halaman pertama menggabungkan custom footer + watermark, dan halaman berikutnya tetap menyertakan watermark footer dengan penomoran halaman dinamis `{PAGENO} / {nbpg}`.
+- Halaman array biasa: halaman pertama menggabungkan custom footer + watermark, dan halaman berikutnya tetap menyertakan watermark footer dengan penomoran halaman dinamis `{PAGENO}`.
 
 ### 4. Proteksi PCRE Backtrack Limit (Chunked Rendering)
 Fungsi `writeHtmlChunked()` memisahkan blok `<style>` ke mode `HEADER_CSS` dan memotong body HTML dalam blok per 500 KB pada batas tag HTML yang valid (`>`) agar terhindar dari batas `pcre.backtrack_limit` pada dokumen besar/kompleks.
@@ -139,7 +139,7 @@ class Pdf extends BaseConfig
     public bool $includeUsername = true;
 
     /**
-     * Menyertakan nomor halaman (' Hal. {PAGENO} / {nbpg}').
+     * Menyertakan nomor halaman (' Hal. {PAGENO}').
      */
     public bool $includePageNumbers = true;
 }

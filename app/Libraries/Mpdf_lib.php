@@ -68,7 +68,7 @@ class Mpdf_lib
             }
         }
 
-        $pageNumberHtml = $includePageNumbers ? '<td style="text-align: right; vertical-align: middle; border: none; padding: 0; width: 30%;">Hal. {PAGENO} / {nbpg}</td>' : '';
+        $pageNumberHtml = $includePageNumbers ? '<td style="text-align: right; vertical-align: middle; border: none; padding: 0; width: 30%;">Hal. {PAGENO}</td>' : '';
         $escapedAppName = function_exists('esc') ? esc($appName) : htmlspecialchars($appName, ENT_QUOTES, 'UTF-8');
 
         return '<div class="sigapp-pdf-watermark-footer" style="border-top: 0.5px solid #dcdcdc; padding-top: 2px; margin-top: 2px; font-family: sans-serif; font-size: 6.5pt; color: #777777;">'

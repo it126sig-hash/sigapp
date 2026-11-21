@@ -154,7 +154,6 @@ if (is_file($logoSrc) && ($logoDims = @getimagesize($logoSrc))) {
 
 <htmlpageheader name="header_pages">
     <div style="text-align:right; font-size:10pt; padding-right:10mm;">
-        Halaman {PAGENO}
     </div>
 </htmlpageheader>
 <sethtmlpageheader name="header_pages" value="on" />

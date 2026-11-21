@@ -212,7 +212,49 @@
             <?php else:
                 $grandTotal = $data->harga_allin;
             ?>
+                <tr>
+                    <td>Biaya Biaya</td>
+                    <td>
+                <tr class="is_hidden">
+                    <td width="160" valign="top">
+                        <ul>
+                            <li>Biaya Kavling Strategis</li>
+                        </ul>
+                    </td>
+                    <td width="208" valign="top"></td>
+                    <td> : Rp.</td>
+                    <td width="208" valign="top" class="button-green" align="right">
+                        <span
+                            style="margin:500pt"><?= num_format($data->harga_penambahan) ?></span>
+                    </td>
+                </tr>
+                <tr class="is_hidden">
+                    <td width="160" valign="top">
+                        <ul>
+                            <li>SBUM</li>
+                        </ul>
+                    </td>
+                    <td width="208" valign="top"></td>
+                    <td> : Rp.</td>
+                    <td width="208" valign="top" class="button-green" align="right">
+                        <span style="margin:500pt">(<?= num_format($data->harga_sbum) ?>)</span>
+                    </td>
+                </tr>
+                <tr class="is_hidden">
+                    <td width="160" valign="top">
+                        <ul>
+                            <li>Diskon</li>
+                        </ul>
+                    </td>
+                    <td width="208" valign="top"></td>
+                    <td> : Rp.</td>
+                    <td width="208" valign="top" class="button-green" align="right">
+                        <span style="margin:500pt">(<?= num_format($data->harga_diskon_uang_muka) ?>)</span>
+                    </td>
 
+                </tr>
+                </td>
+                </tr>
                 </tr>
 
             <?php endif; ?>

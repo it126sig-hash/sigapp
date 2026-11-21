@@ -20,7 +20,8 @@ final class MpdfLibWatermarkFooterTest extends CIUnitTestCase
         $this->assertStringContainsString('class="sigapp-pdf-watermark-footer"', $footerHtml);
         $this->assertStringContainsString('Dokumen ini dicetak otomatis melalui', $footerHtml);
         $this->assertStringContainsString('SIGAPP', $footerHtml);
-        $this->assertStringContainsString('Hal. {PAGENO} / {nbpg}', $footerHtml);
+        $this->assertStringContainsString('Hal. {PAGENO}', $footerHtml);
+        $this->assertStringNotContainsString('{nbpg}', $footerHtml);
 
         // 3. Render binary default
         $pdf = $lib->renderBinary('<html><body><h1>Watermark Active Test</h1></body></html>');
