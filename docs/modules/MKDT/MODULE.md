@@ -535,7 +535,18 @@ _Jalankan `php spark module:deadcode MKDT` untuk mengaudit dead code kandidat._
   3. Pembersihan method `@deprecated` di `app/Controllers/Mkdt.php` setelah periode observasi log `DEPRECATED_MKDT_HIT:` bersih.
   4. Pemutakhiran atau pengarsipan 2 unit/DB test pra-refaktor dari commit `bc174ee` (`tests/unit/BookingAkadReportM2ChallengerTest.php` & `tests/database/BookingAkadReportProyek13MetricsTest.php`).
 
+### Audit Verifikasi Migrasi (2026-11-22)
+- **Status Ledger:** `COMPLETED (Catatan Minor)` (Readiness Score `100/100`, 9 Controllers, 12 Services, 9 Repositories, 3 Models, 29 Modular Routes, 19 Shims; 0 missing/non-modular/syntax/namespace mismatch).
+- **Controllers & Routes:** Seluruh controller modular Web/API (`App\Controllers\Web\Mkdt\*`, `App\Controllers\Api\Mkdt\*`) bersih tanpa pelanggaran layer; API DataTables/Operasi sudah mendukung dual-mode `?format=raw`. `app/Controllers/PosisiKonsumen.php` (96 baris) dan `app/Controllers/Promo.php` (107 baris) terverifikasi delegator shim bersih (0 pelanggaran DB/Model), sementara `app/Controllers/Mkdt.php` (775 baris) masih berstatus `fat_legacy` untuk 4 endpoint `@deprecated` Opsi A (`get_data_by_id`, `save`, `set_harga`, `export_xlsx`) yang masih memakai `db_connect()`, `$this->db->table()`, dan `new *Model()`. Terdapat 5 rute legacy `/promo/*` di `app/Config/Routes.php` (L480, L489–492; plus L481–488 di grup `promo`) yang menunjuk delegator shim `Promo`, sedangkan rute kanonik `GET /promo` dan `/api/mkdt/promo/*` sudah modular.
+- **Service Layering & Cross-Module Boundary:**
+  - `App\Services\Mkdt\MkdtFinancialBreakdownService`: query `$db->table('keuangan_item_list')` (L145) dan `$db->table('log_pembayaran_detail')` (L185) langsung di Service.
+  - `App\Services\Mkdt\MkdtFinancialReconciliationService`: query/update `$this->db->table('mkdt')` (L35, L177), raw SQL `SELECT` via `$this->db->query()` (L149–153), query `$this->db->table('log_pembayaran')` (L207) & `log_pembayaran_detail` (L229), serta mutasi tabel milik modul `AuditTrail` (`history_log` insert, L181).
+  - `App\Services\Mkdt\NupService`: pada `pullToNup()`, selain transaksi DB (`transStart`/`transComplete`), melakukan mutasi langsung tabel milik modul lain: `kavling` (`Transaksi`, L363) dan `finance_ledger` (`Keuangan`, L410).
+  - `App\Services\Mkdt\PosisiKonsumenService`: memanggil `\Config\Database::connect()` di `__construct()` (L29) pada properti `$this->db` yang tidak terpakai.
+  - Catatan bersih: `StandingInstructionService` (L32, L129, L160) dan `BatalBookingService` (L37, L218, L220) hanya memakai `Database::connect()` untuk manajemen transaksi (`transStart`/`transComplete`), dan `MkdtSettlementService` (L14–15) hanya meneruskan koneksi ke `BookingPaymentRepository`.
+
 ## Change Log
+- `2026-11-22` [`AUDIT`] — Verifikasi migrasi modular `MKDT`: status ledger `COMPLETED (Catatan Minor)` (Score `100%`), dokumentasi temuan layering/boundary pada `MkdtFinancialBreakdownService`, `MkdtFinancialReconciliationService`, `NupService`, `PosisiKonsumenService`, shim Opsi A `Mkdt.php`, dan rute legacy `/promo/*`.
 - **`2026-11-20` [`FEATURE`] — Penambahan Opsi `Semua Status` (`semua`) pada Filter Status Konsumen Posisi Konsumen (`list-kavling`):**
   - **Routes & Public Contracts:**
     - Tidak ada perubahan route di `app/Config/Routes.php`.

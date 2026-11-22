@@ -144,7 +144,15 @@ _Jalankan `php spark module:deadcode Home` untuk mengaudit dead code kandidat._
   - Memanggil model `App\Models\ProyekModel` untuk verifikasi data proyek aktif.
   - Berinteraksi dengan `App\Controllers\Notif` untuk log aktivitas audit (`getActivity`).
 
+### Audit Verifikasi Migrasi (2026-11-22)
+- **Status Audit:** `INCOMPLETE` (Readiness Score `40/100`, Status `MAPPED`).
+- **File Flat / Non-Modular:** `app/Controllers/Home.php` (623 baris; fat controller `> 300` baris dan mencampur `view('template', $data)` pada L40 dengan `setJSON()` pada L190, L569, L584, L594, L613) serta `app/Services/DashboardService.php` (576 baris); belum ada pemisahan `Web\Home` / `Api\Home` maupun Repository layer.
+- **Pelanggaran Controller (`app/Controllers/Home.php`):** Memanggil `new ProyekModel()` (L23), `db_connect()` (L25), dan `$this->db->table(...)` langsung pada 17 titik (L44, L200, L232, L255, L270, L285, L301, L333, L374, L384, L452, L459, L491, L517, L536, L609, L617).
+- **Pelanggaran Service (`app/Services/DashboardService.php`):** Menginisialisasi `Database::connect()` (L13) dan melakukan query `$this->db->table(...)` langsung pada 15 titik (L113, L140, L159, L180, L203, L224, L352, L370, L415, L454, L505, L519, L526, L533, L539) tanpa Repository.
+- **Rute (`app/Config/Routes.php`):** 5 rute eksplisit masih mengarah ke flat `Home::*` (L40, L41, L79, L122, L123) dan `$routes->setAutoRoute(true)` (L9) masih menyisakan 7 AutoRoute pada `Home`.
+
 ## Change Log
+- `2026-11-22` [`AUDIT`] — Audit verifikasi migrasi modular: status `INCOMPLETE` (Score 40/100, `MAPPED`), ditemukan file flat `Home.php` & `DashboardService.php`, pelanggaran layer DB/Model di controller & service, serta rute eksplisit/AutoRoute masih ke `Home::*`.
 - **2026-11-04 [`FEATURE` / `UI_REPORT`] — Dashboard Cards, Action Alerts, & Problem Ticket Table Refinements:**
   - **Routes & Public Contracts:**
     - Perbaikan rute alert tindakan: alert tagihan overdue dan tagihan jatuh tempo kini mengarah tepat ke `/tagihan/list`.

@@ -294,7 +294,16 @@ _Jalankan `php spark module:deadcode SalesExternal` untuk mengaudit dead code ka
   - Zero Controller Layer Violations: Web Controller tidak lagi memanggil `new ProyekModel()` (digantikan oleh `ProyekService::getAll()`), dan Api Controller tidak lagi query langsung ke database via `Database::connect()->table('fee_sales')` (digantikan oleh method baru `SalesExternalRepository::getMkdtIdByFeeSalesId()`).
   - 32 routes di `app/Config/Routes.php` diperbarui mengarah langsung ke namespace modular baru. Seluruh unit tests (31/31) terverifikasi PASS.
 
+### Audit Verifikasi Migrasi (2026-11-22)
+- **Status Audit:** `COMPLETED (Catatan Minor)` — Readiness Score `100/100` (`REFACTORED`), 32 rute eksplisit modular (0 legacy route), 8 zero-downtime shims terverifikasi `thin_shim`, 0 controller DB violations.
+- **Temuan Layering & Boundary (Terverifikasi Langsung):**
+  1. `app/Controllers/Api/SalesExternal/FeeSalesSettingController.php` (L8): masih mewarisi `BaseController` (belum `BaseApiController`).
+  2. `app/Controllers/Web/SalesExternal/SalesExternalController.php` (L95-96, L145-146): `pengajuanSignature()` dan `pengajuanShared()` masih menginstansiasi `new SalesExternalRepository()` langsung alih-alih melalui Service layer.
+  3. `app/Services/SalesExternal/SalesExternalService.php`: masih melakukan akses `$this->db->table()` langsung (a.l. L223, L280, L421, L1396, L1416, L1701), raw `$this->db->query()` UPDATE JOIN (L1450-1455), serta mutasi (`update`) tabel asing `mkdt` milik modul `MKDT` pada `saveFeeHeader()` (L273-275) dan `applyPriceRecalculationForMkdt()` (L1391-1393).
+  4. `app/Services/SalesExternal/FeeSalesSettingService.php`: masih melakukan query `$this->db->table()` langsung pada `listPermissions()` (L21-31), `savePermissions()` (L58, L82-101), dan `getUserPermissions()` (L157, L191), serta mutasi (`insert`/`delete`) tabel asing `menu_roles` milik modul `Settings` (L107-125).
+
 ## Change Log
+- `2026-11-22` [`AUDIT`] — Audit verifikasi migrasi modular: status `COMPLETED (Catatan Minor)` (Score 100%); ditemukan `Api\SalesExternal\FeeSalesSettingController` extends `BaseController`, `Web\SalesExternal\SalesExternalController` panggil `SalesExternalRepository` langsung (L95-96, L145-146), serta `SalesExternalService` & `FeeSalesSettingService` masih `$this->db->table()`/`query()` langsung dan mutasi tabel asing (`mkdt`, `menu_roles`).
 - **`2026-11-09` [`REFACTOR`] — Migrasi Penuh ke Arsitektur Modular Monolit CI4 SIGAPP & Eliminasi Controller Layer Violations:**
   - **Routes & Public Contracts:**
     - 32 rute modul SalesExternal di `app/Config/Routes.php` diperbarui mengarah ke controller modular `App\Controllers\Web\SalesExternal\` dan `App\Controllers\Api\SalesExternal\`.

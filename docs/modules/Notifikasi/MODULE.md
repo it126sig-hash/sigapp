@@ -233,6 +233,17 @@ _Jalankan `php spark module:deadcode Notifikasi` untuk mengaudit dead code kandi
   - **Deep-Link Handler Frontend (`public/assets/js/scripts.js`):** `handleNotificationClick()` menangani `type && type.startsWith("fee_sales")` dengan mengarahkan ke `/notif/open/{id_notif}` menuju `action_url` (`fee-sales?open_mkdt={id_mkdt}` atau `fee-sales/pengajuan/{share_token}`).
   - **Deprekasi Alias Event Pendek `fee_sales_*`:** Kode pendek (`fee_sales_pengajuan`, `fee_sales_termin`, `fee_sales_harga_net`, `fee_sales_ttd`, `fee_sales_cair`) dinormalisasi via `NotificationEvent::fromLegacyType()`.
 
+### Audit Verifikasi Migrasi (2026-11-22)
+  - **Controllers, Shims & Routes (Bersih):** 2 Web Controller, 3 API Controller (seluruhnya mewarisi `BaseApiController` dengan dukungan `?format=raw` dan `/api/notif/*`), 14 Zero-Downtime Shims (`thin_shim`), serta 26 rute eksplisit terverifikasi bebas pelanggaran layering/HTML.
+  - **Services Layering Findings (7 dari 8 Service):** `NotificationIconService` bersih dari akses DB langsung, namun 7 Service lain masih melakukan query/mutasi `$this->db->table()` langsung (0 mutasi tabel modul lain; `tiket_masalah` & `tiket_masalah_user` di `GoogleCalendarService` hanya `SELECT` read-only):
+    - `NotifikasiService`: `db_connect()` (L20) untuk transaksi (L36, L54, L72) sekaligus `$this->db->table()` langsung (L38, L137, L150, L264, L284, L289, L340, L349, L379, L391, L422).
+    - `NotificationDispatchService`: `db_connect()` tanpa transaksi (L17) dan `$this->db->table()` (L68, L85, L96, L102, L185, L201, L232, L238).
+    - `NotificationPreferenceService`: `db_connect()` (L13) untuk transaksi (L158, L207) sekaligus `$this->db->table()` langsung (L29, L45, L66, L72, L116, L161, L171, L183, L192, L215, L235, L243, L249, L283).
+    - `NotificationNavigationService`: `Database::connect()` tanpa transaksi (L14) dan `$this->db->table()` (L29, L40, L52).
+    - `WebPushService`: `db_connect()` tanpa transaksi (L24) dan `$this->db->table()` pada `users`/`auth_groups_users` (L219, L229).
+    - `EmailDigestService`: `db_connect()` tanpa transaksi (L20) dan `$this->db->table()` (L42, L163, L285, L313, L338, L354, L392, L472, L486).
+    - `GoogleCalendarService`: `db_connect()` tanpa transaksi (L36) dan `$this->db->table()` (L85, L156, L183, L188, L198, L316, L473, L495, L508, L518, L540, L547).
+
 ## Change Log
 - `2026-11-12` [`REFACTOR`] — **Refactoring Penuh Modul Notifikasi Menjadi Arsitektur Modular CI4 Web/Api & Services (Score 100/100, PASS QA)**:
   - **Routes & Public Contracts:**
@@ -254,3 +265,4 @@ _Jalankan `php spark module:deadcode Notifikasi` untuk mengaudit dead code kandi
     - Safeguard null-safety pada `public/sw.js` terhadap push data payload.
     - Verifikasi integritas view email digest `app/Views/emails/email_digest.php`.
 - `2026-11-12` [`SYNC`] — Sinkronisasi status & inventori modul melalui `module:sync`.
+- `2026-11-22` [`AUDIT`] — Audit verifikasi migrasi modular: status `COMPLETED (Catatan Minor)` (Score 100%); Controller/Shims/Routes bersih, namun 7 Service masih memanggil `$this->db->table()` langsung tanpa delegasi Repository.

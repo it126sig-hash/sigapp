@@ -202,7 +202,20 @@ _Jalankan `php spark module:deadcode Proyek` untuk mengaudit dead code kandidat.
 - **Cross-Module Callers:**
   - Modul `Siteplan` (`public/assets/js/siteplan/target.js`, `TargetSiteplanService`, `TargetSiteplanRepository`) mengonsumsi `/api/tipe/all?only_active=1&format=raw` (`TipeController::getAll` -> `TipeService::getAll`) dan `/api/tipe/getone` (`TipeController::getOne`) untuk Select2 AJAX tipe aktif serta preview 3D/denah/6 spesifikasi teknis pada `#target-interactive-card` dan modal `#modal-target-tipe-spec`.
 
+### Audit Verifikasi Migrasi (2026-11-22)
+- **Status Audit Ledger:** `COMPLETED (Catatan Minor)` (`REFACTORED`, Score `100/100`).
+- **Temuan Service Layer:**
+  - `app/Services/Proyek/JalanService.php`: masih menjalankan query `db_connect()->table(...)` langsung pada `getOne()` (L119–131 dengan subquery SQL mentah ke `kavling` & `mkdt`), `add()` (L162–163 ke `cluster`), `edit()` (L204–205 ke `cluster`), dan `remove()` (L220–221 ke `kavling`) daripada mendelegasikan ke `JalanRepository`. *(Sebagai pembanding, `db_connect()` di `ProyekService.php` L32 dan `TipeService.php` L60 hanya dipakai untuk transaksi).*
+  - `app/Services/Proyek/TipeService.php`: `remove()` (L344) menginstansiasi `new KavlingModel()` langsung untuk pengecekan guard tabel `kavling` sebelum penghapusan.
+- **Temuan Legacy Controller Shims & Routes:**
+  - 5 controller shim legacy (`app/Controllers/Proyek.php`, `Cluster.php`, `Tipe.php`, `Jalan.php`, `AksesProyek.php`) masih berklasifikasi `fat_legacy` (mewarisi `BaseController` dan berisi logika langsung alih-alih delegator tipis ke `Web\Proyek\*`/`Api\Proyek\*`). Secara khusus, `Cluster.php` (L16, L22) & `Tipe.php` (L16, L22–24, L95) masih memanggil `new ProyekModel()` / `new KavlingModel()` langsung.
+  - 3 rute legacy di `app/Config/Routes.php` masih mengarah ke shim tersebut: `POST /getAkases` -> `AksesProyek::getAkses` (L128, masih dikonsumsi `app/Views/master/aksesproyek.php` L149, L192), `POST tipe/get/all` -> `Tipe::getAll` (L528), dan `POST proyek/get/all` -> `Proyek::getAll` (L531).
+  - Duplikasi rute `/aksesproyek` pada `app/Config/Routes.php` L129 dan L137 (tercermin sebagai baris ganda pada inventori endpoint di `MODULE.md`).
+- **Catatan Web Controllers (Dual-Mode):**
+  - Kelima `App\Controllers\Web\Proyek\*Controller` masih memiliki `wantsJson()` yang mengembalikan `$this->response->setJSON(...)` (mode ganda HTML/JSON sesuai catatan migrasi `2026-11-11`).
+
 ## Change Log
+- `2026-11-22` [`AUDIT`] — Audit verifikasi migrasi modular (`COMPLETED (Catatan Minor)`, Score `100/100`): mencatat query `db_connect()->table()` pada `JalanService.php` (L119–131, L162–163, L204–205, L220–221), `new KavlingModel()` pada `TipeService.php` L344, 5 controller shim `fat_legacy` + 3 rute legacy (`Routes.php` L128, L528, L531), dual-mode `wantsJson()` pada 5 `Web\Proyek\*Controller`, serta duplikasi rute `/aksesproyek` (`Routes.php` L129 & L137).
 - `2026-11-16` [`FEATURE`] — **Enhancement Fitur Target Siteplan (Fase 5–8): Eksposur 6 Kolom Spesifikasi Teknis & Pencarian Tipe Aktif (`TipeService::getAll` `format=raw`):**
   - **Routes & Public Contracts:** Tidak ada perubahan rute; memperluas payload JSON `TipeService::getAll()` pada mode `format=raw` (`GET|POST /api/tipe/all?only_active=1&format=raw`) dengan 6 kolom spesifikasi teknis (`jumlah_kamar_tidur`, `jumlah_kamar_mandi`, `spesifikasi_teknis_atap`, `spesifikasi_teknis_dinding`, `spesifikasi_teknis_lantai`, `spesifikasi_teknis_pondasi`) serta access URL gambar (`gambar_tipe_access_url`, `gambar_denah_access_url`, `gambar_kerja_access_url`) sementara format legacy non-raw tetap terjaga 8 elemen `[0..7]`.
   - **Controller / Service / Repo / Model:**

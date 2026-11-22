@@ -2,7 +2,7 @@
 
 **Status:** `REFACTORED`  
 **Readiness Score:** `100/100`  
-**Last Synced:** `2026-11-12 13:40:16` @ `a68829a`  
+**Last Synced:** `2026-11-22 07:39:06` @ `4e1c7fe`  
 
 ## Purpose
 Member Get Member: program referral konsumen, pembuatan link/QR publik, serta approval dan pencairan komisi.
@@ -76,7 +76,7 @@ Member Get Member: program referral konsumen, pembuatan link/QR publik, serta ap
 ## File Inventory
 ### Controllers (5)
 - `app/Controllers/Web/MGM/MemberGetMemberController.php` (22 baris, 1 public methods: `index()`)
-- `app/Controllers/Api/MGM/ReferralController.php` (283 baris, 10 public methods: `list()`, `subRows()`, `confirmBonus()`, `payByPromosi()`, `updateNominal()`, `submitKeuangan()`, `markCairKeuangan()`, `cancelBonus()`, `updateKeterangan()`, `searchOptions()`)
+- `app/Controllers/Api/MGM/ReferralController.php` (290 baris, 10 public methods: `list()`, `subRows()`, `confirmBonus()`, `payByPromosi()`, `updateNominal()`, `submitKeuangan()`, `markCairKeuangan()`, `cancelBonus()`, `updateKeterangan()`, `searchOptions()`)
 - `app/Controllers/Api/MGM/ReferralSettingController.php` (59 baris, 3 public methods: `listStages()`, `saveStage()`, `deleteStage()`)
 - `app/Controllers/Api/MGM/ReferralQrController.php` (81 baris, 2 public methods: `preview()`, `download()`)
 - `app/Controllers/Api/MGM/PublicReferralController.php` (54 baris, 1 public methods: `checkReferral()`)
@@ -86,7 +86,7 @@ Member Get Member: program referral konsumen, pembuatan link/QR publik, serta ap
 - `app/Services/MGM/ReferralQrService.php` (251 baris, 1 public methods)
 
 ### Repositories (1)
-- `app/Repositories/MGM/ReferralRepository.php` (488 baris, 13 public methods: `getListMGM(int $idProyek, array $filters = [])`, `getSubRowsByReferrer(int $idKonsumenReferrer, int $idProyek, array $filters = [])`, `findByKodeReferal(string $kode, int $idProyek)`, `getReferralByMkdt(int $idMkdt)`, `getMkdtReferralContext(int $idMkdt)`, `getBonusStagesByProyek(int $idProyek)`, `getAllBonusStagesByProyek(int $idProyek)`, `saveBonusStage(array $data, ?int $id = null)`, `deleteBonusStage(int $id)`, `getMgmNotificationContextByBonus(int $idBonus)`, `findPublicByKode(string $kode)`, `searchReferrerOptions(string $search, int $idProyek)`, `getCashoutBonusesByKavling(int $idKavling)`)
+- `app/Repositories/MGM/ReferralRepository.php` (491 baris, 13 public methods: `getListMGM(int $idProyek, array $filters = [])`, `getSubRowsByReferrer(int $idKonsumenReferrer, int $idProyek, array $filters = [])`, `findByKodeReferal(string $kode, int $idProyek)`, `getReferralByMkdt(int $idMkdt)`, `getMkdtReferralContext(int $idMkdt)`, `getBonusStagesByProyek(int $idProyek)`, `getAllBonusStagesByProyek(int $idProyek)`, `saveBonusStage(array $data, ?int $id = null)`, `deleteBonusStage(int $id)`, `getMgmNotificationContextByBonus(int $idBonus)`, `findPublicByKode(string $kode)`, `searchReferrerOptions(string $search, int $idProyek)`, `getCashoutBonusesByKavling(int $idKavling)`)
 
 ### Models (4)
 - `app/Models/ReferralModel.php`
@@ -146,5 +146,12 @@ _Jalankan `php spark module:deadcode MGM` untuk mengaudit dead code kandidat._
   - **4. Modul MKDT / Posisi Konsumen & Siteplan UI (`PosisiKonsumenService` & `modal_detail.php`):** Mengonsumsi endpoint `POST /api/referral-qr/preview` dan `GET /api/referral-qr/download` yang ditangani oleh `App\Controllers\Api\MGM\ReferralQrController`.
   - **5. CLI Maintenance Command (`App\Commands\MgmRepairBonuses`):** Memanggil `ReferralService::checkAndActivateBonuses(int $idMkdtReferred, string $statusMkdt)` pada `php spark mgm:repair-bonuses`.
 
+### Audit Verifikasi Migrasi (2026-11-22)
+- **Hasil Audit:** `COMPLETED (Catatan Minor)` dengan status scanner `REFACTORED` dan skor kesiapan `100/100` (17 rute eksplisit modular, 0 legacy/autoroute, dan 8 thin shims bersih).
+- **Temuan Layering — `app/Services/MGM/ReferralQrService.php` (`L17`, `L69-95`):** Membuka koneksi `$this->db = db_connect()` tanpa transaksi (`has_transactions: false`) dan mengeksekusi query join 5 tabel (`mkdt`, `konsumen`, `kavling`, `jalan`, `cluster`, `proyek`) via `$this->db->table('mkdt')` langsung di `findReferralData()` alih-alih melalui `ReferralRepository`.
+- **Temuan Layering — `app/Services/MGM/ReferralService.php` (`L101`, `L109`):** Memanggil `\Config\Database::connect()` dan mengeksekusi `$db->table('konsumen')->where('kode_referal', $kode)->countAllResults()` langsung di `generateKodeReferal()`, mengakses `KonsumenModel` secara langsung (`L30`, `L95`, `L112`), serta cek metadata `$db->tableExists('referral_bonus_histories')` (`L831-832`). Penggunaan `\Config\Database::connect()` lainnya (`L168`, `L338`, `L388`, `L435`, `L490`, `L574`, `L620`, `L652`, `L673`, `L706`) hanya untuk transaksi (`transStart`/`transComplete`/`transStatus`).
+- **Pengecualian Terverifikasi — `app/Controllers/Api/MGM/PublicReferralController.php` (`L11-15`):** Mewarisi `CodeIgniter\RESTful\ResourceController` (bukan `BaseApiController`) secara sengaja karena endpoint publik `POST /api/public/check-referral` berjalan tanpa sesi login sehingga tidak menyertakan `csrf_hash()`.
+
 ## Change Log
 - `2026-11-12` [`SYNC`] — Sinkronisasi status & inventori modul melalui `module:sync`.
+- `2026-11-22` [`AUDIT`] — Audit verifikasi migrasi modular: `COMPLETED (Catatan Minor)` (Score 100%, temuan query DB langsung di `ReferralQrService` L17/L69-95 dan `ReferralService` L101/L109; `PublicReferralController` ekstensi `ResourceController` terverifikasi sebagai pengecualian publik non-CSRF).

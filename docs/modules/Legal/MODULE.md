@@ -1,8 +1,8 @@
 # Module: Legal
 
 **Status:** `REFACTORED`  
-**Readiness Score:** `100/100`  
-**Last Synced:** `2026-11-11 13:35:00` @ `e658eba`  
+**Readiness Score:** `90/100`  
+**Last Synced:** `2026-11-22 07:45:53` @ `4e1c7fe`  
 
 ## Purpose
 Administrasi dan tracking perizinan lahan, sertifikat HGB/PBB/PBG/AJB, dan dokumen legalitas kavling maupun proyek perumahan.
@@ -23,40 +23,37 @@ Administrasi dan tracking perizinan lahan, sertifikat HGB/PBB/PBG/AJB, dan dokum
 - `legal` *(akses tulis eksklusif hanya untuk modul Legal)*
 
 ### Shared Tables (Dibaca dari modul lain)
-- `kavling` *(membaca dan memperbarui kolom `id_legal`)*
-- `mkdt` *(membaca informasi transaksi konsumen untuk kelengkapan legalitas)*
-- `cluster` *(membaca nama cluster untuk filter dan DataTables)*
-- `jalan` *(membaca nama jalan/blok kavling)*
-- `proyek` *(membaca referensi proyek perumahan)*
+- `kavling`
+- `mkdt`
 
 ## Contracts
 ### A. Public HTTP Endpoints & Routes Inventory
 | Method | URI / Pattern | Tipe | Handler | Status Migrasi | Target API / Catatan |
 |---|---|---|---|---|---|
-| `GET` | `/legalitas` | `Explicit` | `App\Controllers\Web\Legal\LegalController::list_legalitas` | 🟢 MIGRATED | Halaman utama daftar status legalitas kavling |
-| `GET` | `/privacy-policy` | `Explicit` | `App\Controllers\Web\Legal\LegalPageController::privacyPolicy` | 🟢 MIGRATED | Halaman web publik Kebijakan Privasi |
-| `GET` | `/toc` | `Explicit` | `App\Controllers\Web\Legal\LegalPageController::termsOfService` | 🟢 MIGRATED | Halaman web publik Syarat & Ketentuan Layanan |
-| `GET` | `/api/legal/meta` | `Explicit` | `App\Controllers\Api\Legal\LegalController::meta` | 🟢 MIGRATED | Metadata dropdown filter proyek, cluster, & jalan |
-| `POST` | `/api/legal/meta` | `Explicit` | `App\Controllers\Api\Legal\LegalController::meta` | 🟢 MIGRATED | Metadata dropdown filter proyek, cluster, & jalan |
-| `POST` | `/api/legal/save` | `Explicit` | `App\Controllers\Api\Legal\LegalController::save` | 🟢 MIGRATED | Simpan / update legalitas kavling via Service |
-| `GET` | `/api/legal/get` | `Explicit` | `App\Controllers\Api\Legal\LegalController::getDataByID` | 🟢 MIGRATED | Ambil data detail legalitas berdasarkan ID |
-| `POST` | `/api/legal/get` | `Explicit` | `App\Controllers\Api\Legal\LegalController::getDataByID` | 🟢 MIGRATED | Ambil data detail legalitas berdasarkan ID |
-| `POST` | `/api/legal/remove` | `Explicit` | `App\Controllers\Api\Legal\LegalController::removeDoc` | 🟢 MIGRATED | Hapus dokumen legalitas via Service |
-| `POST` | `/api/legal/removeDoc` | `Explicit` | `App\Controllers\Api\Legal\LegalController::removeDoc` | 🟢 MIGRATED | Alias hapus dokumen legalitas |
-| `GET` | `/api/legal/getDoc` | `Explicit` | `App\Controllers\Api\Legal\LegalController::getDoc` | 🟢 MIGRATED | Ambil daftar dokumen legalitas kavling |
-| `POST` | `/api/legal/getDoc` | `Explicit` | `App\Controllers\Api\Legal\LegalController::getDoc` | 🟢 MIGRATED | Ambil daftar dokumen legalitas kavling |
-| `POST` | `/api/legal/upload` | `Explicit` | `App\Controllers\Api\Legal\LegalController::upload` | 🟢 MIGRATED | Upload berkas dokumen fisik legalitas |
-| `GET` | `/api/legal/getListLegalitas` | `Explicit` | `App\Controllers\Api\Legal\LegalController::getListLegalitas` | 🟢 MIGRATED | DataTables server-side & raw array JSON (`?format=raw`) |
-| `POST` | `/api/legal/getListLegalitas` | `Explicit` | `App\Controllers\Api\Legal\LegalController::getListLegalitas` | 🟢 MIGRATED | DataTables server-side & raw array JSON (`?format=raw`) |
-| `POST` | `/api/legal/edit_others` | `Explicit` | `App\Controllers\Api\Legal\LegalController::edit_others` | 🟢 MIGRATED | Update spesifikasi khusus kavling via Service |
+| `GET` | `/legalitas` | `Explicit` | `LegalController::list_legalitas` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `GET` | `/privacy-policy` | `Explicit` | `LegalPageController::privacyPolicy` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `GET` | `/toc` | `Explicit` | `LegalPageController::termsOfService` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `GET` | `/api/legal/meta` | `Explicit` | `LegalController::meta` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `/api/legal/meta` | `Explicit` | `LegalController::meta` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `/api/legal/save` | `Explicit` | `LegalController::save` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `GET` | `/api/legal/get` | `Explicit` | `LegalController::getDataByID` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `/api/legal/get` | `Explicit` | `LegalController::getDataByID` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `/api/legal/remove` | `Explicit` | `LegalController::removeDoc` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `/api/legal/removeDoc` | `Explicit` | `LegalController::removeDoc` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `GET` | `/api/legal/getDoc` | `Explicit` | `LegalController::getDoc` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `/api/legal/getDoc` | `Explicit` | `LegalController::getDoc` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `/api/legal/upload` | `Explicit` | `LegalController::upload` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `GET` | `/api/legal/getListLegalitas` | `Explicit` | `LegalController::getListLegalitas` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `/api/legal/getListLegalitas` | `Explicit` | `LegalController::getListLegalitas` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `/api/legal/edit_others` | `Explicit` | `LegalController::edit_others` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
 
 ### B. Public PHP Services (Backend Contract Antar-Modul)
-#### `App\Services\Legal\LegalService`
-- `simpan(array $data)`: Simpan/update record legalitas lengkap, sanitasi input finansial, dan update relasi kavling.
-- `cleanNumeric(mixed $value)`: Helper pembersihan format nominal rupiah menjadi format numerik baku (float/int).
-- `deleteDocument($id)`: Hapus dokumen legalitas dari database dan storage fisik.
-- `uploadDocument($file, array $data)`: Upload file fisik ke direktori storage dan catat record di database.
-- `editOthers(array $data, int $id_kavling)`: Pembaruan metadata/spesifikasi khusus kavling.
+#### `LegalService.php`
+- `simpan(array $data)`
+- `cleanNumeric(mixed $value)`
+- `deleteDocument($id)`
+- `uploadDocument($file, array $data)`
+- `editOthers(array $data, int $id_kavling)`
 
 ## File Inventory
 ### Controllers (3)
@@ -65,7 +62,7 @@ Administrasi dan tracking perizinan lahan, sertifikat HGB/PBB/PBG/AJB, dan dokum
 - `app/Controllers/Api/Legal/LegalController.php` (318 baris, 8 public methods: `save()`, `getDataByID()`, `removeDoc()`, `getDoc()`, `upload()`, `edit_others()`, `getListLegalitas()`, `meta()`)
 
 ### Services (1)
-- `app/Services/Legal/LegalService.php` (175 baris, 5 public methods: `simpan()`, `cleanNumeric()`, `deleteDocument()`, `uploadDocument()`, `editOthers()`)
+- `app/Services/Legal/LegalService.php` (175 baris, 5 public methods)
 
 ### Repositories (1)
 - `app/Repositories/Legal/LegalRepository.php` (215 baris, 13 public methods: `getLegalDataById($id_legal)`, `insertLegal(array $data)`, `updateLegal(int $idLegal, array $data)`, `updateKavlingLegal(int $idKavling, int $idLegal)`, `getKavlingLegalTaxes($id_kavling)`, `getFileDocById($id)`, `deleteFileDoc($id)`, `getFileDocsByKavling($id_kavling, $id_group = 5)`, `insertFileDoc(array $data)`, `updateOthers($id_kavling, array $data)`, `getDatatableLegalitasData($var)`, `getDatatableLegalitasFilteredCount($var)`, `getDatatableLegalitasTotalCount()`)
@@ -73,45 +70,24 @@ Administrasi dan tracking perizinan lahan, sertifikat HGB/PBB/PBG/AJB, dan dokum
 ### Models (1)
 - `app/Models/LegalModel.php`
 
-### Views (2 folder + 1 shared modal)
+### Views (2 folder)
 - `app/Views/legal` (1 file: `list-legalitas.php`)
 - `app/Views/public` (4 file: `landing.php`, `legal_layout.php`, `privacy_policy.php`, `terms_of_service.php`)
-- `app/Views/siteplan/legal.php` (Shared modal interaktif legalitas yang dipanggil dari peta siteplan)
-
-### CSS & Frontend Styling (1 file)
-- `public/assets/css/legal.css` (3-Tier CSS eksternal ber-scope `.legal-page`, `#modal-legal`, `#modal-legalitas`, `#modal-upload-legal`, tema `#2057a3`, responsive, support dark mode)
 
 ### JavaScript (2 file)
 - `public/assets/js/siteplan/legal.js` (497 baris)
 - `public/assets/js/legal.js` (216 baris)
 
 ### Zero-Downtime Shims (5 file)
-- `app/Controllers/Legal.php` — Shim fallback controller web
-- `app/Controllers/Web/LegalPageController.php` — Shim fallback controller halaman publik
-- `app/Controllers/Api/LegalController.php` — Shim fallback controller API
-- `app/Services/LegalService.php` — Shim fallback service di root namespace
-- `app/Repositories/LegalRepository.php` — Shim fallback repository di root namespace
+- `app/Controllers/Legal.php`
+- `app/Controllers/Web/LegalPageController.php`
+- `app/Controllers/Api/LegalController.php`
+- `app/Services/LegalService.php`
+- `app/Repositories/LegalRepository.php`
 
-## Key Functions & Core Business Logic
-- **Controller (`App\Controllers\Api\Legal\LegalController`):**
-  - `meta()`: Menyediakan data metadata proyek, cluster, dan jalan untuk filter dropdown cascading pada modal legalitas.
-  - `save()`: Validasi request input legalitas kavling, konversi format numerik, dan delegasi penyimpanan ke `LegalService::simpan()`.
-  - `getListLegalitas()`: Mengelola permintaan data legalitas baik untuk server-side DataTables maupun raw JSON array (`?format=raw`).
-  - `removeDoc()` & `upload()`: Mengelola alur hapus dan upload file dokumen legalitas pendukung.
-  - `edit_others()`: Mengubah status spesifikasi kavling (hook ke `LegalService::editOthers`).
-- **Service (`App\Services\Legal\LegalService`):**
-  - `simpan(array $data)`: Logika bisnis utama penyimpanan legalitas kavling; menangani kalkulasi finansial (`cleanNumeric()`), sanitasi input, transaksi DB, dan sinkronisasi ke tabel `legal` & `kavling`.
-  - `cleanNumeric(mixed $value)`: Pembersihan format input nominal mata uang (membuang `.` atau format ribuan rupiah) menjadi float/integer murni untuk mencegah kegagalan kalkulasi DB.
-  - `uploadDocument($file, array $data)`: Pengunggahan dokumen fisik legalitas lahan/unit ke penyimpanan server dan pencatatan riwayat di database.
-  - `deleteDocument($id)`: Validasi keberadaan file dokumen legal, penghapusan file fisik dari storage via `FileAccessService`/`unlink`, dan penghapusan record di DB.
-  - `editOthers(array $data, int $id_kavling)`: Pembaruan metadata/status spesifikasi khusus pada kavling.
-- **Repository (`App\Repositories\Legal\LegalRepository`):**
-  - `insertLegal(array $data)`: Insert record baru pada tabel `legal`.
-  - `updateLegal(int $idLegal, array $data)`: Update record legalitas berdasarkan ID legal.
-  - `updateKavlingLegal(int $idKavling, int $idLegal)`: Memperbarui relasi `id_legal` pada tabel `kavling`.
-  - `getLegalDataById($id_legal)`: Query detail legalitas kavling beserta data pelengkap.
-  - `getDatatableLegalitasData($var)`: Query kompleks JOIN tabel `kavling`, `cluster`, `jalan`, `legal`, dan `mkdt` dengan filter proyek/cluster/jalan untuk server-side DataTables.
-  - `getDatatableLegalitasFilteredCount($var)` & `getDatatableLegalitasTotalCount()`: Kalkulasi jumlah data hasil filter dan total data.
+## Key Functions
+- **Service (`app/Services/Legal/LegalService.php`):** `simpan(array $data)`, `cleanNumeric(mixed $value)`, `deleteDocument($id)`, `uploadDocument($file, array $data)`, `editOthers(array $data, int $id_kavling)`
+- **Repository (`app/Repositories/Legal/LegalRepository.php`):** `getLegalDataById($id_legal)`, `insertLegal(array $data)`, `updateLegal(int $idLegal, array $data)`, `updateKavlingLegal(int $idKavling, int $idLegal)`, `getKavlingLegalTaxes($id_kavling)`
 
 ## Deprecated & Legacy Shims
 - **Deprecated Routes / Endpoints:**
@@ -129,8 +105,11 @@ Administrasi dan tracking perizinan lahan, sertifikat HGB/PBB/PBG/AJB, dan dokum
 - [x] Has Repository Layer
 - [x] Web & API Controllers Separated
 - [x] Explicit Routes Defined
-- [x] Zero Controller Layer Violations
+- [ ] Zero Controller Layer Violations
 - [x] MODULE.md Initialized
+
+> **Layer Violations Detected:**
+> - `app/Controllers/Api/Legal/LegalController.php`: Database::connect()
 
 ## Dead Code Candidates
 _Jalankan `php spark module:deadcode Legal` untuk mengaudit dead code kandidat._
@@ -141,7 +120,19 @@ _Jalankan `php spark module:deadcode Legal` untuk mengaudit dead code kandidat._
   - Modul `MKDT`: Membaca relasi status legalitas kavling untuk transaksi konsumen.
   - Modul `Keuangan`: Membaca kelengkapan legalitas kavling (sertifikat, PBG, AJB) saat verifikasi pencairan akad dan jaminan.
 
+### Audit Verifikasi Migrasi (2026-11-22)
+- **Ledger Status:** `COMPLETED (Catatan Minor)` — Status `REFACTORED`, Readiness Score `90/100`.
+- **Temuan Nyata:**
+  - `App\Controllers\Api\Legal\LegalController::meta()` memanggil `\Config\Database::connect()` dan menjalankan query langsung `$db->table('proyek'|'cluster'|'jalan')` pada L253-277 di lapisan Controller (seharusnya didelegasikan ke `LegalRepository`/`LegalService`).
+- **Verifikasi Bersih (Non-Issue / Terkonfirmasi):**
+  - `Api\Legal\LegalController` mewarisi `BaseApiController` (L10); `getListLegalitas()` (L183-248) masih menghasilkan HTML DataTables secara default namun sudah mendukung fallback `?format=raw` (L192-203).
+  - `Web\Legal\LegalController` (22 baris) dan `Web\Legal\LegalPageController` (26 baris) tipis, hanya merender view, tanpa akses Repository langsung atau respons JSON.
+  - `Services\Legal\LegalService` (174 baris) menggunakan `\Config\Database::connect()` (L20) hanya untuk manajemen transaksi DB (`transStart`/`transComplete`/`transStatus`/`transRollback` pada L36-68 dan L116-138), tanpa query `->table()`/`->query()` atau mutasi tabel modul lain.
+  - 5 Zero-Downtime Shims (`app/Controllers/Legal.php`, `app/Controllers/Web/LegalPageController.php`, `app/Controllers/Api/LegalController.php`, `app/Services/LegalService.php`, `app/Repositories/LegalRepository.php`) terkonfirmasi sebagai thin delegator (13 baris) dengan 0 pelanggaran.
+  - 16 rute eksplisit modular (`privacy-policy`, `toc`, `legalitas`, dan `/api/legal/*`) aktif di `app/Config/Routes.php` (0 legacy routes, 0 autoroutes).
+
 ## Change Log
+- `2026-11-22` [`AUDIT`] — Audit verifikasi migrasi modular: status `COMPLETED (Catatan Minor)` (Score 90/100); terkonfirmasi pelanggaran minor `Database::connect()` pada `Api\Legal\LegalController::meta()` (L253-277) serta sinkronisasi skor & checklist `MODULE.md`.
 - **`2026-11-11` [`REFACTOR`] — Refactoring Lengkap Modul Legal (Thin Controller, Modular Structure, External Assets):**
   - **Routes & Public Contracts:**
     - Web: `/legalitas` diarahkan ke `App\Controllers\Web\Legal\LegalController::list_legalitas`.

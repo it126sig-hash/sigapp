@@ -294,7 +294,17 @@ _Jalankan `php spark module:deadcode Produksi` untuk mengaudit dead code kandida
   - Modul `MKDT` / `Sales`: Mengakses endpoint `/api/produksi/sales/*` untuk berita acara serah terima fisik unit (BAST), pengisian checklist kelayakan bangunan, dan tiket komplain paska-huni.
   - Modul `Direksi`: Mengakses view `app/Views/direksi/list-tagihan-pending.php` dan endpoint produksi untuk pengawasan tagihan konstruksi berjalan.
 
+### Audit Verifikasi Migrasi (2026-11-22)
+- **Status Audit:** `COMPLETED (Catatan Minor)` (Actual: `REFACTORED`, Score `100/100`).
+- **Struktur & Rute:** Rute eksplisit sudah modular (`App\Controllers\Api\Produksi\*` & `App\Controllers\Web\Produksi\*`) dengan 0 rute legacy/AutoRoute; 8 `thin_shim` + 3 `medium_shim` (`ChecklistGroup.php`, `ChecklistItem.php`, `ChecklistSubItem.php`) terverifikasi murni delegator Web/API tanpa logic/DB; `ProduksiService` hanya memakai `\Config\Database::connect()` untuk transaksi DB (`transStart`/`transBegin`/`transCommit`/`transRollback`/`transComplete`); dan API checklist/subkon sudah mendukung `?format=raw` / `X-Client-Platform`.
+- **Temuan Minor:**
+  1. `app/Controllers/Web/Produksi/ProduksiController.php:48` menginstansiasi `new \App\Models\HakaksesModel()` langsung di `produksiMobile()` serta memanggil `ProduksiRepository` langsung di `getSLFPDF()` (`L72,L81`).
+  2. `app/Controllers/Web/Produksi/ChecklistItemController.php:19` dan `app/Controllers/Web/Produksi/ChecklistSubItemController.php:19` memanggil `ChecklistRepository` langsung alih-alih melalui `ChecklistService`.
+  3. `app/Controllers/Api/Produksi/ProduksiController.php` memanggil `ProduksiRepository` langsung pada beberapa endpoint (`L51,L112,L222,L259,L271,L290,L308`) dan `getSLFPDF()` (`L276-279`) merender `view('pdf/slf', ...)` / `view('pdf/slf_page3', ...)` + `exit()`.
+  4. `app/Services/Produksi/ProduksiFileService.php:36` memanggil `\Config\Database::connect()->getFieldNames('file_produksi')` langsung di `__construct()`.
+
 ## Change Log
+- `2026-11-22` [`AUDIT`] — Audit verifikasi migrasi modular: status `COMPLETED (Catatan Minor)` (Score 100/100); tercatat temuan minor layer di `Web\Produksi\ProduksiController` (instansiasi `HakaksesModel` & akses langsung `ProduksiRepository`), `Web\Produksi\ChecklistItemController` & `ChecklistSubItemController` (akses langsung `ChecklistRepository`), `Api\Produksi\ProduksiController` (akses langsung repo & render view PDF), serta `ProduksiFileService` (`getFieldNames` via `Database::connect()`).
 - **`2026-11-12` [`REFACTOR`] — Refactoring Lengkap Modul Produksi (Thin Controller, Modular Web & API Architecture, Encapsulated Transactions, Clean Numeric, Scoped CSS & External Asset Separation):**
   - **Routes & Public Contracts:**
     - Mengarahkan seluruh rute grup `/api/produksi/*` ke namespace controller modular `App\Controllers\Api\Produksi`.

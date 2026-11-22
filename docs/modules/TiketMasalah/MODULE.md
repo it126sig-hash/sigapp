@@ -117,7 +117,21 @@ _Jalankan `php spark module:deadcode TiketMasalah` untuk mengaudit dead code kan
 - **Cross-Module Callers & Consumers:**
   - `Siteplan` & `Transaksi` (`KavlingRepository::addActiveTiketSelect` dan `OthersRepository::addActiveTiketSelect`): Membaca data agregasi tabel `tiket_masalah` (`ref_type = 'kavling'` dan `ref_type = 'others'`, `status NOT IN ('selesai', 'batal', 'hold')`) untuk menampilkan indikator denyut spasial masalah per kavling maupun per aset fasum/penunjang pada antarmuka peta Siteplan interaktif. Representasi spasial di modul `Siteplan` (`public/assets/js/siteplan/tiket-overlay.js` & `master.js`) didukung dengan frame rate capping 30 FPS, pulsing high-contrast stroke, centroid warning badge `!`, safe centroid calculation untuk poligon fasum, dan eliminasi race condition via agregasi atomik.
 
+### Audit Verifikasi Migrasi (2026-11-22)
+- **Status Ledger:** `COMPLETED (Catatan Minor)` (Status modul `REFACTORED`, Readiness Score `100/100`).
+- **Terverifikasi Bersih:**
+  - Keempat zero-downtime shims (`app/Controllers/Web/TiketMasalahController.php`, `app/Controllers/Api/TiketMasalahController.php`, `app/Services/TiketMasalahService.php`, `app/Repositories/TiketMasalahRepository.php`) adalah `thin_shim` murni (7 baris).
+  - Seluruh 14 rute di `app/Config/Routes.php` (baris 1005–1018 dan 1022) eksplisit mengarah ke controller modular (`0` legacy route, `0` autoroute).
+  - Web controller (`app/Controllers/Web/TiketMasalah/TiketMasalahController.php`, 18 baris) bersih dari response JSON dan akses repository langsung.
+- **Temuan Minor (Perlu Perhatian):**
+  1. `app/Controllers/Api/TiketMasalah/TiketMasalahController.php` (baris 5, 9) masih mewarisi `App\Controllers\BaseController` + `use ResponseTrait`, belum mewarisi `App\Controllers\Api\BaseApiController` (meski bersih dari `view()`, `redirect()`, dan string HTML).
+  2. `app/Services/TiketMasalah/TiketMasalahService.php` selain penggunaan transaksi (`transStart`/`transComplete`/`transStatus`), masih memanggil `$this->db->table()` langsung di Service pada:
+     - Baris 214–217 (`createTiket`) dan baris 415 (`updateTiket`) untuk query `auth_groups_users`.
+     - Baris 594–635 (`getRefInfo`) untuk query `kavling k` dan `others o` beserta join terkait.
+     - Baris 640–668 (`getUserList`, `getCreatorList`, `getDivisionList`) untuk query `users` dan `auth_groups`.
+
 ## Change Log
+- `2026-11-22` [`AUDIT`] — Audit verifikasi migrasi modular: status ledger `COMPLETED (Catatan Minor)` — Api `TiketMasalahController` masih extends `BaseController` (belum `BaseApiController`) dan `TiketMasalahService` masih memanggil `$this->db->table()` langsung pada beberapa query.
 - **2026-11-04 [`FEATURE`] — Perluasan Konsumsi Tiket Masalah Spasial untuk Entitas Others/Fasum di Siteplan:**
   - **Routes & Public Contracts:** Tidak berubah. Rute API `/api/tiket-masalah` tetap stabil.
   - **Controller / Service / Repo / Model:** `OthersRepository::addActiveTiketSelect` pada modul Siteplan kini mengonsumsi tabel `tiket_masalah` dengan filter `ref_type = 'others'` dan `status NOT IN ('selesai', 'batal', 'hold')` untuk memetakan tiket aktif berprioritas tertinggi pada aset fasum/penunjang non-kavling. Pengujian unit diverifikasi pada `tests/unit/KavlingCompositeQueryTest.php`.

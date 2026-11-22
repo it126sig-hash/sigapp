@@ -835,7 +835,31 @@ _Jalankan `php spark module:deadcode Keuangan` untuk mengaudit dead code kandida
   - `POST /api/tagihan/booking/batal-verifikasi` (`Api\Keuangan\BookingPaymentController::unverify`) mensyaratkan group `['1', '3']`, akses proyek via `ActiveProyekService::userCanAccess()`, dan `reason` 3–500 karakter; memblokir transaksi `Batal` (`status_mkdt === 'Batal'`, `is_batal == 1`, atau `refund_paid == 1`); mengosongkan `verified_by` dan `verified_at` pada `mkdt_booking_payment` tanpa menghapus `log_pembayaran`, `finance_ledger`, maupun `mkdt_payment_summary`; serta mencatat audit trail ke `history_log` melalui `App\Services\AuditTrail\HistoryService::log('keuangan', ...)` (`action: 'batal_verifikasi_booking'`, didukung `HistoryRepository::__construct(?BaseConnection $db = null)`).
   - Rincian alur bisnis dan debugging terekam pada [docs/modul-booking-fee.md](../../modul-booking-fee.md) dan [docs/debug-batal-verifikasi-booking-fee.md](../../debug-batal-verifikasi-booking-fee.md).
 
+### Audit Verifikasi Migrasi (2026-11-22)
+- **Ringkasan Status:** `REFACTORED` (Readiness Score `100/100`, `147` rute eksplisit modular di `app/Config/Routes.php`, `0` autoroutes, `0` non-modular/missing files, `0` controller violations). Ledger ditetapkan ke **`COMPLETED (Catatan Minor)`**.
+- **Temuan Terverifikasi:**
+  1. **Orphan Legacy Methods di Shim `app/Controllers/Keuangan.php`:** Selain method delegator `initDelegate()`, shim masih menyimpan 4 orphan legacy methods (`getCashOut` L248–268, `saveCashOut` L273–313, `get_riwayat_gantinama` L318–344, `isSudahBayar` L349–368) yang memanggil `db_connect()` serta query/mutasi langsung (`list_cashout`, `cashout`, `mkdt`, `log_pembayaran`), meski tidak terikat rute aktif di `Routes.php`.
+  2. **JSON Response di Web Controller:** `App\Controllers\Web\Keuangan\DireksiController::export_xlsx()` (L26–33) mengembalikan `$this->response->setJSON(...)` di dalam Web controller.
+  3. **Direct Query Builder / SQL di Layer Service (9 dari 18 Service):**
+     - `KeuanganService.php` (L76, L191, L196, L246, L343, L816, L963, L990, L1524–1851, L2465–2467).
+     - `PencairanAkadService.php` (L109–2257 `->table(...)` langsung serta raw SQL `SELECT COUNT(*) AS total FROM (...)` di L1985).
+     - `DanaJaminanService.php` (L166–690 `->table(...)` langsung).
+     - `FinanceLedgerService.php` (L381–479 `->table(...)` langsung).
+     - `BankKprDisbursementService.php` (L76–352 `->table(...)` langsung).
+     - `BookingPaymentService.php` (L156 `finance_ledger`, L352 `log_pembayaran`).
+     - `BookingFeeMigrationService.php` (L66–226 `->table(...)` langsung).
+     - `Cashout\CashoutKavlingService.php` (L34–35, L54–55 `->table('pph')` / `->table('ppn')`).
+     - `PrintService.php` (L219–257 `->table(...)` langsung).
+  4. **Mutasi Tabel Asing Modul `MKDT` (`mkdt`) di Layer Service:** `DanaJaminanService.php` (`$db->table('mkdt')->where('id_mkdt', $idMkdt)->update(...)` L74–78) dan `KeuanganService.php` (`$this->mkdtModel->update(...)` L92, L152, L1223).
+  5. **Inventori `owner_tables` Belum Lengkap:** Tabel `pencairan_akad_batch` (di-insert/update oleh `PencairanAkadService.php` L374, L1578, L1749, L1847, L2257) belum tercatat pada `owner_tables` di `ModuleCatalog.php` dan `MODULE.md`.
+- **Verifikasi False-Positive Pre-Scan:**
+  - `app/Controllers/Keuangan/Cashout/CashoutSubkon.php` (81 baris) adalah thin delegator murni ke `Web\Keuangan\Cashout\CashoutSubkonController` dan `Api\Keuangan\Cashout\CashoutSubkonController` tanpa query/DB logic.
+  - `Api\Keuangan\BankController::list()` (L36–50) dan `Api\Keuangan\DanaJaminanController::download()` (L100–111) sudah mendukung `?format=raw` Pure JSON; HTML/redirect hanya pada fallback legacy.
+  - `Web\Keuangan\PrintController` hanya menggunakan `setJSON()` untuk error response pada endpoint cetak PDF.
+  - 6 Service lain (`PembayaranService`, `PajakService`, `CashOutService`, `CashoutSubkonService`, `DireksiService`, `PenagihanService`) hanya memakai `db_connect()` untuk transaksi DB tanpa `->table()`/`->query()` langsung.
+
 ## Change Log
+- `2026-11-22` [`AUDIT`] — Audit verifikasi migrasi modular: status ledger `COMPLETED (Catatan Minor)` (Score 100/100, 147 rute eksplisit modular); temuan minor meliputi 4 orphan methods `db_connect()` di shim `Keuangan.php` (L248–368), `setJSON()` pada `Web\Keuangan\DireksiController::export_xlsx()` (L26–33), query `->table()`/`->query()` langsung di 9 Service, mutasi tabel `mkdt` di `DanaJaminanService` & `KeuanganService`, serta tabel `pencairan_akad_batch` yang belum tercatat di `owner_tables`.
 - **`2026-11-19` [`BUGFIX`] — Perbaikan Overflow Tombol & Metadata Verifier Card Booking Fee (`#modal_divisi3`):**
   - **Routes & Public Contracts:** Tidak berubah.
   - **Controller / Service / Repo / Model:** Tidak berubah.

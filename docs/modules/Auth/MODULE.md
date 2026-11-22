@@ -119,7 +119,16 @@ _Jalankan `php spark module:deadcode Auth` untuk mengaudit dead code kandidat._
 ## Notes
 - Modul diinisialisasi melalui tooling otomatis.
 
+### Audit Verifikasi Migrasi (2026-11-22)
+- **Status Audit Ledger:** `INCOMPLETE` (Status modul: `MAPPED`, Readiness Score: `60/100`).
+- **Struktur Non-Modular (9 file flat):** `DeviceAuthController`, `LandingController`, `AuthDeviceController`, `AdminAuthDeviceController`, `DeviceSessionService`, `DeviceManagementService`, `UserAgentDeviceParser`, `DeviceManagementException`, dan `DeviceSessionRepository` belum berada di namespace/subfolder `*\Auth\*` (hanya `Api\Auth\AuthController` yang sudah modular).
+- **Pelanggaran Controller Layer:** `app/Controllers/Api/Auth/AuthController.php` masih menggunakan `db_connect()` (L38) serta query langsung `$this->db->table('users')` dan `auth_groups_users` pada `login()` (L101-106) dan `me()` (L162-167, L178-183).
+- **Konvensi API Controller:** `app/Controllers/Api/AuthDeviceController.php` (L11, L122) dan `app/Controllers/Api/AdminAuthDeviceController.php` (L11, L74) masih mewarisi `BaseController` (bukan `BaseApiController`).
+- **Pelanggaran Service Layer:** `app/Services/DeviceManagementService.php` masih memanggil `db_connect()` (L23) dan `$this->db->table('users')` langsung pada `verifyPassword()` (L111-115) dan `requireUser()` (L131) tanpa Repository.
+- **Bersih / Terverifikasi:** Seluruh 13 rute di `app/Config/Routes.php` sudah eksplisit (`0` legacy/AutoRoute), dan kedua Web controller (`DeviceAuthController`, `LandingController`) sudah bersih.
+
 ## Change Log
+- `2026-11-22` [`AUDIT`] — Audit verifikasi migrasi modular: status `INCOMPLETE` (Score `60/100`, `MAPPED`); temuan 9 file flat non-modular, pelanggaran DB di `AuthController` & `DeviceManagementService`, serta 2 API controller belum mewarisi `BaseApiController`.
 - `2026-11-14` [`AVATAR-API-BRIDGE`] — Penambahan field `avatar_url` (`/files/profile_photo/{id}/thumbnail` atau `null`) pada response `AuthController::login()` & `AuthController::me()`, didukung oleh `case 'profile_photo':` di `FileAccessService::resolveMetadata()`.
 - `2026-11-12` [`SECURITY-AUTH`] — Penguatan arsitektur autentikasi Hybrid Dual-Mode: Implementasi `HttpOnly` Cookie `sigapp_spa_token` untuk Web SPA (`X-Client-Platform: web-spa`) dengan response `access_token: null`, penambahan validasi Device Binding (`DeviceSessionService::verifyDeviceBinding()`) berdasarkan `User-Agent` (`browser` & `platform`) untuk mitigasi session hijacking, pemeliharaan Bearer token untuk Native Capacitor, dan dukungan cookie fallback di `AuthController`, `DeviceLoginFilter`, serta `AuthDeviceController`.
 - `2026-11-12` [`SYNC`] — Sinkronisasi status & inventori modul melalui `module:sync`.

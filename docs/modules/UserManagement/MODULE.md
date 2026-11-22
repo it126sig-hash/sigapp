@@ -127,6 +127,28 @@ Manajemen kepegawaian, struktur divisi, hak akses menu, akun pengguna, dan profi
 - `app/Services/PenggunaService.php`
 - `app/Repositories/KaryawanRepository.php`
 
+## Key Functions
+- **Web Controller (`app/Controllers/Web/UserManagement/PenggunaController.php`):** `index()`
+- **Web Controller (`app/Controllers/Web/UserManagement/KaryawanController.php`):** `index()`
+- **Web Controller (`app/Controllers/Web/UserManagement/ProfilController.php`):** `index()`, `update()`
+- **API Controller (`app/Controllers/Api/UserManagement/PenggunaController.php`):** `getAll()`, `getOne()`, `add()`, `edit($id = null)`, `edit_user()`, `remove()`
+- **API Controller (`app/Controllers/Api/UserManagement/KaryawanController.php`):** `getAll()`, `getOne()`, `add()`, `edit($id = null)`, `remove()`
+- **API Controller (`app/Controllers/Api/UserManagement/ProfilController.php`):** `update($id = null)`
+- **Service (`app/Services/UserManagement/PenggunaService.php`):** `getSetuserData()`, `getDatatable()`, `getOne(int $id)`, `addUser(array $postData)`, `editUser(array $postData)`, `toggleStatus(int $id, int $currentStatus)`
+- **Service (`app/Services/UserManagement/KaryawanService.php`):** `getIndexData()`, `getDatatable()`, `getOne(string $nik)`, `addKaryawan(array $postData)`, `editKaryawan(array $postData)`, `toggleStatus(string $nik, int $currentStatus)`
+- **Service (`app/Services/UserManagement/ProfilService.php`):** `getIndexData(int $userId)`, `updateProfile(int $userId, array $postData, ?UploadedFile $photo = null)`, `profilePhotoUrl(?string $path)`
+- **Repository (`app/Repositories/UserManagement/PenggunaRepository.php`):** `getAll()`, `findById(int $id)`, `findRawUser(int $id)`, `insertUser(array $data)`, `updateUser(int $id, array $data)`, `syncGroup(int $userId, int $groupId)`, `syncPermission(int $userId, int $permissionId)`, `toggleActive(int $id, int $newActiveStatus)`
+- **Repository (`app/Repositories/UserManagement/KaryawanRepository.php`):** `getAll()`, `getUnlinkedKaryawan()`, `findByNik(string $nik)`, `findByUserId(int $userId)`, `insert(array $data)`, `update(string $nik, array $data)`, `linkUser(string $nik, int $userId)`, `toggleStatus(string $nik, int $newStatus)`, `getDivisiList()`, `getLevelList()`
+- **Repository (`app/Repositories/UserManagement/ProfilRepository.php`):** `getUserRow(int $userId)`, `getDepartmentName(int $userId)`, `updateUser(int $userId, array $fields)`, `syncKaryawanName(int $userId, string $name)`
+- **Repository (`app/Repositories/DivisiRepository.php`):** `findAll(int $limit = null, int $offset = 0)`, `findById($id)`
+
+## Deprecated & Legacy Shims
+- `app/Controllers/Pengguna.php` — **DEPRECATED (`fat_legacy` Shim):** Menduplikasi method endpoint `PenggunaService` dan masih menginstansiasi `new \App\Repositories\UserManagement\PenggunaRepository()` langsung pada `changeGroup()` & `chnagePermission()` (L77–87); gunakan `App\Controllers\Web\UserManagement\PenggunaController` / `App\Controllers\Api\UserManagement\PenggunaController`.
+- `app/Controllers/Karyawan.php` — **DEPRECATED (`fat_legacy` Shim):** Menduplikasi method endpoint `KaryawanService` dan masih menginstansiasi `new \App\Repositories\UserManagement\PenggunaRepository()` langsung pada `changeGroup()` & `chnagePermission()` (L72–82); gunakan `App\Controllers\Web\UserManagement\KaryawanController` / `App\Controllers\Api\UserManagement\KaryawanController`.
+- `app/Controllers/Profil.php` — **DEPRECATED (Legacy Shim):** Menduplikasi logika `Web\UserManagement\ProfilController` via `ProfilService`; gunakan `App\Controllers\Web\UserManagement\ProfilController` / `App\Controllers\Api\UserManagement\ProfilController`.
+- `app/Services/PenggunaService.php` — **DEPRECATED (Thin Zero-Downtime Shim):** Mewarisi `App\Services\UserManagement\PenggunaService`; gunakan class modular `App\Services\UserManagement\PenggunaService`.
+- `app/Repositories/KaryawanRepository.php` — **DEPRECATED (Thin Zero-Downtime Shim):** Mewarisi `App\Repositories\UserManagement\KaryawanRepository`; gunakan class modular `App\Repositories\UserManagement\KaryawanRepository`.
+
 ## Readiness Checklist
 - [x] Has Service Layer
 - [x] Has Repository Layer
@@ -141,3 +163,18 @@ _Jalankan `php spark module:deadcode UserManagement` untuk mengaudit dead code k
 ## Notes
 - Modul diinisialisasi melalui tooling otomatis.
 - 2026-11-04: Bugfix upload foto profil pada ProfilService (`TypeError: FileRules::uploaded()`). Objek UploadedFile dipisahkan dari array validasi data teks dan umpan balik error profil_photo ditambahkan pada view profil.
+
+### Audit Verifikasi Migrasi (2026-11-22)
+- **Status Audit Ledger:** `COMPLETED (Catatan Minor)` (`REFACTORED`, Score `100/100`).
+- **Layer & Routes Terverifikasi Bersih:**
+  - Ketiga Web controller (`Web\UserManagement\PenggunaController`, `KaryawanController`, `ProfilController`) tipis (24–40 baris), bebas `setJSON`/`respond`, dan tidak memanggil Repository langsung.
+  - Ketiga API controller (`Api\UserManagement\PenggunaController`, `KaryawanController`, `ProfilController`) seluruhnya mewarisi `BaseApiController`, bebas `view()`/`redirect()`, dan tidak menyusun HTML langsung di controller.
+  - Seluruh 37 rute di `app/Config/Routes.php` (L81–82, L360–412) adalah rute modular eksplisit (`legacy_route_count: 0`, `autoroutes_count: 0`).
+  - Ketiga Service (`PenggunaService`, `KaryawanService`, `ProfilService`) menggunakan `$this->db = \Config\Database::connect()` khusus untuk transaksi atomik (`transStart`/`transComplete`/`transStatus`/`transRollback`), tanpa `->table()`, `->query()`, raw SQL, maupun mutasi tabel modul lain.
+- **Temuan Minor:**
+  - **File non-modular:** `app/Repositories/DivisiRepository.php` (41 baris, `namespace App\Repositories`) masih berada di root `app/Repositories/` di luar subfolder `UserManagement/` dan saat ini tidak direferensikan di `app/` maupun `tests/`.
+  - **Shim `fat_legacy`:** `app/Controllers/Pengguna.php` (88 baris) dan `app/Controllers/Karyawan.php` (83 baris) berklasifikasi `fat_legacy` karena menduplikasi isi method alih-alih mendelegasikan secara tipis, serta memanggil `new \App\Repositories\UserManagement\PenggunaRepository()` langsung pada `changeGroup()`/`chnagePermission()` (L77–87 & L72–82). `app/Controllers/Profil.php` (46 baris) juga menduplikasi `Web\UserManagement\ProfilController`, sedangkan `app/Services/PenggunaService.php` & `app/Repositories/KaryawanRepository.php` sudah menjadi thin shim murni.
+  - **HTML DataTables di Service tanpa `?format=raw`:** `PenggunaService::getDatatable()` (L48–59) dan `KaryawanService::getDatatable()` (L48–58) menyematkan string HTML (`<div class="btn-group">`, `<button>`, `<span class="badge">`) ke payload JSON untuk `/api/pengguna/getall` & `/api/karyawan/getall` tanpa dukungan parameter `?format=raw`.
+
+## Change Log
+- `2026-11-22` [`AUDIT`] — Audit verifikasi migrasi modular (`COMPLETED (Catatan Minor)`, Score `100/100`): melengkapi seksi `Key Functions`, `Deprecated & Legacy Shims`, dan `Change Log`; mencatat `app/Repositories/DivisiRepository.php` non-modular/unused, 2 shim `fat_legacy` (`Pengguna.php` L77–87 & `Karyawan.php` L72–82 memanggil `PenggunaRepository` langsung), serta `PenggunaService::getDatatable()` & `KaryawanService::getDatatable()` yang masih menyematkan HTML DataTables tanpa `?format=raw`.
