@@ -1319,7 +1319,10 @@ final class FeeSalesWorkflowTest extends CIUnitTestCase
                 return count($capturedCalls);
             });
 
-        $mockRepo = $this->createMock(SalesExternalRepository::class);
+        $mockRepo = $this->getMockBuilder(SalesExternalRepository::class)
+            ->setConstructorArgs([$db])
+            ->onlyMethods(['getFeeDetailByMkdt', 'hasGeneratedTerminByMkdt', 'userSnapshot', 'getPengajuanGroupDetail'])
+            ->getMock();
         $mockRepo->method('getFeeDetailByMkdt')->willReturnCallback(static function (int $idMkdt) use ($db) {
             $mkdt = $db->table('mkdt')->where('id_mkdt', $idMkdt)->get()->getRow();
             $feeRows = $db->table('fee_sales')->where('id_mkdt', $idMkdt)->get()->getResult();

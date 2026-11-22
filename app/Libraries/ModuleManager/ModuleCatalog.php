@@ -156,6 +156,7 @@ class ModuleCatalog
                 'services' => [
                     'Mkdt/MkdtHistoryService.php',
                     'Mkdt/MkdtSettlementService.php',
+                    'Mkdt/MkdtPricingService.php',
                     'Mkdt/MkdtFinancialBreakdownService.php',
                     'Mkdt/MkdtFinancialReconciliationService.php',
                     'Mkdt/PosisiKonsumenService.php',
@@ -651,6 +652,7 @@ class ModuleCatalog
                 ],
                 'repositories' => [
                     'SalesExternal/SalesExternalRepository.php',
+                    'SalesExternal/FeeSalesSettingRepository.php',
                 ],
                 'models' => [
                     'SalesModel.php',

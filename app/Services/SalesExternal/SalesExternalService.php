@@ -13,6 +13,7 @@ use App\Models\UserSignatureProfileModel;
 use App\Repositories\SalesExternal\SalesExternalRepository;
 use App\Services\Bpb\BpbFileService;
 use App\Services\HistoryService;
+use App\Services\Mkdt\MkdtPricingService;
 use App\Services\NotifikasiService;
 use App\Services\StorageService;
 use CodeIgniter\Database\BaseConnection;
@@ -31,6 +32,7 @@ class SalesExternalService
     protected FeeSalesPengajuanModel $pengajuanModel;
     protected FeeSalesPengajuanItemModel $pengajuanItemModel;
     protected SalesExternalRepository $salesRepo;
+    protected MkdtPricingService $mkdtPricingService;
     protected StorageService $storageService;
     protected HistoryService $historyService;
     protected NotifikasiService $notifikasiService;
@@ -44,7 +46,8 @@ class SalesExternalService
         $this->feeSalesTerminModel = new FeeSalesTerminModel();
         $this->pengajuanModel      = new FeeSalesPengajuanModel();
         $this->pengajuanItemModel  = new FeeSalesPengajuanItemModel();
-        $this->salesRepo           = new SalesExternalRepository();
+        $this->salesRepo           = new SalesExternalRepository($this->db);
+        $this->mkdtPricingService  = new MkdtPricingService($this->db);
         $this->storageService      = new StorageService();
         $this->historyService      = new HistoryService();
         $this->notifikasiService   = $notifikasiService ?? new NotifikasiService();
@@ -220,11 +223,7 @@ class SalesExternalService
         // Resolusi id_sales: jika belum ada id_sales atau diketik nama baru,
         // cek apakah sudah ada di master sales. Jika belum ada, auto-insert dengan has_pks=0 dan default komisi 1.00%
         if ($idSales <= 0) {
-            $existingMaster = $this->db->table('sales')
-                ->where('nama', $salesNama)
-                ->where('deleted_at IS NULL')
-                ->get()
-                ->getRow();
+            $existingMaster = $this->salesRepo->findActiveSalesByNama($salesNama);
 
             if ($existingMaster) {
                 $idSales = (int) $existingMaster->id;
@@ -269,26 +268,13 @@ class SalesExternalService
 
         $this->db->transStart();
         try {
-            // Update harga_net_ajb pada tabel mkdt (seragam untuk unit kavling ini)
-            $this->db->table('mkdt')
-                ->where('id_mkdt', $idMkdt)
-                ->update(['harga_net_ajb' => $hargaAjb]);
+            // Update harga_net_ajb pada tabel mkdt melalui kontrak MKDT (seragam untuk unit kavling ini)
+            $this->mkdtPricingService->updateHargaNetAjb($idMkdt, $hargaAjb);
 
             // Cek entri fee_sales yang ditargetkan
-            $existingFee = null;
-            if ($idFeeSales > 0) {
-                $existingFee = $this->db->table('fee_sales')
-                    ->where('id', $idFeeSales)
-                    ->where('id_mkdt', $idMkdt)
-                    ->get()
-                    ->getRow();
-            } else {
-                $existingFee = $this->db->table('fee_sales')
-                    ->where('id_mkdt', $idMkdt)
-                    ->where('id_sales', $idSales)
-                    ->get()
-                    ->getRow();
-            }
+            $existingFee = $idFeeSales > 0
+                ? $this->salesRepo->getFeeSalesByIdAndMkdt($idFeeSales, $idMkdt)
+                : $this->salesRepo->getFeeSalesByMkdtAndSales($idMkdt, $idSales);
 
             $headerData = [
                 'id_mkdt'          => $idMkdt,
@@ -308,10 +294,7 @@ class SalesExternalService
                 $idFeeSales = (int) $existingFee->id;
 
                 // Kunci konfigurasi jika ada termin yang sudah diajukan atau sudah cair
-                $activeCount = (int) $this->db->table('fee_sales_termin')
-                    ->where('id_fee_sales', $idFeeSales)
-                    ->whereIn('status', ['pengajuan_spp', 'sudah_cair'])
-                    ->countAllResults();
+                $activeCount = $this->salesRepo->countActiveTerminByFeeSalesId($idFeeSales);
 
                 if ($activeCount > 0) {
                     throw new RuntimeException("Konfigurasi fee untuk sales {$salesNama} tidak dapat diubah karena termin sudah dalam proses pengajuan atau sudah dicairkan.");
@@ -325,10 +308,7 @@ class SalesExternalService
 
             if ($generateTermin) {
                 // Hapus termin lama yang belum diajukan
-                $this->db->table('fee_sales_termin')
-                    ->where('id_fee_sales', $idFeeSales)
-                    ->where('status', 'belum_diajukan')
-                    ->delete();
+                $this->salesRepo->deleteBelumDiajukanTerminByFeeSalesId($idFeeSales);
 
                 // Buat termin baru sesuai skema
                 if ($skemaTermin === '100') {
@@ -418,16 +398,13 @@ class SalesExternalService
      */
     public function deleteFeeEntry(int $idFeeSales, ?int $userId): array
     {
-        $fee = $this->db->table('fee_sales')->where('id', $idFeeSales)->get()->getRow();
+        $fee = $this->salesRepo->getFeeSalesById($idFeeSales);
         if (! $fee) {
             throw new RuntimeException('Data fee sales tidak ditemukan.');
         }
 
         // Cek apakah ada termin yang sudah diajukan atau sudah cair
-        $activeCount = (int) $this->db->table('fee_sales_termin')
-            ->where('id_fee_sales', $idFeeSales)
-            ->whereIn('status', ['pengajuan_spp', 'sudah_cair'])
-            ->countAllResults();
+        $activeCount = $this->salesRepo->countActiveTerminByFeeSalesId($idFeeSales);
 
         if ($activeCount > 0) {
             throw new RuntimeException('Fee sales ini tidak dapat dihapus karena termin sudah dalam proses pengajuan atau sudah dicairkan.');
@@ -436,10 +413,10 @@ class SalesExternalService
         $this->db->transStart();
         try {
             // Hapus termin yang belum diajukan
-            $this->db->table('fee_sales_termin')->where('id_fee_sales', $idFeeSales)->delete();
+            $this->salesRepo->deleteTerminByFeeSalesId($idFeeSales);
 
             // Hapus header fee_sales
-            $this->db->table('fee_sales')->where('id', $idFeeSales)->delete();
+            $this->salesRepo->deleteFeeSalesById($idFeeSales);
 
             $this->db->transComplete();
 
@@ -462,7 +439,7 @@ class SalesExternalService
      */
     public function submitPengajuanSpp(int $idTermin, array $data, ?int $userId, ?UploadedFile $fileSpp = null): array
     {
-        $termin = $this->db->table('fee_sales_termin')->where('id', $idTermin)->get()->getRow();
+        $termin = $this->salesRepo->getTerminById($idTermin);
         if (! $termin) {
             throw new RuntimeException('Data termin tidak ditemukan.');
         }
@@ -493,10 +470,7 @@ class SalesExternalService
             $this->feeSalesTerminModel->update($idTermin, $updateData);
 
             // Update status parent fee_sales
-            $this->db->table('fee_sales')
-                ->where('id', $termin->id_fee_sales)
-                ->where('status !=', 'selesai')
-                ->update(['status' => 'proses_termin', 'updated_by' => $userId]);
+            $this->salesRepo->markFeeSalesProsesTerminIfNotSelesai((int) $termin->id_fee_sales, $userId);
 
             $this->db->transComplete();
 
@@ -504,7 +478,7 @@ class SalesExternalService
                 throw new RuntimeException('Gagal menyimpan pengajuan SPP termin.');
             }
 
-            $feeRow           = $this->db->table('fee_sales')->where('id', $termin->id_fee_sales)->get()->getRow();
+            $feeRow           = $this->salesRepo->getFeeSalesById((int) $termin->id_fee_sales);
             $idMkdt           = (int) ($feeRow->id_mkdt ?? 0);
             $detail           = $idMkdt > 0 ? $this->salesRepo->getFeeDetailByMkdt($idMkdt) : null;
             $unitLabel        = $this->formatKavlingLabel($detail);
@@ -538,7 +512,7 @@ class SalesExternalService
      */
     public function confirmPencairan(int $idTermin, array $data, ?int $userId, ?UploadedFile $fileBukti = null): array
     {
-        $termin = $this->db->table('fee_sales_termin')->where('id', $idTermin)->get()->getRow();
+        $termin = $this->salesRepo->getTerminById($idTermin);
         if (! $termin) {
             throw new RuntimeException('Data termin tidak ditemukan.');
         }
@@ -565,20 +539,7 @@ class SalesExternalService
             $this->feeSalesTerminModel->update($idTermin, $updateData);
 
             // Cek apakah semua termin pada fee_sales ini sudah cair
-            $totalTermin = (int) $this->db->table('fee_sales_termin')
-                ->where('id_fee_sales', $termin->id_fee_sales)
-                ->countAllResults();
-
-            $cairTermin = (int) $this->db->table('fee_sales_termin')
-                ->where('id_fee_sales', $termin->id_fee_sales)
-                ->where('status', 'sudah_cair')
-                ->countAllResults();
-
-            $newParentStatus = ($totalTermin > 0 && $totalTermin === $cairTermin) ? 'selesai' : 'proses_termin';
-
-            $this->db->table('fee_sales')
-                ->where('id', $termin->id_fee_sales)
-                ->update(['status' => $newParentStatus, 'updated_by' => $userId]);
+            $this->syncFeeSalesStatusFromTermins((int) $termin->id_fee_sales, $userId);
 
             // Sinkronkan status pada tabel fee_sales_pengajuan jika termin ini masuk grup pengajuan
             $this->syncPengajuanStatusByTerminId($idTermin, $userId);
@@ -589,17 +550,10 @@ class SalesExternalService
                 throw new RuntimeException('Gagal mengonfirmasi pencairan fee termin.');
             }
 
-            $feeRow        = $this->db->table('fee_sales')->where('id', $termin->id_fee_sales)->get()->getRow();
+            $feeRow        = $this->salesRepo->getFeeSalesById((int) $termin->id_fee_sales);
             $idMkdt        = (int) ($feeRow->id_mkdt ?? 0);
             $detail        = $idMkdt > 0 ? $this->salesRepo->getFeeDetailByMkdt($idMkdt) : null;
-            $pengajuanLink = $this->db->table('fee_sales_pengajuan_item pi')
-                ->select('p.id, p.share_token, p.nomor_pengajuan')
-                ->join('fee_sales_pengajuan p', 'p.id = pi.id_pengajuan')
-                ->where('pi.id_termin', $idTermin)
-                ->where('p.status !=', 'void')
-                ->orderBy('pi.id', 'DESC')
-                ->get()
-                ->getRow();
+            $pengajuanLink = $this->salesRepo->getLatestNonVoidPengajuanByTerminId($idTermin);
 
             $actionUrl = $pengajuanLink
                 ? ('fee-sales/pengajuan/' . ($pengajuanLink->share_token ?: $pengajuanLink->id))
@@ -634,7 +588,7 @@ class SalesExternalService
      */
     public function updatePengajuan(int $idTermin, array $data, ?int $userId, ?UploadedFile $fileSpp = null): array
     {
-        $termin = $this->db->table('fee_sales_termin')->where('id', $idTermin)->get()->getRow();
+        $termin = $this->salesRepo->getTerminById($idTermin);
         if (! $termin) {
             throw new RuntimeException('Data termin tidak ditemukan.');
         }
@@ -669,15 +623,7 @@ class SalesExternalService
             $this->feeSalesTerminModel->update($idTermin, $updateData);
 
             // Ambil konteks kavling / proyek untuk audit log
-            $feeHeader = $this->db->table('fee_sales fs')
-                ->select('fs.id_mkdt, m.id_kavling, c.id_proyek')
-                ->join('mkdt m', 'm.id_mkdt = fs.id_mkdt', 'left')
-                ->join('kavling k', 'k.id_kavling = m.id_kavling', 'left')
-                ->join('jalan j', 'j.id_jalan = k.id_jalan', 'left')
-                ->join('cluster c', 'c.id_cluster = j.id_cluster', 'left')
-                ->where('fs.id', $termin->id_fee_sales)
-                ->get()
-                ->getRow();
+            $feeHeader = $this->salesRepo->getFeeSalesContextForAudit((int) $termin->id_fee_sales);
 
             $this->historyService->log('fee_sales', [
                 'reference_type' => 'fee_sales_termin',
@@ -713,7 +659,7 @@ class SalesExternalService
      */
     public function updatePencairan(int $idTermin, array $data, ?int $userId, ?UploadedFile $fileBukti = null): array
     {
-        $termin = $this->db->table('fee_sales_termin')->where('id', $idTermin)->get()->getRow();
+        $termin = $this->salesRepo->getTerminById($idTermin);
         if (! $termin) {
             throw new RuntimeException('Data termin tidak ditemukan.');
         }
@@ -748,15 +694,7 @@ class SalesExternalService
             $this->feeSalesTerminModel->update($idTermin, $updateData);
 
             // Ambil konteks kavling / proyek untuk audit log
-            $feeHeader = $this->db->table('fee_sales fs')
-                ->select('fs.id_mkdt, m.id_kavling, c.id_proyek')
-                ->join('mkdt m', 'm.id_mkdt = fs.id_mkdt', 'left')
-                ->join('kavling k', 'k.id_kavling = m.id_kavling', 'left')
-                ->join('jalan j', 'j.id_jalan = k.id_jalan', 'left')
-                ->join('cluster c', 'c.id_cluster = j.id_cluster', 'left')
-                ->where('fs.id', $termin->id_fee_sales)
-                ->get()
-                ->getRow();
+            $feeHeader = $this->salesRepo->getFeeSalesContextForAudit((int) $termin->id_fee_sales);
 
             $this->historyService->log('fee_sales', [
                 'reference_type' => 'fee_sales_termin',
@@ -842,26 +780,15 @@ class SalesExternalService
         $kodeKeu = '';
         if (! $idProyek && ! empty($itemsInput[0]['id_mkdt'])) {
             $firstMkdt = (int) $itemsInput[0]['id_mkdt'];
-            $proyekRow = $this->db->table('mkdt m')
-                ->select('c.id_proyek, p.kode_keuangan')
-                ->join('kavling kv', 'kv.id_kavling = m.id_kavling')
-                ->join('jalan j', 'j.id_jalan = kv.id_jalan', 'left')
-                ->join('cluster c', 'c.id_cluster = j.id_cluster', 'left')
-                ->join('proyek p', 'p.id_proyek = c.id_proyek', 'left')
-                ->where('m.id_mkdt', $firstMkdt)
-                ->get()
-                ->getRow();
+            $proyekRow = $this->salesRepo->getProyekContextByMkdtId($firstMkdt);
             if ($proyekRow) {
                 $idProyek = (int) $proyekRow->id_proyek;
                 $kodeKeu  = strtoupper(trim((string) ($proyekRow->kode_keuangan ?? '')));
             }
         }
 
-        if (empty($kodeKeu)) {
-            if ($idProyek > 0) {
-                $pRow = $this->db->table('proyek')->select('kode_keuangan')->where('id_proyek', $idProyek)->get()->getRow();
-                $kodeKeu = strtoupper(trim((string) ($pRow->kode_keuangan ?? '')));
-            }
+        if (empty($kodeKeu) && (int) $idProyek > 0) {
+            $kodeKeu = strtoupper((string) ($this->salesRepo->getProyekKodeKeuangan((int) $idProyek) ?? ''));
         }
         if (empty($kodeKeu)) {
             $kodeKeu = 'GEN';
@@ -939,7 +866,7 @@ class SalesExternalService
                 $targetFeeSalesId = $idFeeSales;
 
                 if ($idTermin > 0) {
-                    $matchedTermin = $this->db->table('fee_sales_termin')->where('id', $idTermin)->get()->getRow();
+                    $matchedTermin = $this->salesRepo->getTerminById($idTermin);
                     if ($matchedTermin) {
                         $targetFeeSalesId = (int) $matchedTermin->id_fee_sales;
                     }
@@ -1011,10 +938,7 @@ class SalesExternalService
                 $this->feeSalesTerminModel->update($matchedTermin->id, $terminUpdate);
 
                 // Update parent fee_sales status
-                $this->db->table('fee_sales')
-                    ->where('id', $targetFeeSalesId)
-                    ->where('status !=', 'selesai')
-                    ->update(['status' => 'proses_termin', 'updated_by' => $userId]);
+                $this->salesRepo->markFeeSalesProsesTerminIfNotSelesai($targetFeeSalesId, $userId);
 
                 // Simpan item pengajuan pivot
                 $this->pengajuanItemModel->insert([
@@ -1121,18 +1045,10 @@ class SalesExternalService
             // Hitung ulang status header fee_sales
             $affectedFeeSalesIds = array_unique(array_filter($affectedFeeSalesIds));
             foreach ($affectedFeeSalesIds as $fsId) {
-                $totalActive = $this->db->table('fee_sales_termin')
-                    ->where('id_fee_sales', $fsId)
-                    ->whereIn('status', ['pengajuan_spp', 'sudah_cair'])
-                    ->countAllResults();
+                $totalActive = $this->salesRepo->countActiveTerminByFeeSalesId((int) $fsId);
 
                 $fsStatus = $totalActive > 0 ? 'proses_termin' : 'draft';
-                $this->db->table('fee_sales')
-                    ->where('id', $fsId)
-                    ->update([
-                        'status'     => $fsStatus,
-                        'updated_by' => $userId,
-                    ]);
+                $this->salesRepo->updateFeeSalesStatus((int) $fsId, $fsStatus, $userId);
             }
 
             $this->db->transComplete();
@@ -1373,7 +1289,7 @@ class SalesExternalService
      */
     private function applyPriceRecalculationForMkdt(int $idMkdt, float $newHargaAjb, ?int $userId = null): void
     {
-        $currentAjb     = (float) ($this->db->table('mkdt')->select('harga_net_ajb')->where('id_mkdt', $idMkdt)->get()->getRow()->harga_net_ajb ?? 0);
+        $currentAjb     = $this->salesRepo->getMkdtHargaNetAjb($idMkdt);
         $isPriceChanged = abs($currentAjb - $newHargaAjb) > 0.01;
         if ($this->salesRepo->hasCairTerminByMkdt($idMkdt)) {
             if ($isPriceChanged) {
@@ -1387,16 +1303,11 @@ class SalesExternalService
             throw new RuntimeException('Nominal Harga Jual Net AJB harus lebih dari 0.');
         }
 
-        // 1. Update tabel mkdt
-        $this->db->table('mkdt')
-            ->where('id_mkdt', $idMkdt)
-            ->update(['harga_net_ajb' => $newHargaAjb]);
+        // 1. Update tabel mkdt melalui kontrak MKDT
+        $this->mkdtPricingService->updateHargaNetAjb($idMkdt, $newHargaAjb);
 
         // 2. Ambil seluruh entri fee_sales untuk unit ini
-        $fees = $this->db->table('fee_sales')
-            ->where('id_mkdt', $idMkdt)
-            ->get()
-            ->getResult();
+        $fees = $this->salesRepo->getFeeSalesListByMkdt($idMkdt);
 
         foreach ($fees as $fee) {
             $idFeeSales = (int) $fee->id;
@@ -1404,20 +1315,10 @@ class SalesExternalService
             $totalFee   = round(($persenFee / 100) * $newHargaAjb, 2);
 
             // Update header fee_sales
-            $this->db->table('fee_sales')
-                ->where('id', $idFeeSales)
-                ->update([
-                    'harga_net_ajb' => $newHargaAjb,
-                    'total_fee'     => $totalFee,
-                    'updated_by'    => $userId,
-                ]);
+            $this->salesRepo->updateFeeSalesPricing($idFeeSales, $newHargaAjb, $totalFee, $userId);
 
             // Ambil semua termin untuk fee_sales ini urut termin_ke ASC
-            $termins = $this->db->table('fee_sales_termin')
-                ->where('id_fee_sales', $idFeeSales)
-                ->orderBy('termin_ke', 'ASC')
-                ->get()
-                ->getResult();
+            $termins = $this->salesRepo->getTerminListByFeeSalesId($idFeeSales);
 
             if (empty($termins)) {
                 continue;
@@ -1438,21 +1339,11 @@ class SalesExternalService
                 }
 
                 // Update in-place fee_sales_termin
-                $this->db->table('fee_sales_termin')
-                    ->where('id', $t->id)
-                    ->update([
-                        'nominal'    => $newNominal,
-                        'updated_by' => $userId,
-                    ]);
+                $this->salesRepo->updateTerminNominal((int) $t->id, $newNominal, $userId);
 
                 // Update nominal di fee_sales_pengajuan_item pada pengajuan aktif (status NOT IN ('void', 'selesai'))
                 // sekaligus bersihkan suggested_harga_net_ajb karena sudah diterapkan
-                $this->db->query("
-                    UPDATE fee_sales_pengajuan_item pi
-                    JOIN fee_sales_pengajuan fsp ON fsp.id = pi.id_pengajuan
-                    SET pi.nominal = ?, pi.suggested_harga_net_ajb = NULL
-                    WHERE pi.id_termin = ? AND fsp.status NOT IN ('void', 'selesai')
-                ", [$newNominal, $t->id]);
+                $this->salesRepo->syncActivePengajuanItemNominalByTerminId((int) $t->id, $newNominal);
             }
         }
     }
@@ -1540,22 +1431,11 @@ class SalesExternalService
                 $updatedUnits++;
 
                 // Periksa pengajuan berstatus 'ditolak' terkait unit ini
-                $rejectedPengajuans = $this->db->table('fee_sales_pengajuan_item pi')
-                    ->select('pi.id_pengajuan')
-                    ->join('fee_sales fs', 'fs.id = pi.id_fee_sales')
-                    ->join('fee_sales_pengajuan fsp', 'fsp.id = pi.id_pengajuan')
-                    ->where('fs.id_mkdt', $idMkdt)
-                    ->where('fsp.status', 'ditolak')
-                    ->get()
-                    ->getResult();
+                $rejectedPengajuans = $this->salesRepo->getRejectedPengajuanByMkdt($idMkdt);
 
                 foreach ($rejectedPengajuans as $rp) {
                     $pId = (int) $rp->id_pengajuan;
-                    $remainingSuggested = $this->db->table('fee_sales_pengajuan_item')
-                        ->where('id_pengajuan', $pId)
-                        ->where('suggested_harga_net_ajb IS NOT NULL', null, false)
-                        ->where('suggested_harga_net_ajb >', 0)
-                        ->countAllResults();
+                    $remainingSuggested = $this->salesRepo->countRemainingSuggestedItemsByPengajuanId($pId);
 
                     if ($remainingSuggested === 0) {
                         $this->pengajuanModel->update($pId, [
@@ -1642,10 +1522,7 @@ class SalesExternalService
                 $this->feeSalesTerminModel->update($item->id_termin, $updateData);
 
                 // Cek status parent fee_sales
-                $totalT = (int) $this->db->table('fee_sales_termin')->where('id_fee_sales', $item->id_fee_sales)->countAllResults();
-                $cairT  = (int) $this->db->table('fee_sales_termin')->where('id_fee_sales', $item->id_fee_sales)->where('status', 'sudah_cair')->countAllResults();
-                $parentStatus = ($totalT > 0 && $totalT === $cairT) ? 'selesai' : 'proses_termin';
-                $this->db->table('fee_sales')->where('id', $item->id_fee_sales)->update(['status' => $parentStatus, 'updated_by' => $userId]);
+                $this->syncFeeSalesStatusFromTermins((int) $item->id_fee_sales, $userId);
 
                 if ($firstCairItem === null) {
                     $firstCairItem = $item;
@@ -1694,21 +1571,40 @@ class SalesExternalService
     }
 
     /**
+     * Ambil detail lengkap grup pengajuan berdasarkan ID pengajuan
+     */
+    public function getPengajuanGroupDetail(int $idPengajuan): ?object
+    {
+        return $this->salesRepo->getPengajuanGroupDetail($idPengajuan);
+    }
+
+    /**
+     * Ambil detail lengkap grup pengajuan berdasarkan share_token atau ID
+     */
+    public function getPengajuanGroupByToken(string $tokenOrId): ?object
+    {
+        return $this->salesRepo->getPengajuanGroupByToken($tokenOrId);
+    }
+
+    private function syncFeeSalesStatusFromTermins(int $idFeeSales, ?int $userId): void
+    {
+        $totalTermin  = $this->salesRepo->countTerminByFeeSalesId($idFeeSales);
+        $cairTermin   = $this->salesRepo->countCairTerminByFeeSalesId($idFeeSales);
+        $parentStatus = ($totalTermin > 0 && $totalTermin === $cairTermin) ? 'selesai' : 'proses_termin';
+
+        $this->salesRepo->updateFeeSalesStatus($idFeeSales, $parentStatus, $userId);
+    }
+
+    /**
      * Sinkronkan status pada tabel fee_sales_pengajuan berdasarkan id_pengajuan
      */
     protected function syncPengajuanStatus(int $idPengajuan, ?int $userId): void
     {
-        $curr = $this->db->table('fee_sales_pengajuan')->select('status')->where('id', $idPengajuan)->get()->getRow();
-        if ($curr && $curr->status === 'void') {
+        if ($this->salesRepo->getPengajuanStatusById($idPengajuan) === 'void') {
             return;
         }
 
-        $items = $this->db->table('fee_sales_pengajuan_item pi')
-            ->select('pi.id, fst.status')
-            ->join('fee_sales_termin fst', 'fst.id = pi.id_termin', 'left')
-            ->where('pi.id_pengajuan', $idPengajuan)
-            ->get()
-            ->getResult();
+        $items = $this->salesRepo->getPengajuanItemStatuses($idPengajuan);
 
         if (empty($items)) {
             return;
@@ -1740,11 +1636,7 @@ class SalesExternalService
      */
     protected function syncPengajuanStatusByTerminId(int $idTermin, ?int $userId): void
     {
-        $links = $this->db->table('fee_sales_pengajuan_item')
-            ->select('id_pengajuan')
-            ->where('id_termin', $idTermin)
-            ->get()
-            ->getResult();
+        $links = $this->salesRepo->getPengajuanLinksByTerminId($idTermin);
 
         foreach ($links as $link) {
             $this->syncPengajuanStatus((int) $link->id_pengajuan, $userId);

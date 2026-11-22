@@ -2,18 +2,18 @@
 
 namespace App\Controllers\Api\TiketMasalah;
 
-use App\Controllers\BaseController;
+use App\Controllers\Api\BaseApiController;
 use App\Services\TiketMasalah\TiketMasalahService;
-use CodeIgniter\API\ResponseTrait;
 
-class TiketMasalahController extends BaseController
+class TiketMasalahController extends BaseApiController
 {
-    use ResponseTrait;
+    protected $helpers = ['auth', 'active_proyek'];
 
     protected $service;
 
     public function __construct()
     {
+        helper(['auth', 'active_proyek']);
         $this->service = new TiketMasalahService();
     }
 
@@ -86,7 +86,7 @@ class TiketMasalahController extends BaseController
         return $this->fail('Gagal membuat tiket');
     }
 
-    public function update()
+    public function update($id = null)
     {
         $rules = [
             'id_tiket_masalah' => 'required|numeric',
@@ -103,7 +103,7 @@ class TiketMasalahController extends BaseController
             return $this->failValidationErrors($this->validator->getErrors());
         }
 
-        $idTiket = (int) $this->request->getPost('id_tiket_masalah');
+        $idTiket = (int) ($this->request->getPost('id_tiket_masalah') ?? $id ?? 0);
         $data = $this->request->getPost();
         $files = $this->request->getFiles();
 

@@ -3,11 +3,11 @@
 namespace App\Controllers\Web\SalesExternal;
 
 use App\Controllers\BaseController;
-use App\Repositories\SalesExternal\SalesExternalRepository;
 use App\Services\FileAccessService;
 use App\Services\Proyek\ProyekService;
 use App\Services\SalesExternal\FeeSalesPdfService;
 use App\Services\SalesExternal\FeeSalesSettingService;
+use App\Services\SalesExternal\SalesExternalService;
 
 class SalesExternalController extends BaseController
 {
@@ -92,8 +92,8 @@ class SalesExternalController extends BaseController
             return $this->response->setStatusCode(403)->setBody('Akses ditolak.');
         }
 
-        $repo  = new SalesExternalRepository();
-        $group = $repo->getPengajuanGroupDetail($id);
+        $salesService = new SalesExternalService();
+        $group        = $salesService->getPengajuanGroupDetail($id);
         if (! $group) {
             return $this->response->setStatusCode(404)->setBody('Pengajuan tidak ditemukan.');
         }
@@ -142,8 +142,8 @@ class SalesExternalController extends BaseController
             return redirect()->to(base_url('dashboard'))->with('error', 'Anda tidak memiliki hak akses untuk melihat pengajuan ini.');
         }
 
-        $repo  = new SalesExternalRepository();
-        $group = $repo->getPengajuanGroupByToken($token);
+        $salesService = new SalesExternalService();
+        $group        = $salesService->getPengajuanGroupByToken($token);
         if (! $group) {
             return redirect()->to(base_url('fee-sales'))->with('error', 'Pengajuan tidak ditemukan atau link sudah tidak berlaku.');
         }

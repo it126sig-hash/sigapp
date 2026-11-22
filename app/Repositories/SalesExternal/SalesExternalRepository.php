@@ -2,15 +2,16 @@
 
 namespace App\Repositories\SalesExternal;
 
+use CodeIgniter\Database\BaseConnection;
 use Config\Database;
 
 class SalesExternalRepository
 {
-    protected $db;
+    protected BaseConnection $db;
 
-    public function __construct()
+    public function __construct(?BaseConnection $db = null)
     {
-        $this->db = Database::connect();
+        $this->db = $db ?? Database::connect();
     }
 
     public function getMkdtIdByFeeSalesId(int $idFeeSales): ?int
@@ -899,5 +900,328 @@ class SalesExternalRepository
         }
 
         return $this->getPengajuanGroupDetail((int) $row->id);
+    }
+
+    public function findActiveSalesByNama(string $nama): ?object
+    {
+        $row = $this->db->table('sales')
+            ->where('nama', $nama)
+            ->where('deleted_at IS NULL')
+            ->get()
+            ->getRow();
+
+        return $row ?: null;
+    }
+
+    public function getFeeSalesById(int $idFeeSales): ?object
+    {
+        $row = $this->db->table('fee_sales')
+            ->where('id', $idFeeSales)
+            ->get()
+            ->getRow();
+
+        return $row ?: null;
+    }
+
+    public function getFeeSalesByIdAndMkdt(int $idFeeSales, int $idMkdt): ?object
+    {
+        $row = $this->db->table('fee_sales')
+            ->where('id', $idFeeSales)
+            ->where('id_mkdt', $idMkdt)
+            ->get()
+            ->getRow();
+
+        return $row ?: null;
+    }
+
+    public function getFeeSalesByMkdtAndSales(int $idMkdt, int $idSales): ?object
+    {
+        $row = $this->db->table('fee_sales')
+            ->where('id_mkdt', $idMkdt)
+            ->where('id_sales', $idSales)
+            ->get()
+            ->getRow();
+
+        return $row ?: null;
+    }
+
+    /**
+     * @return array<int, object>
+     */
+    public function getFeeSalesListByMkdt(int $idMkdt): array
+    {
+        return $this->db->table('fee_sales')
+            ->where('id_mkdt', $idMkdt)
+            ->get()
+            ->getResult();
+    }
+
+    public function markFeeSalesProsesTerminIfNotSelesai(int $idFeeSales, ?int $userId): bool
+    {
+        return (bool) $this->db->table('fee_sales')
+            ->where('id', $idFeeSales)
+            ->where('status !=', 'selesai')
+            ->update([
+                'status'     => 'proses_termin',
+                'updated_by' => $userId,
+            ]);
+    }
+
+    public function updateFeeSalesStatus(int $idFeeSales, string $status, ?int $userId): bool
+    {
+        return (bool) $this->db->table('fee_sales')
+            ->where('id', $idFeeSales)
+            ->update([
+                'status'     => $status,
+                'updated_by' => $userId,
+            ]);
+    }
+
+    public function updateFeeSalesPricing(int $idFeeSales, float $hargaNetAjb, float $totalFee, ?int $userId): bool
+    {
+        return (bool) $this->db->table('fee_sales')
+            ->where('id', $idFeeSales)
+            ->update([
+                'harga_net_ajb' => $hargaNetAjb,
+                'total_fee'     => $totalFee,
+                'updated_by'    => $userId,
+            ]);
+    }
+
+    public function deleteFeeSalesById(int $idFeeSales): bool
+    {
+        return (bool) $this->db->table('fee_sales')
+            ->where('id', $idFeeSales)
+            ->delete();
+    }
+
+    public function getTerminById(int $idTermin): ?object
+    {
+        $row = $this->db->table('fee_sales_termin')
+            ->where('id', $idTermin)
+            ->get()
+            ->getRow();
+
+        return $row ?: null;
+    }
+
+    /**
+     * @return array<int, object>
+     */
+    public function getTerminListByFeeSalesId(int $idFeeSales): array
+    {
+        return $this->db->table('fee_sales_termin')
+            ->where('id_fee_sales', $idFeeSales)
+            ->orderBy('termin_ke', 'ASC')
+            ->get()
+            ->getResult();
+    }
+
+    public function countActiveTerminByFeeSalesId(int $idFeeSales): int
+    {
+        return (int) $this->db->table('fee_sales_termin')
+            ->where('id_fee_sales', $idFeeSales)
+            ->whereIn('status', ['pengajuan_spp', 'sudah_cair'])
+            ->countAllResults();
+    }
+
+    public function countTerminByFeeSalesId(int $idFeeSales): int
+    {
+        return (int) $this->db->table('fee_sales_termin')
+            ->where('id_fee_sales', $idFeeSales)
+            ->countAllResults();
+    }
+
+    public function countCairTerminByFeeSalesId(int $idFeeSales): int
+    {
+        return (int) $this->db->table('fee_sales_termin')
+            ->where('id_fee_sales', $idFeeSales)
+            ->where('status', 'sudah_cair')
+            ->countAllResults();
+    }
+
+    public function deleteBelumDiajukanTerminByFeeSalesId(int $idFeeSales): bool
+    {
+        return (bool) $this->db->table('fee_sales_termin')
+            ->where('id_fee_sales', $idFeeSales)
+            ->where('status', 'belum_diajukan')
+            ->delete();
+    }
+
+    public function deleteTerminByFeeSalesId(int $idFeeSales): bool
+    {
+        return (bool) $this->db->table('fee_sales_termin')
+            ->where('id_fee_sales', $idFeeSales)
+            ->delete();
+    }
+
+    public function updateTerminNominal(int $idTermin, float $nominal, ?int $userId): bool
+    {
+        return (bool) $this->db->table('fee_sales_termin')
+            ->where('id', $idTermin)
+            ->update([
+                'nominal'    => $nominal,
+                'updated_by' => $userId,
+            ]);
+    }
+
+    public function getPengajuanStatusById(int $idPengajuan): ?string
+    {
+        $row = $this->db->table('fee_sales_pengajuan')
+            ->select('status')
+            ->where('id', $idPengajuan)
+            ->get()
+            ->getRow();
+
+        return $row ? ($row->status ?? null) : null;
+    }
+
+    public function getLatestNonVoidPengajuanByTerminId(int $idTermin): ?object
+    {
+        $row = $this->db->table('fee_sales_pengajuan_item pi')
+            ->select('p.id, p.share_token, p.nomor_pengajuan')
+            ->join('fee_sales_pengajuan p', 'p.id = pi.id_pengajuan')
+            ->where('pi.id_termin', $idTermin)
+            ->where('p.status !=', 'void')
+            ->orderBy('pi.id', 'DESC')
+            ->get()
+            ->getRow();
+
+        return $row ?: null;
+    }
+
+    /**
+     * @return array<int, object>
+     */
+    public function getPengajuanItemStatuses(int $idPengajuan): array
+    {
+        return $this->db->table('fee_sales_pengajuan_item pi')
+            ->select('pi.id, fst.status')
+            ->join('fee_sales_termin fst', 'fst.id = pi.id_termin', 'left')
+            ->where('pi.id_pengajuan', $idPengajuan)
+            ->get()
+            ->getResult();
+    }
+
+    /**
+     * @return array<int, object>
+     */
+    public function getPengajuanLinksByTerminId(int $idTermin): array
+    {
+        return $this->db->table('fee_sales_pengajuan_item')
+            ->select('id_pengajuan')
+            ->where('id_termin', $idTermin)
+            ->get()
+            ->getResult();
+    }
+
+    /**
+     * @return array<int, object>
+     */
+    public function getRejectedPengajuanByMkdt(int $idMkdt): array
+    {
+        return $this->db->table('fee_sales_pengajuan_item pi')
+            ->select('pi.id_pengajuan')
+            ->distinct()
+            ->join('fee_sales fs', 'fs.id = pi.id_fee_sales')
+            ->join('fee_sales_pengajuan fsp', 'fsp.id = pi.id_pengajuan')
+            ->where('fs.id_mkdt', $idMkdt)
+            ->where('fsp.status', 'ditolak')
+            ->get()
+            ->getResult();
+    }
+
+    public function countRemainingSuggestedItemsByPengajuanId(int $idPengajuan): int
+    {
+        return (int) $this->db->table('fee_sales_pengajuan_item')
+            ->where('id_pengajuan', $idPengajuan)
+            ->where('suggested_harga_net_ajb IS NOT NULL', null, false)
+            ->where('suggested_harga_net_ajb >', 0)
+            ->countAllResults();
+    }
+
+    public function syncActivePengajuanItemNominalByTerminId(int $idTermin, float $nominal): bool
+    {
+        $rows = $this->db->table('fee_sales_pengajuan_item pi')
+            ->select('pi.id')
+            ->join('fee_sales_pengajuan fsp', 'fsp.id = pi.id_pengajuan')
+            ->where('pi.id_termin', $idTermin)
+            ->whereNotIn('fsp.status', ['void', 'selesai'])
+            ->get()
+            ->getResult();
+
+        $itemIds = array_values(array_filter(array_map(static fn ($row) => (int) ($row->id ?? 0), $rows)));
+        if (empty($itemIds)) {
+            return true;
+        }
+
+        return (bool) $this->db->table('fee_sales_pengajuan_item')
+            ->whereIn('id', $itemIds)
+            ->update([
+                'nominal'                 => $nominal,
+                'suggested_harga_net_ajb' => null,
+            ]);
+    }
+
+    public function getMkdtHargaNetAjb(int $idMkdt): float
+    {
+        $row = $this->db->table('mkdt')
+            ->select('harga_net_ajb')
+            ->where('id_mkdt', $idMkdt)
+            ->get()
+            ->getRow();
+
+        return (float) ($row->harga_net_ajb ?? 0);
+    }
+
+    public function getProyekContextByMkdtId(int $idMkdt): ?object
+    {
+        $row = $this->db->table('mkdt m')
+            ->select('c.id_proyek, p.kode_keuangan')
+            ->join('kavling kv', 'kv.id_kavling = m.id_kavling')
+            ->join('jalan j', 'j.id_jalan = kv.id_jalan', 'left')
+            ->join('cluster c', 'c.id_cluster = j.id_cluster', 'left')
+            ->join('proyek p', 'p.id_proyek = c.id_proyek', 'left')
+            ->where('m.id_mkdt', $idMkdt)
+            ->get()
+            ->getRow();
+
+        return $row ?: null;
+    }
+
+    public function getFeeSalesContextForAudit(int $idFeeSales): ?object
+    {
+        $row = $this->db->table('fee_sales fs')
+            ->select('fs.id_mkdt, m.id_kavling, c.id_proyek')
+            ->join('mkdt m', 'm.id_mkdt = fs.id_mkdt', 'left')
+            ->join('kavling k', 'k.id_kavling = m.id_kavling', 'left')
+            ->join('jalan j', 'j.id_jalan = k.id_jalan', 'left')
+            ->join('cluster c', 'c.id_cluster = j.id_cluster', 'left')
+            ->where('fs.id', $idFeeSales)
+            ->get()
+            ->getRow();
+
+        return $row ?: null;
+    }
+
+    public function getProyekKodeKeuangan(int $idProyek): ?string
+    {
+        if ($idProyek <= 0) {
+            return null;
+        }
+
+        $row = $this->db->table('proyek')
+            ->select('kode_keuangan')
+            ->where('id_proyek', $idProyek)
+            ->get()
+            ->getRow();
+
+        if (! $row || $row->kode_keuangan === null) {
+            return null;
+        }
+
+        $kode = trim((string) $row->kode_keuangan);
+
+        return $kode !== '' ? $kode : null;
     }
 }

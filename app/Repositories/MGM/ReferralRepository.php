@@ -407,6 +407,62 @@ class ReferralRepository extends Model
             ->get()->getResult();
     }
 
+    public function findQrReferralData(string $kodeReferal, int $idMkdt, int $idProyek): ?object
+    {
+        $builder = $this->db->table('mkdt')
+            ->select('
+                mkdt.id_mkdt,
+                konsumen.id_konsumen,
+                konsumen.kode_referal,
+                konsumen.nama_konsumen,
+                proyek.id_proyek,
+                proyek.nama_proyek,
+                proyek.logo,
+                proyek.landing_page_url
+            ')
+            ->join('konsumen', 'konsumen.id_konsumen = mkdt.id_konsumen', 'left')
+            ->join('kavling', 'kavling.id_mkdt = mkdt.id_mkdt OR kavling.id_kavling = mkdt.id_kavling', 'left')
+            ->join('jalan', 'jalan.id_jalan = kavling.id_jalan', 'left')
+            ->join('cluster', 'cluster.id_cluster = jalan.id_cluster', 'left')
+            ->join('proyek', 'proyek.id_proyek = cluster.id_proyek', 'left')
+            ->where('proyek.id_proyek', $idProyek);
+
+        if ($idMkdt > 0) {
+            $builder->where('mkdt.id_mkdt', $idMkdt);
+        }
+
+        if ($kodeReferal !== '') {
+            $builder->where('konsumen.kode_referal', $kodeReferal);
+        }
+
+        return $builder->get()->getRow();
+    }
+
+    public function findKonsumenKodeReferal(int $idKonsumen): ?string
+    {
+        $row = $this->db->table('konsumen')
+            ->select('kode_referal')
+            ->where('id_konsumen', $idKonsumen)
+            ->get()
+            ->getRow();
+
+        $kode = trim((string) ($row->kode_referal ?? ''));
+
+        return $kode !== '' ? $kode : null;
+    }
+
+    public function isKodeReferalExists(string $kode): bool
+    {
+        return $this->db->table('konsumen')
+            ->where('kode_referal', $kode)
+            ->countAllResults() > 0;
+    }
+
+    public function hasHistoryTable(): bool
+    {
+        return $this->db->tableExists('referral_bonus_histories');
+    }
+
     private function mgmFilterSql(array $filters, array &$params, string $referrerAlias): string
     {
         $conditions = [];

@@ -5,17 +5,14 @@ namespace App\Controllers\Api\MGM;
 use App\Controllers\Api\BaseApiController;
 use CodeIgniter\HTTP\ResponseInterface;
 use App\Services\MGM\ReferralService;
-use App\Repositories\MGM\ReferralRepository;
 
 class ReferralController extends BaseApiController
 {
     protected $service;
-    protected $repo;
 
     public function __construct()
     {
         $this->service = new ReferralService();
-        $this->repo = new ReferralRepository();
     }
 
     public function list(): ResponseInterface
@@ -26,7 +23,7 @@ class ReferralController extends BaseApiController
         $filters = $this->mgmFilters();
         if ($idCluster) $filters['id_cluster'] = $idCluster;
 
-        $data = $this->repo->getListMGM($idProyek, $filters);
+        $data = $this->service->getListMGM((int) $idProyek, $filters);
         return $this->success($data);
     }
 
@@ -201,7 +198,7 @@ class ReferralController extends BaseApiController
         $search   = trim((string) ($input['q'] ?? $input['search'] ?? ''));
         $idProyek = (int) (($input['id_proyek'] ?? 0) ?: active_proyek_id() ?: 0);
 
-        $data = $this->repo->searchReferrerOptions($search, $idProyek);
+        $data = $this->service->searchReferrerOptions($search, $idProyek);
 
         $results = [];
         foreach ($data as $row) {

@@ -2,15 +2,25 @@
 
 namespace App\Services\SalesExternal;
 
+use App\Repositories\SalesExternal\FeeSalesSettingRepository;
+use App\Services\Settings\MenuAccessService;
 use CodeIgniter\Database\BaseConnection;
+use Config\Database;
 
 class FeeSalesSettingService
 {
     protected BaseConnection $db;
+    protected FeeSalesSettingRepository $repo;
+    protected MenuAccessService $menuAccessService;
 
-    public function __construct(?BaseConnection $db = null)
-    {
-        $this->db = $db ?? \Config\Database::connect();
+    public function __construct(
+        ?BaseConnection $db = null,
+        ?FeeSalesSettingRepository $repo = null,
+        ?MenuAccessService $menuAccessService = null
+    ) {
+        $this->db                = $db ?? Database::connect();
+        $this->repo              = $repo ?? new FeeSalesSettingRepository($this->db);
+        $this->menuAccessService = $menuAccessService ?? new MenuAccessService();
     }
 
     /**
@@ -18,17 +28,7 @@ class FeeSalesSettingService
      */
     public function listPermissions(): array
     {
-        $rows = $this->db->table('auth_groups g')
-            ->select('g.id AS id_group, g.name AS group_name, g.description AS group_description,
-                      COALESCE(s.can_view, 0) AS can_view,
-                      COALESCE(s.can_manage, 0) AS can_manage,
-                      COALESCE(s.can_submit_spp, 0) AS can_submit_spp,
-                      COALESCE(s.can_cairkan, 0) AS can_cairkan,
-                      s.updated_at, s.updated_by')
-            ->join('fee_sales_setting_akses s', 's.id_group = g.id', 'left')
-            ->orderBy('g.id', 'ASC')
-            ->get()
-            ->getResultArray();
+        $rows = $this->repo->listPermissions();
 
         return array_map(static function (array $r): array {
             return [
@@ -54,13 +54,22 @@ class FeeSalesSettingService
             return false;
         }
 
-        $now = date('Y-m-d H:i:s');
-        $feeSalesMenu = $this->db->table('menus')->where('url', 'fee-sales')->get()->getRow();
-        $feeMenuId = $feeSalesMenu ? (int) $feeSalesMenu->id : null;
+        $now       = date('Y-m-d H:i:s');
+        $feeMenuId = null;
+        foreach ($this->menuAccessService->getActiveMenus() as $menu) {
+            if (ltrim(trim((string) ($menu->url ?? '')), '/') === 'fee-sales') {
+                $feeMenuId = (int) $menu->id;
+                break;
+            }
+        }
 
         $this->db->transStart();
 
         foreach ($permissions as $item) {
+            if (! is_array($item)) {
+                continue;
+            }
+
             $idGroup = (int) ($item['id_group'] ?? 0);
             if ($idGroup <= 0) {
                 continue;
@@ -68,20 +77,16 @@ class FeeSalesSettingService
 
             // Role Admin (id 1) selalu dipastikan full access
             if ($idGroup === 1) {
-                $canView = 1;
-                $canManage = 1;
+                $canView      = 1;
+                $canManage    = 1;
                 $canSubmitSpp = 1;
-                $canCairkan = 1;
+                $canCairkan   = 1;
             } else {
-                $canView = !empty($item['can_view']) ? 1 : 0;
-                $canManage = !empty($item['can_manage']) ? 1 : 0;
-                $canSubmitSpp = !empty($item['can_submit_spp']) ? 1 : 0;
-                $canCairkan = !empty($item['can_cairkan']) ? 1 : 0;
+                $canView      = ! empty($item['can_view']) ? 1 : 0;
+                $canManage    = ! empty($item['can_manage']) ? 1 : 0;
+                $canSubmitSpp = ! empty($item['can_submit_spp']) ? 1 : 0;
+                $canCairkan   = ! empty($item['can_cairkan']) ? 1 : 0;
             }
-
-            $exists = $this->db->table('fee_sales_setting_akses')
-                ->where('id_group', $idGroup)
-                ->countAllResults();
 
             $payload = [
                 'can_view'       => $canView,
@@ -92,44 +97,46 @@ class FeeSalesSettingService
                 'updated_by'     => $userId,
             ];
 
-            if ($exists > 0) {
-                $this->db->table('fee_sales_setting_akses')
-                    ->where('id_group', $idGroup)
-                    ->update($payload);
-            } else {
-                $payload['id_group'] = $idGroup;
-                $this->db->table('fee_sales_setting_akses')->insert($payload);
-            }
+            $this->repo->upsertGroupPermission($idGroup, $payload);
 
-            // Sinkronkan menu_roles untuk menu fee-sales jika menu ada
-            if ($feeMenuId) {
+            // Sinkronkan menu_roles untuk menu fee-sales jika menu aktif tersedia
+            if ($feeMenuId !== null && $feeMenuId > 0) {
+                $currentMenuIds = array_values(array_unique(array_map(
+                    'intval',
+                    $this->menuAccessService->getGroupMenuIds([$idGroup])
+                )));
+                $newMenuIds = $currentMenuIds;
+
                 if ($canView === 1) {
-                    $menuRoleExists = $this->db->table('menu_roles')
-                        ->where('id_groups', $idGroup)
-                        ->where('id_menu', $feeMenuId)
-                        ->countAllResults();
-
-                    if ($menuRoleExists === 0) {
-                        $this->db->table('menu_roles')->insert([
-                            'id_groups' => $idGroup,
-                            'id_menu'   => $feeMenuId,
-                        ]);
+                    if (! in_array($feeMenuId, $newMenuIds, true)) {
+                        $newMenuIds[] = $feeMenuId;
                     }
-                } else {
+                } elseif ($idGroup !== 1) {
                     // Jangan hapus menu role admin
-                    if ($idGroup !== 1) {
-                        $this->db->table('menu_roles')
-                            ->where('id_groups', $idGroup)
-                            ->where('id_menu', $feeMenuId)
-                            ->delete();
-                    }
+                    $newMenuIds = array_values(array_filter(
+                        $newMenuIds,
+                        static fn (int $menuId): bool => $menuId !== $feeMenuId
+                    ));
+                }
+
+                $sortedCurrent = $currentMenuIds;
+                $sortedNew     = $newMenuIds;
+                sort($sortedCurrent, SORT_NUMERIC);
+                sort($sortedNew, SORT_NUMERIC);
+
+                if ($sortedNew !== $sortedCurrent) {
+                    $this->menuAccessService->syncGroupMenus($idGroup, $newMenuIds);
                 }
             }
         }
 
         $this->db->transComplete();
 
-        return $this->db->transStatus() !== false;
+        if ($this->db->transStatus() === false) {
+            return false;
+        }
+
+        return true;
     }
 
     /**
@@ -140,6 +147,9 @@ class FeeSalesSettingService
     public function getUserPermissions(?int $userId = null): array
     {
         if ($userId === null) {
+            if (! function_exists('user_id')) {
+                helper('auth');
+            }
             $userId = (int) user_id();
         }
 
@@ -154,13 +164,7 @@ class FeeSalesSettingService
             ];
         }
 
-        $groupRows = $this->db->table('auth_groups_users')
-            ->select('group_id')
-            ->where('user_id', $userId)
-            ->get()
-            ->getResultArray();
-
-        $groupIds = array_map(static fn($r) => (int) $r['group_id'], $groupRows);
+        $groupIds = $this->menuAccessService->getUserGroupIds($userId);
 
         if (empty($groupIds)) {
             return [
@@ -188,22 +192,18 @@ class FeeSalesSettingService
             ];
         }
 
-        $row = $this->db->table('fee_sales_setting_akses')
-            ->select('MAX(can_view) AS can_view, MAX(can_manage) AS can_manage, MAX(can_submit_spp) AS can_submit_spp, MAX(can_cairkan) AS can_cairkan')
-            ->whereIn('id_group', $groupIds)
-            ->get()
-            ->getRowArray();
+        $row = $this->repo->getAggregatedPermissionsByGroupIds($groupIds);
 
-        $canView = (int) ($row['can_view'] ?? 0);
+        $canView = (int) ($row->can_view ?? 0);
         if ($canSignMkdt || $canSignKeuangan) {
             $canView = 1;
         }
 
         return [
             'can_view'          => $canView,
-            'can_manage'        => (int) ($row['can_manage'] ?? 0),
-            'can_submit_spp'    => (int) ($row['can_submit_spp'] ?? 0),
-            'can_cairkan'       => (int) ($row['can_cairkan'] ?? 0),
+            'can_manage'        => (int) ($row->can_manage ?? 0),
+            'can_submit_spp'    => (int) ($row->can_submit_spp ?? 0),
+            'can_cairkan'       => (int) ($row->can_cairkan ?? 0),
             'can_sign_mkdt'     => $canSignMkdt,
             'can_sign_keuangan' => $canSignKeuangan,
         ];

@@ -211,11 +211,7 @@ class TiketMasalahService
                 ]);
 
                 // Cek departemen user yang di-assign
-                $assigneeGroupRow = $this->db->table('auth_groups_users')
-                    ->select('group_id')
-                    ->where('user_id', $uid)
-                    ->get()->getRow();
-                $assigneeGroupId = $assigneeGroupRow ? $assigneeGroupRow->group_id : null;
+                $assigneeGroupId = $this->repository->getUserPrimaryGroupId($uid);
 
                 // Deduplikasi: jika dia ada di departemen pembuat yang sudah dinotif, skip individual notif
                 if ($userGroupId && $assigneeGroupId == $userGroupId) {
@@ -412,8 +408,7 @@ class TiketMasalahService
             foreach ($assignedRows as $row) {
                 $uid = $row->user_id;
                 if ($uid != $userId) {
-                    $assigneeGroupRow = $this->db->table('auth_groups_users')->select('group_id')->where('user_id', $uid)->get()->getRow();
-                    $assigneeGroupId = $assigneeGroupRow ? $assigneeGroupRow->group_id : null;
+                    $assigneeGroupId = $this->repository->getUserPrimaryGroupId((int) $uid);
                     if ($userGroupId && $assigneeGroupId == $userGroupId) {
                         continue;
                     }
@@ -590,82 +585,22 @@ class TiketMasalahService
 
     public function getRefInfo(string $refType, int $refId): ?object
     {
-        if ($refType === 'kavling') {
-            return $this->db->table('kavling k')
-                ->select("
-                    k.id_kavling as id,
-                    k.no_kavling,
-                    'kavling' as tipe,
-                    j.nama_jalan,
-                    cl.nama_cluster,
-                    p.nama_proyek,
-                    p.id_proyek,
-                    COALESCE(pr.progres_bangunan, 0) as progres_bangunan,
-                    t.tipe_rumah,
-                    t.lb,
-                    t.lt,
-                    t.keterangan as tipe_keterangan
-                ")
-                ->join('jalan j', 'j.id_jalan = k.id_jalan')
-                ->join('cluster cl', 'cl.id_cluster = j.id_cluster')
-                ->join('proyek p', 'p.id_proyek = cl.id_proyek')
-                ->join('produksi pr', 'pr.id_produksi = k.id_produksi', 'left')
-                ->join('tipe t', 't.id_tipe = k.id_tipe', 'left')
-                ->where('k.id_kavling', $refId)
-                ->get()
-                ->getRow();
-        } else {
-            return $this->db->table('others o')
-                ->select("
-                    o.id,
-                    o.nama as no_kavling,
-                    o.tipe,
-                    j.nama_jalan,
-                    cl.nama_cluster,
-                    p.nama_proyek,
-                    p.id_proyek,
-                    COALESCE(o.progres, 0) as progres_bangunan
-                ")
-                ->join('jalan j', 'j.id_jalan = o.id_jalan', 'left')
-                ->join('cluster cl', 'cl.id_cluster = j.id_cluster', 'left')
-                ->join('proyek p', 'p.id_proyek = cl.id_proyek', 'left')
-                ->where('o.id', $refId)
-                ->get()
-                ->getRow();
-        }
+        return $this->repository->getRefInfo($refType, $refId);
     }
 
     public function getUserList(): array
     {
-        return $this->db->table('users')
-            ->select('id, username, name')
-            ->where('active', 1)
-            ->where('deleted_at IS NULL', null, false)
-            ->orderBy('username', 'ASC')
-            ->get()
-            ->getResult();
+        return $this->repository->getActiveUsers();
     }
 
     public function getCreatorList(): array
     {
-        return $this->db->table('users u')
-            ->select('u.id, u.username, u.name')
-            ->join('tiket_masalah tm', 'tm.pic_user_id = u.id')
-            ->where('u.active', 1)
-            ->where('u.deleted_at IS NULL', null, false)
-            ->groupBy('u.id')
-            ->orderBy('u.username', 'ASC')
-            ->get()
-            ->getResult();
+        return $this->repository->getCreators();
     }
 
     public function getDivisionList(): array
     {
-        return $this->db->table('auth_groups')
-            ->select('id, name')
-            ->orderBy('name', 'ASC')
-            ->get()
-            ->getResult();
+        return $this->repository->getDivisions();
     }
 
     public function createOthersArea(array $params, int $userId): array

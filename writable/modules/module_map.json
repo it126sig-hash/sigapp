@@ -1,5 +1,5 @@
 {
-    "scanned_at": "2026-11-14T00:43:36+07:00",
+    "scanned_at": "2026-11-22T11:14:25+07:00",
     "total_modules": 17,
     "modules": {
         "Proyek": {
@@ -108,7 +108,7 @@
                 {
                     "relative_path": "app/Controllers/Api/Proyek/JalanController.php",
                     "filename": "JalanController.php",
-                    "line_count": 108,
+                    "line_count": 110,
                     "public_methods": [
                         "getAll()",
                         "getDatatable()",
@@ -179,7 +179,7 @@
                 {
                     "relative_path": "app/Services/Proyek/TipeService.php",
                     "filename": "TipeService.php",
-                    "line_count": 497,
+                    "line_count": 527,
                     "public_methods": [
                         "getAll(array $params)",
                         "getDataTables(array $params)",
@@ -193,7 +193,7 @@
                 {
                     "relative_path": "app/Services/Proyek/JalanService.php",
                     "filename": "JalanService.php",
-                    "line_count": 288,
+                    "line_count": 289,
                     "public_methods": [
                         "getIndexData()",
                         "getAll(array $params)",
@@ -258,7 +258,7 @@
                 {
                     "relative_path": "app/Repositories/Proyek/TipeRepository.php",
                     "filename": "TipeRepository.php",
-                    "line_count": 123,
+                    "line_count": 144,
                     "public_methods": [
                         "getAll(array $params)",
                         "getDataTables(array $params)",
@@ -294,7 +294,7 @@
                 {
                     "relative_path": "app/Models/TipeModel.php",
                     "filename": "TipeModel.php",
-                    "line_count": 41,
+                    "line_count": 42,
                     "public_methods": []
                 },
                 {
@@ -348,7 +348,7 @@
                 {
                     "path": "public/assets/js/siteplan/planning.js",
                     "filename": "planning.js",
-                    "line_count": 1251
+                    "line_count": 1599
                 },
                 {
                     "path": "public/assets/js/active-proyek.js",
@@ -602,7 +602,8 @@
                 "siteplan_upload",
                 "target_siteplan",
                 "target_siteplan_kavling",
-                "target_siteplan_history"
+                "target_siteplan_history",
+                "target_siteplan_request"
             ],
             "shared_tables": [
                 "kavling",
@@ -610,7 +611,9 @@
                 "keuangan",
                 "produksi",
                 "legal",
-                "tiket_masalah"
+                "tiket_masalah",
+                "kavling_request",
+                "kavling_request_kavling"
             ],
             "controllers": [
                 {
@@ -672,12 +675,18 @@
                 {
                     "relative_path": "app/Controllers/Api/Siteplan/TargetController.php",
                     "filename": "TargetController.php",
-                    "line_count": 122,
+                    "line_count": 645,
                     "public_methods": [
                         "list()",
                         "detail()",
                         "save()",
-                        "history()"
+                        "addKavling()",
+                        "updateKavlingTipe()",
+                        "removeKavling()",
+                        "history()",
+                        "requestChange()",
+                        "requests()",
+                        "reviewRequest()"
                     ],
                     "violations": []
                 },
@@ -696,7 +705,7 @@
                 {
                     "relative_path": "app/Services/Siteplan/SiteplanService.php",
                     "filename": "SiteplanService.php",
-                    "line_count": 916,
+                    "line_count": 956,
                     "public_methods": [
                         "getIndexState(int $userId)",
                         "getViewSiteplanData(?int $requestedProyekId, int $userId)",
@@ -727,7 +736,7 @@
                 {
                     "relative_path": "app/Services/Siteplan/SiteplanDataService.php",
                     "filename": "SiteplanDataService.php",
-                    "line_count": 125,
+                    "line_count": 127,
                     "public_methods": [
                         "getKavlings(array $params)",
                         "getOthers(array $params)",
@@ -761,13 +770,24 @@
                 {
                     "relative_path": "app/Services/Siteplan/TargetSiteplanService.php",
                     "filename": "TargetSiteplanService.php",
-                    "line_count": 205,
+                    "line_count": 1316,
                     "public_methods": [
                         "listByProject(int $idProyek)",
                         "get(int $idTarget)",
-                        "getKavlingTargetMap(int $idProyek)",
+                        "getByProjectAndYear(int $idProyek, int $tahunTarget)",
+                        "resolveProjectIdForTargetKavling(?int $idTargetKavling, ?int $idTarget)",
+                        "resolveProjectIdsForTargetKavlings(array $idTargetKavlings, ?int $idTarget = null)",
+                        "resolveProjectIdForTargetRequest(int $idRequest)",
+                        "getKavlingTargetMap(int $idProyek, ?int $tahunTarget = null)",
+                        "getAvailableYears(int $idProyek)",
+                        "addKavlingToYear(array $data, int $actorId)",
+                        "updateKavlingTipe(array $data, int $actorId)",
+                        "removeKavling(array $data, int $actorId)",
                         "save(array $data)",
-                        "history(int $idTarget)"
+                        "history(int $idTarget)",
+                        "requestTipeChange(array $data, int $actorId)",
+                        "listRequests(int $idProyek, ?int $idTarget = null, ?int $tahunTarget = null, ?string $status = null)",
+                        "reviewRequest(int $idRequest, string $decision, ?string $catatanApproval, int $approverId)"
                     ]
                 },
                 {
@@ -864,14 +884,35 @@
                 {
                     "relative_path": "app/Repositories/Siteplan/TargetSiteplanRepository.php",
                     "filename": "TargetSiteplanRepository.php",
-                    "line_count": 157,
+                    "line_count": 935,
                     "public_methods": [
                         "getByProject(int $idProyek)",
                         "getById(int $idTarget)",
+                        "findActiveByProjectAndYear(int $idProyek, int $tahunTarget)",
+                        "createTargetHeader(array $fields)",
+                        "updateTargetHeader(int $idTarget, array $fields)",
                         "getKavlings(int $idTarget)",
+                        "findTargetKavlingRow(int $idTarget, int $idKavling)",
+                        "findTargetKavlingById(int $idTargetKavling)",
+                        "findTargetKavlingsByIds(array $idTargetKavlings)",
+                        "findTargetKavlingsByTargetAndKavlingIds(int $idTarget, array $idKavlings)",
+                        "insertTargetKavling(array $fields)",
+                        "updateTargetKavling(int $idTargetKavling, array $fields)",
+                        "deleteTargetKavling(int $idTargetKavling)",
+                        "deleteTargetKavlings(array $idTargetKavlings)",
+                        "findKavlingsWithActiveConsumer(array $idKavlings)",
+                        "findTipeForProject(int $idTipe, int $idProyek)",
                         "countKavlingsInProject(int $idProyek, array $idKavlings)",
+                        "countTargetHistory(int $idTarget)",
                         "getHistory(int $idTarget)",
-                        "getKavlingTargetMap(int $idProyek)"
+                        "getAvailableYears(int $idProyek)",
+                        "getKavlingTargetMap(int $idProyek, ?int $tahunTarget = null)",
+                        "findPendingRequest(int $idTarget, int $idKavling)",
+                        "findRequestById(int $idRequest)",
+                        "insertRequest(array $data)",
+                        "updateRequest(int $idRequest, array $data)",
+                        "getRequests(int $idProyek, ?int $idTarget = null, ?int $tahunTarget = null, ?string $status = null)",
+                        "getRequestCounts(int $idProyek, ?int $idTarget = null, ?int $tahunTarget = null)"
                     ]
                 },
                 {
@@ -918,13 +959,19 @@
                 {
                     "relative_path": "app/Models/TargetSiteplanKavlingModel.php",
                     "filename": "TargetSiteplanKavlingModel.php",
-                    "line_count": 20,
+                    "line_count": 24,
                     "public_methods": []
                 },
                 {
                     "relative_path": "app/Models/TargetSiteplanHistoryModel.php",
                     "filename": "TargetSiteplanHistoryModel.php",
                     "line_count": 23,
+                    "public_methods": []
+                },
+                {
+                    "relative_path": "app/Models/TargetSiteplanRequestModel.php",
+                    "filename": "TargetSiteplanRequestModel.php",
+                    "line_count": 30,
                     "public_methods": []
                 }
             ],
@@ -978,12 +1025,12 @@
                 {
                     "path": "public/assets/js/siteplan/master.js",
                     "filename": "master.js",
-                    "line_count": 3931
+                    "line_count": 5184
                 },
                 {
                     "path": "public/assets/js/siteplan/composite-shape.js",
                     "filename": "composite-shape.js",
-                    "line_count": 420
+                    "line_count": 440
                 },
                 {
                     "path": "public/assets/js/siteplan/interaction-highlight.js",
@@ -1008,12 +1055,17 @@
                 {
                     "path": "public/assets/js/siteplan/target.js",
                     "filename": "target.js",
-                    "line_count": 244
+                    "line_count": 3545
                 },
                 {
                     "path": "public/assets/js/siteplan/tiket-overlay.js",
                     "filename": "tiket-overlay.js",
                     "line_count": 462
+                },
+                {
+                    "path": "public/assets/js/siteplan/target-overlay.js",
+                    "filename": "target-overlay.js",
+                    "line_count": 363
                 }
             ],
             "routes": [
@@ -1179,6 +1231,78 @@
                 },
                 {
                     "http_method": "POST",
+                    "uri": "/api/siteplan/add_kavling",
+                    "type": "Explicit",
+                    "handler": "SiteplanController::add_kavling",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "POST",
+                    "uri": "/api/siteplan/edit_kavling",
+                    "type": "Explicit",
+                    "handler": "SiteplanController::edit_kavling",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "POST",
+                    "uri": "/api/siteplan/edit_others",
+                    "type": "Explicit",
+                    "handler": "SiteplanController::edit_others",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "POST",
+                    "uri": "/api/siteplan/get_kavling_by_id",
+                    "type": "Explicit",
+                    "handler": "SiteplanController::get_kavling_by_id",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "POST",
+                    "uri": "/api/siteplan/get_kavling_by_multiple_id",
+                    "type": "Explicit",
+                    "handler": "SiteplanController::get_kavling_by_multiple_id",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "POST",
+                    "uri": "/api/siteplan/get_harga_kavling",
+                    "type": "Explicit",
+                    "handler": "SiteplanController::get_harga_kavling",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "POST",
+                    "uri": "/api/siteplan/get_turun_pembangunan",
+                    "type": "Explicit",
+                    "handler": "SiteplanController::get_turun_pembangunan",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "POST",
+                    "uri": "/api/siteplan/set_turun_pembangunan",
+                    "type": "Explicit",
+                    "handler": "SiteplanController::set_turun_pembangunan",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "POST",
+                    "uri": "/api/siteplan/get_others",
+                    "type": "Explicit",
+                    "handler": "SiteplanController::get_others",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "POST",
                     "uri": "/siteplan/get/all",
                     "type": "Explicit",
                     "handler": "SiteplanController::getAllKavling",
@@ -1323,9 +1447,57 @@
                 },
                 {
                     "http_method": "POST",
+                    "uri": "/api/target/add-kavling",
+                    "type": "Explicit",
+                    "handler": "TargetController::addKavling",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "POST",
+                    "uri": "/api/target/update-kavling-tipe",
+                    "type": "Explicit",
+                    "handler": "TargetController::updateKavlingTipe",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "POST",
+                    "uri": "/api/target/remove-kavling",
+                    "type": "Explicit",
+                    "handler": "TargetController::removeKavling",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "POST",
                     "uri": "/api/target/history",
                     "type": "Explicit",
                     "handler": "TargetController::history",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "POST",
+                    "uri": "/api/target/request-change",
+                    "type": "Explicit",
+                    "handler": "TargetController::requestChange",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "POST",
+                    "uri": "/api/target/requests",
+                    "type": "Explicit",
+                    "handler": "TargetController::requests",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "POST",
+                    "uri": "/api/target/review-request",
+                    "type": "Explicit",
+                    "handler": "TargetController::reviewRequest",
                     "status": "\ud83d\udfe2 MIGRATED",
                     "notes": "Endpoint terstruktur di Api/Web"
                 },
@@ -1406,9 +1578,20 @@
                 "TargetSiteplanService.php": [
                     "listByProject(int $idProyek)",
                     "get(int $idTarget)",
-                    "getKavlingTargetMap(int $idProyek)",
+                    "getByProjectAndYear(int $idProyek, int $tahunTarget)",
+                    "resolveProjectIdForTargetKavling(?int $idTargetKavling, ?int $idTarget)",
+                    "resolveProjectIdsForTargetKavlings(array $idTargetKavlings, ?int $idTarget = null)",
+                    "resolveProjectIdForTargetRequest(int $idRequest)",
+                    "getKavlingTargetMap(int $idProyek, ?int $tahunTarget = null)",
+                    "getAvailableYears(int $idProyek)",
+                    "addKavlingToYear(array $data, int $actorId)",
+                    "updateKavlingTipe(array $data, int $actorId)",
+                    "removeKavling(array $data, int $actorId)",
                     "save(array $data)",
-                    "history(int $idTarget)"
+                    "history(int $idTarget)",
+                    "requestTipeChange(array $data, int $actorId)",
+                    "listRequests(int $idProyek, ?int $idTarget = null, ?int $tahunTarget = null, ?string $status = null)",
+                    "reviewRequest(int $idRequest, string $decision, ?string $catatanApproval, int $approverId)"
                 ],
                 "KalendarService.php": [
                     "divisiKeyFromName(string $name)",
@@ -1475,7 +1658,7 @@
                 {
                     "relative_path": "app/Controllers/Api/Mkdt/NupController.php",
                     "filename": "NupController.php",
-                    "line_count": 195,
+                    "line_count": 205,
                     "public_methods": [
                         "list()",
                         "detail()",
@@ -1581,6 +1764,14 @@
                     ]
                 },
                 {
+                    "relative_path": "app/Services/Mkdt/MkdtPricingService.php",
+                    "filename": "MkdtPricingService.php",
+                    "line_count": 33,
+                    "public_methods": [
+                        "updateHargaNetAjb(int $idMkdt, float $hargaNetAjb)"
+                    ]
+                },
+                {
                     "relative_path": "app/Services/Mkdt/MkdtFinancialBreakdownService.php",
                     "filename": "MkdtFinancialBreakdownService.php",
                     "line_count": 254,
@@ -1605,7 +1796,7 @@
                 {
                     "relative_path": "app/Services/Mkdt/PosisiKonsumenService.php",
                     "filename": "PosisiKonsumenService.php",
-                    "line_count": 822,
+                    "line_count": 843,
                     "public_methods": [
                         "getIndexData(?string $status, int $userId, array $userGroups)",
                         "userHasProjectAccess(?object $proyek, int $userId)",
@@ -1722,8 +1913,9 @@
                 {
                     "relative_path": "app/Repositories/Mkdt/PosisiKonsumenRepository.php",
                     "filename": "PosisiKonsumenRepository.php",
-                    "line_count": 576,
+                    "line_count": 650,
                     "public_methods": [
+                        "updateHargaNetAjb(int $idMkdt, float $hargaNetAjb)",
                         "getBaseQuery($status = \"Booking\")",
                         "getQueryBatal()",
                         "getRiwayatExport($id_proyek, $status)",
@@ -1735,6 +1927,8 @@
                         "getConfigShapeMap()",
                         "getChecklistSubItemsWithGroup()",
                         "getHakAksesByUser(int $userId, ?string $namaHak = null)",
+                        "normalizeStatusKavling(?string $statusKavling)",
+                        "applyStatusKavlingFilter(BaseBuilder $builder, string $statusKavling)",
                         "getRawDataTables(array $params, ?string $status = null)",
                         "getRawDataTablesBatal(array $params)"
                     ]
@@ -1750,7 +1944,7 @@
                 {
                     "relative_path": "app/Repositories/Mkdt/NupRepository.php",
                     "filename": "NupRepository.php",
-                    "line_count": 412,
+                    "line_count": 439,
                     "public_methods": [
                         "getNupListByProyek(int $idProyek, ?string $search = null)",
                         "getNupDetail(int $idMkdt, bool $lock = false)",
@@ -1900,7 +2094,7 @@
                 {
                     "path": "public/assets/js/siteplan/mkdt.js",
                     "filename": "mkdt.js",
-                    "line_count": 3299
+                    "line_count": 3396
                 },
                 {
                     "path": "public/assets/js/laporan-booking-akad.js",
@@ -2159,6 +2353,9 @@
                 "MkdtSettlementService.php": [
                     "synchronize(int $idMkdt)"
                 ],
+                "MkdtPricingService.php": [
+                    "updateHargaNetAjb(int $idMkdt, float $hargaNetAjb)"
+                ],
                 "MkdtFinancialBreakdownService.php": [
                     "targets(array|object $mkdt)",
                     "validTurunKpr(array|object $mkdt)",
@@ -2255,6 +2452,8 @@
             "owner_tables": [
                 "kavling",
                 "kavling_request",
+                "kavling_request_jalan",
+                "kavling_request_kavling",
                 "file_hargajual",
                 "hargajual"
             ],
@@ -2276,7 +2475,7 @@
                 {
                     "relative_path": "app/Controllers/Api/Transaksi/HargajualController.php",
                     "filename": "HargajualController.php",
-                    "line_count": 142,
+                    "line_count": 155,
                     "public_methods": [
                         "meta()",
                         "getDataTable()",
@@ -2292,7 +2491,7 @@
                 {
                     "relative_path": "app/Controllers/Api/Transaksi/TransaksiController.php",
                     "filename": "TransaksiController.php",
-                    "line_count": 346,
+                    "line_count": 344,
                     "public_methods": [
                         "meta()",
                         "getByID()",
@@ -2316,12 +2515,14 @@
                 {
                     "relative_path": "app/Controllers/Api/Transaksi/KavlingRequestController.php",
                     "filename": "KavlingRequestController.php",
-                    "line_count": 135,
+                    "line_count": 424,
                     "public_methods": [
                         "submit()",
                         "kavlingList()",
                         "list()",
-                        "updateStatus()"
+                        "updateStatus()",
+                        "applyUbahKavling()",
+                        "cancel()"
                     ],
                     "violations": []
                 },
@@ -2339,7 +2540,7 @@
                 {
                     "relative_path": "app/Services/Transaksi/TransaksiService.php",
                     "filename": "TransaksiService.php",
-                    "line_count": 988,
+                    "line_count": 1027,
                     "public_methods": [
                         "getMeta(?int $idProyek = null, ?int $userId = null)",
                         "getBundle(?int $idMkdt, ?int $idHargajual, ?int $idKavling)",
@@ -2355,11 +2556,16 @@
                 {
                     "relative_path": "app/Services/Transaksi/KavlingRequestService.php",
                     "filename": "KavlingRequestService.php",
-                    "line_count": 222,
+                    "line_count": 1385,
                     "public_methods": [
+                        "isKavlingBlockedByAkad(object $row)",
                         "submitRequest(array $data, int $userId)",
-                        "getList(int $idProyek, ?string $status = null)",
-                        "updateStatus(int $idRequest, string $newStatus, int $userId)"
+                        "getList(int $idProyek, ?string $status = null, ?int $page = null, ?int $perPage = null, ?string $jenisRequest = null)",
+                        "getStatusCounts(int $idProyek)",
+                        "countFiltered(int $idProyek, ?string $jenisRequest = null, ?string $status = null)",
+                        "updateStatus(int $idRequest, string $newStatus, int $userId, ?string $catatanPlanning = null)",
+                        "applyUbahTipeKavling(int $idRequest, int $idTipe, int $userId, ?string $catatanPlanning = null)",
+                        "cancelRequests(int $idProyek, array $idRequests, int $userId, bool $isAdmin, ?string $alasanBatal = null)"
                     ]
                 },
                 {
@@ -2385,7 +2591,7 @@
                 {
                     "relative_path": "app/Repositories/Transaksi/TransaksiRepository.php",
                     "filename": "TransaksiRepository.php",
-                    "line_count": 230,
+                    "line_count": 240,
                     "public_methods": [
                         "getKonsumenTransaksi(int $idMkdt)",
                         "findNikUsage(string $nik, ?int $excludeMkdt = null, ?int $excludeKonsumen = null)",
@@ -2419,7 +2625,7 @@
                 {
                     "relative_path": "app/Repositories/Transaksi/KavlingRepository.php",
                     "filename": "KavlingRepository.php",
-                    "line_count": 720,
+                    "line_count": 851,
                     "public_methods": [
                         "getKavlingByIdMkdt(int $id_mkdt)",
                         "getIdProyekByIdMkdt(int $id_mkdt)",
@@ -2427,12 +2633,38 @@
                         "getKavlingById(int $idKavling)",
                         "getKavlingByIds(array $idKavlings)",
                         "getKavlingList($id_proyek = null, $search = \"\", $limit = null, $is_cashout_subkon = 0, $id_cluster = null, $id_jalan = null, $only_available = 0)",
+                        "getKavlingListForRequest(int $idProyek, string $search = '', int $limit = 50)",
                         "getDiskresiByKavlingId(int $idKavling)",
                         "getAll($id_proyek, $id_cluster = null, $id_jalan = null, $id_divisi = null, $kategoriFilters = [])",
                         "getPerintahBangun($id_kavling)",
                         "setPerintahBangun($id, $data)",
                         "getKategoriOptions(int $idProyek)",
                         "applyKategoriFilter(BaseBuilder $builder, array $filters)"
+                    ]
+                },
+                {
+                    "relative_path": "app/Repositories/Transaksi/KavlingRequestRepository.php",
+                    "filename": "KavlingRequestRepository.php",
+                    "line_count": 910,
+                    "public_methods": [
+                        "insertJalans(int $idRequest, array $idJalans)",
+                        "insertKavlings(int $idRequest, array $kavlingRows)",
+                        "findPendingUbahTipeMap(int $idProyek, array $idKavlings)",
+                        "getKavlingEligibilityRows(int $idProyek, array $idKavlings)",
+                        "getJalanRowsByProyek(int $idProyek, array $idJalans)",
+                        "findTipeByIdAndProyek(int $idTipe, int $idProyek)",
+                        "getList(int $idProyek, ?string $jenisRequest = null, ?string $status = null, ?int $page = null, ?int $perPage = null)",
+                        "getStatusCounts(int $idProyek)",
+                        "countFiltered(int $idProyek, ?string $jenisRequest = null, ?string $status = null)",
+                        "findRequestsByIdsAndProyek(int $idProyek, array $idRequests)",
+                        "markRequestsCancelled(array $idRequests, int $userId, ?string $alasanBatal, string $now)",
+                        "getKavlingsByRequestId(int $idRequest)",
+                        "updateKavlingsTipe(array $idKavlings, int $idTipe, int $userId, string $now)",
+                        "getProyekName(int $idProyek)",
+                        "getUserDisplayName(int $userId)",
+                        "getClusterName(int $idCluster)",
+                        "getJalanName(int $idJalan)",
+                        "getKavlingLabels(array $idKavlings)"
                     ]
                 }
             ],
@@ -2446,7 +2678,7 @@
                 {
                     "relative_path": "app/Models/KavlingRequestModel.php",
                     "filename": "KavlingRequestModel.php",
-                    "line_count": 28,
+                    "line_count": 35,
                     "public_methods": []
                 },
                 {
@@ -2482,7 +2714,7 @@
                 {
                     "path": "public/assets/js/hargajual.js",
                     "filename": "hargajual.js",
-                    "line_count": 681
+                    "line_count": 843
                 },
                 {
                     "path": "public/assets/js/siteplan/sales.js",
@@ -2492,7 +2724,7 @@
                 {
                     "path": "public/assets/js/siteplan/request-kavling.js",
                     "filename": "request-kavling.js",
-                    "line_count": 571
+                    "line_count": 2598
                 }
             ],
             "routes": [
@@ -2930,6 +3162,22 @@
                 },
                 {
                     "http_method": "POST",
+                    "uri": "/api/kavling-request/apply-ubah-kavling",
+                    "type": "Explicit",
+                    "handler": "KavlingRequestController::applyUbahKavling",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "POST",
+                    "uri": "/api/kavling-request/cancel",
+                    "type": "Explicit",
+                    "handler": "KavlingRequestController::cancel",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "POST",
                     "uri": "/kavling/list/ambil",
                     "type": "Explicit",
                     "handler": "KavlingController::getList",
@@ -2982,9 +3230,14 @@
                     "cleanNumeric(mixed $value)"
                 ],
                 "KavlingRequestService.php": [
+                    "isKavlingBlockedByAkad(object $row)",
                     "submitRequest(array $data, int $userId)",
-                    "getList(int $idProyek, ?string $status = null)",
-                    "updateStatus(int $idRequest, string $newStatus, int $userId)"
+                    "getList(int $idProyek, ?string $status = null, ?int $page = null, ?int $perPage = null, ?string $jenisRequest = null)",
+                    "getStatusCounts(int $idProyek)",
+                    "countFiltered(int $idProyek, ?string $jenisRequest = null, ?string $status = null)",
+                    "updateStatus(int $idRequest, string $newStatus, int $userId, ?string $catatanPlanning = null)",
+                    "applyUbahTipeKavling(int $idRequest, int $idTipe, int $userId, ?string $catatanPlanning = null)",
+                    "cancelRequests(int $idProyek, array $idRequests, int $userId, bool $isAdmin, ?string $alasanBatal = null)"
                 ],
                 "HargaJualService.php": [
                     "hasAccess(int $userId)",
@@ -3041,7 +3294,8 @@
                 "pencairan_akad_payment",
                 "pencairan_akad_payment_detail",
                 "invoice_log",
-                "invoice_status_log"
+                "invoice_status_log",
+                "mkdt_booking_payment"
             ],
             "shared_tables": [
                 "mkdt",
@@ -3061,7 +3315,7 @@
                 {
                     "relative_path": "app/Controllers/Api/Keuangan/TagihanController.php",
                     "filename": "TagihanController.php",
-                    "line_count": 380,
+                    "line_count": 382,
                     "public_methods": [
                         "meta()",
                         "getByID()",
@@ -3280,9 +3534,11 @@
                 {
                     "relative_path": "app/Controllers/Api/Keuangan/BookingPaymentController.php",
                     "filename": "BookingPaymentController.php",
-                    "line_count": 67,
+                    "line_count": 202,
                     "public_methods": [
-                        "verify()"
+                        "verify()",
+                        "unverify()",
+                        "verifiedList()"
                     ],
                     "violations": []
                 },
@@ -3509,12 +3765,14 @@
                 {
                     "relative_path": "app/Services/Keuangan/BookingPaymentService.php",
                     "filename": "BookingPaymentService.php",
-                    "line_count": 332,
+                    "line_count": 483,
                     "public_methods": [
                         "findProjectIdByMkdt(int $idMkdt)",
                         "assertEditable(int $idMkdt, float $nominal, ?string $tanggal)",
                         "synchronize(int $idMkdt, ?int $actorId = null)",
                         "verify(int $idMkdt, int $actorId, ?float $nominal = null, ?string $tanggal = null)",
+                        "unverify(int $idMkdt, int $actorId, string $reason)",
+                        "getVerifiedList(int $idProyek, array $filters, bool $canManage)",
                         "assertMayDelete(int $paymentId)",
                         "assertManualAllocationAllowed(int $idMkdt, array $allocations)",
                         "getBooking(int $idMkdt)",
@@ -3783,9 +4041,12 @@
                 {
                     "relative_path": "app/Repositories/Keuangan/BookingPaymentRepository.php",
                     "filename": "BookingPaymentRepository.php",
-                    "line_count": 166,
+                    "line_count": 306,
                     "public_methods": [
                         "findProjectIdByMkdt(int $idMkdt)",
+                        "clearVerification(int $idMkdt)",
+                        "findUsernameById(?int $userId)",
+                        "getVerifiedList(int $idProyek, array $filters = [])",
                         "mkdt(int $id, bool $lock = false)",
                         "link(int $id, bool $lock = false)",
                         "owners(int $payment)",
@@ -4189,7 +4450,7 @@
                 {
                     "path": "public/assets/js/tagihan-bayar-modal.js",
                     "filename": "tagihan-bayar-modal.js",
-                    "line_count": 1407
+                    "line_count": 1595
                 },
                 {
                     "path": "public/assets/js/pencairan-akad-modal.js",
@@ -4200,6 +4461,11 @@
                     "path": "public/assets/js/keuangan/penagihan.js",
                     "filename": "penagihan.js",
                     "line_count": 1041
+                },
+                {
+                    "path": "public/assets/js/keuangan/booking-verified.js",
+                    "filename": "booking-verified.js",
+                    "line_count": 410
                 },
                 {
                     "path": "public/assets/js/cashout_kavling/index.js",
@@ -4351,6 +4617,38 @@
                     "uri": "/tagihan/list/ambil-riwayat-surat",
                     "type": "Explicit",
                     "handler": "TagihanController::getListRiwayatSurat",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "POST",
+                    "uri": "/api/tagihan/turunkpr",
+                    "type": "Explicit",
+                    "handler": "TagihanController::tambahTurunKPR",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "POST",
+                    "uri": "/api/tagihan/hapusturunkpr",
+                    "type": "Explicit",
+                    "handler": "TagihanController::hapusTurunKPR",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "POST",
+                    "uri": "/api/tagihan/void",
+                    "type": "Explicit",
+                    "handler": "TagihanController::voidTagihan",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "POST",
+                    "uri": "/api/tagihan/unvoid",
+                    "type": "Explicit",
+                    "handler": "TagihanController::unvoidTagihan",
                     "status": "\ud83d\udfe2 MIGRATED",
                     "notes": "Endpoint terstruktur di Api/Web"
                 },
@@ -5019,6 +5317,22 @@
                     "notes": "Endpoint terstruktur di Api/Web"
                 },
                 {
+                    "http_method": "POST",
+                    "uri": "/api/tagihan/booking/batal-verifikasi",
+                    "type": "Explicit",
+                    "handler": "BookingPaymentController::unverify",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
+                    "http_method": "POST",
+                    "uri": "/api/tagihan/booking/terverifikasi",
+                    "type": "Explicit",
+                    "handler": "BookingPaymentController::verifiedList",
+                    "status": "\ud83d\udfe2 MIGRATED",
+                    "notes": "Endpoint terstruktur di Api/Web"
+                },
+                {
                     "http_method": "GET",
                     "uri": "/laporan/cash-in",
                     "type": "Explicit",
@@ -5443,6 +5757,8 @@
                     "assertEditable(int $idMkdt, float $nominal, ?string $tanggal)",
                     "synchronize(int $idMkdt, ?int $actorId = null)",
                     "verify(int $idMkdt, int $actorId, ?float $nominal = null, ?string $tanggal = null)",
+                    "unverify(int $idMkdt, int $actorId, string $reason)",
+                    "getVerifiedList(int $idProyek, array $filters, bool $canManage)",
                     "assertMayDelete(int $paymentId)",
                     "assertManualAllocationAllowed(int $idMkdt, array $allocations)",
                     "getBooking(int $idMkdt)",
@@ -7345,7 +7661,7 @@
                         "detail()",
                         "progress()",
                         "store()",
-                        "update()",
+                        "update($id = null)",
                         "addProgress()",
                         "togglePin()",
                         "refInfo()",
@@ -7362,7 +7678,7 @@
                 {
                     "relative_path": "app/Services/TiketMasalah/TiketMasalahService.php",
                     "filename": "TiketMasalahService.php",
-                    "line_count": 741,
+                    "line_count": 676,
                     "public_methods": [
                         "getListByRef(string $refType, int $refId)",
                         "getDetail(int $idTiket)",
@@ -7384,7 +7700,7 @@
                 {
                     "relative_path": "app/Repositories/TiketMasalah/TiketMasalahRepository.php",
                     "filename": "TiketMasalahRepository.php",
-                    "line_count": 179,
+                    "line_count": 270,
                     "public_methods": [
                         "getListWithSummary(string $refType, int $refId)",
                         "getDetailFull(int $idTiket)",
@@ -7392,7 +7708,12 @@
                         "getDatatables(array $params)",
                         "countDatatables(array $params)",
                         "countAll()",
-                        "insertOthersArea(array $fields)"
+                        "insertOthersArea(array $fields)",
+                        "getUserPrimaryGroupId(int $userId)",
+                        "getRefInfo(string $refType, int $refId)",
+                        "getActiveUsers()",
+                        "getCreators()",
+                        "getDivisions()"
                     ]
                 }
             ],
@@ -7620,7 +7941,7 @@
                 {
                     "relative_path": "app/Controllers/Api/MGM/ReferralController.php",
                     "filename": "ReferralController.php",
-                    "line_count": 283,
+                    "line_count": 287,
                     "public_methods": [
                         "list()",
                         "subRows()",
@@ -7670,8 +7991,10 @@
                 {
                     "relative_path": "app/Services/MGM/ReferralService.php",
                     "filename": "ReferralService.php",
-                    "line_count": 890,
+                    "line_count": 911,
                     "public_methods": [
+                        "getListMGM(int $idProyek, array $filters = [])",
+                        "searchReferrerOptions(string $search, int $idProyek)",
                         "validateKodePublic(string $kode)",
                         "getSubRowsByReferrer(int $idKonsumenReferrer, int $idProyek, array $filters = [])",
                         "generateKodeReferal(int $idKonsumen)",
@@ -7697,7 +8020,7 @@
                 {
                     "relative_path": "app/Services/MGM/ReferralQrService.php",
                     "filename": "ReferralQrService.php",
-                    "line_count": 251,
+                    "line_count": 220,
                     "public_methods": [
                         "generate(?string $kodeReferal, ?int $idMkdt, ?int $idProyek)"
                     ]
@@ -7707,7 +8030,7 @@
                 {
                     "relative_path": "app/Repositories/MGM/ReferralRepository.php",
                     "filename": "ReferralRepository.php",
-                    "line_count": 488,
+                    "line_count": 547,
                     "public_methods": [
                         "getListMGM(int $idProyek, array $filters = [])",
                         "getSubRowsByReferrer(int $idKonsumenReferrer, int $idProyek, array $filters = [])",
@@ -7721,7 +8044,11 @@
                         "getMgmNotificationContextByBonus(int $idBonus)",
                         "findPublicByKode(string $kode)",
                         "searchReferrerOptions(string $search, int $idProyek)",
-                        "getCashoutBonusesByKavling(int $idKavling)"
+                        "getCashoutBonusesByKavling(int $idKavling)",
+                        "findQrReferralData(string $kodeReferal, int $idMkdt, int $idProyek)",
+                        "findKonsumenKodeReferal(int $idKonsumen)",
+                        "isKodeReferalExists(string $kode)",
+                        "hasHistoryTable()"
                     ]
                 }
             ],
@@ -7920,6 +8247,8 @@
             ],
             "service_contracts": {
                 "ReferralService.php": [
+                    "getListMGM(int $idProyek, array $filters = [])",
+                    "searchReferrerOptions(string $search, int $idProyek)",
                     "validateKodePublic(string $kode)",
                     "getSubRowsByReferrer(int $idKonsumenReferrer, int $idProyek, array $filters = [])",
                     "generateKodeReferal(int $idKonsumen)",
@@ -8036,7 +8365,7 @@
                 {
                     "relative_path": "app/Controllers/Api/SalesExternal/FeeSalesSettingController.php",
                     "filename": "FeeSalesSettingController.php",
-                    "line_count": 93,
+                    "line_count": 103,
                     "public_methods": [
                         "listPermissions()",
                         "savePermissions()"
@@ -8048,7 +8377,7 @@
                 {
                     "relative_path": "app/Services/SalesExternal/SalesExternalService.php",
                     "filename": "SalesExternalService.php",
-                    "line_count": 1831,
+                    "line_count": 1723,
                     "public_methods": [
                         "saveMasterSales(array $data, ?int $userId, ?UploadedFile $filePks = null)",
                         "saveFeeHeader(array $data, int|bool|null $userId = null, bool $sendNotification = true)",
@@ -8062,7 +8391,9 @@
                         "signPengajuanGroup(int $idPengajuan, string $role, array $data, int $userId)",
                         "rejectPengajuanGroup(int $idPengajuan, string $role, array $data, int $userId)",
                         "recalculateTerminNominals(array $data, int $userId)",
-                        "confirmPencairanGroup(int $idPengajuan, array $data, ?int $userId, ?UploadedFile $fileBukti = null)"
+                        "confirmPencairanGroup(int $idPengajuan, array $data, ?int $userId, ?UploadedFile $fileBukti = null)",
+                        "getPengajuanGroupDetail(int $idPengajuan)",
+                        "getPengajuanGroupByToken(string $tokenOrId)"
                     ]
                 },
                 {
@@ -8088,7 +8419,7 @@
                 {
                     "relative_path": "app/Repositories/SalesExternal/SalesExternalRepository.php",
                     "filename": "SalesExternalRepository.php",
-                    "line_count": 904,
+                    "line_count": 1228,
                     "public_methods": [
                         "getMkdtIdByFeeSalesId(int $idFeeSales)",
                         "hasGeneratedTerminByMkdt(int $idMkdt)",
@@ -8103,7 +8434,46 @@
                         "getFeeDetailsByMkdtIds(array $mkdtIds)",
                         "getPengajuanGroupList(array $params = [])",
                         "getPengajuanGroupDetail(int $idPengajuan)",
-                        "getPengajuanGroupByToken(string $tokenOrId)"
+                        "getPengajuanGroupByToken(string $tokenOrId)",
+                        "findActiveSalesByNama(string $nama)",
+                        "getFeeSalesById(int $idFeeSales)",
+                        "getFeeSalesByIdAndMkdt(int $idFeeSales, int $idMkdt)",
+                        "getFeeSalesByMkdtAndSales(int $idMkdt, int $idSales)",
+                        "getFeeSalesListByMkdt(int $idMkdt)",
+                        "markFeeSalesProsesTerminIfNotSelesai(int $idFeeSales, ?int $userId)",
+                        "updateFeeSalesStatus(int $idFeeSales, string $status, ?int $userId)",
+                        "updateFeeSalesPricing(int $idFeeSales, float $hargaNetAjb, float $totalFee, ?int $userId)",
+                        "deleteFeeSalesById(int $idFeeSales)",
+                        "getTerminById(int $idTermin)",
+                        "getTerminListByFeeSalesId(int $idFeeSales)",
+                        "countActiveTerminByFeeSalesId(int $idFeeSales)",
+                        "countTerminByFeeSalesId(int $idFeeSales)",
+                        "countCairTerminByFeeSalesId(int $idFeeSales)",
+                        "deleteBelumDiajukanTerminByFeeSalesId(int $idFeeSales)",
+                        "deleteTerminByFeeSalesId(int $idFeeSales)",
+                        "updateTerminNominal(int $idTermin, float $nominal, ?int $userId)",
+                        "getPengajuanStatusById(int $idPengajuan)",
+                        "getLatestNonVoidPengajuanByTerminId(int $idTermin)",
+                        "getPengajuanItemStatuses(int $idPengajuan)",
+                        "getPengajuanLinksByTerminId(int $idTermin)",
+                        "getRejectedPengajuanByMkdt(int $idMkdt)",
+                        "countRemainingSuggestedItemsByPengajuanId(int $idPengajuan)",
+                        "syncActivePengajuanItemNominalByTerminId(int $idTermin, float $nominal)",
+                        "getMkdtHargaNetAjb(int $idMkdt)",
+                        "getProyekContextByMkdtId(int $idMkdt)",
+                        "getFeeSalesContextForAudit(int $idFeeSales)",
+                        "getProyekKodeKeuangan(int $idProyek)"
+                    ]
+                },
+                {
+                    "relative_path": "app/Repositories/SalesExternal/FeeSalesSettingRepository.php",
+                    "filename": "FeeSalesSettingRepository.php",
+                    "line_count": 82,
+                    "public_methods": [
+                        "listPermissions()",
+                        "existsByGroupId(int $idGroup)",
+                        "upsertGroupPermission(int $idGroup, array $payload)",
+                        "getAggregatedPermissionsByGroupIds(array $groupIds)"
                     ]
                 }
             ],
@@ -8459,7 +8829,9 @@
                     "signPengajuanGroup(int $idPengajuan, string $role, array $data, int $userId)",
                     "rejectPengajuanGroup(int $idPengajuan, string $role, array $data, int $userId)",
                     "recalculateTerminNominals(array $data, int $userId)",
-                    "confirmPencairanGroup(int $idPengajuan, array $data, ?int $userId, ?UploadedFile $fileBukti = null)"
+                    "confirmPencairanGroup(int $idPengajuan, array $data, ?int $userId, ?UploadedFile $fileBukti = null)",
+                    "getPengajuanGroupDetail(int $idPengajuan)",
+                    "getPengajuanGroupByToken(string $tokenOrId)"
                 ],
                 "FeeSalesPdfService.php": [
                     "render(int $idPengajuan)"
@@ -9684,7 +10056,7 @@
                 {
                     "relative_path": "app/Services/Settings/SiteplanMenuService.php",
                     "filename": "SiteplanMenuService.php",
-                    "line_count": 373,
+                    "line_count": 453,
                     "public_methods": [
                         "renderForRole(int $roleId)",
                         "getFlatItems(bool $activeOnly = false)",
@@ -9695,6 +10067,7 @@
                         "getItemRoleIds(int $itemId)",
                         "groupOptions()",
                         "groupLabel(int $groupId)",
+                        "getMenusForSpa(int $roleId)",
                         "getActionItemsForList(int $roleId)"
                     ]
                 },
@@ -10232,6 +10605,7 @@
                     "getItemRoleIds(int $itemId)",
                     "groupOptions()",
                     "groupLabel(int $groupId)",
+                    "getMenusForSpa(int $roleId)",
                     "getActionItemsForList(int $roleId)"
                 ],
                 "SettingDataService.php": [
@@ -10305,7 +10679,7 @@
                 {
                     "relative_path": "app/Controllers/Api/Auth/AuthController.php",
                     "filename": "AuthController.php",
-                    "line_count": 292,
+                    "line_count": 298,
                     "public_methods": [
                         "login()",
                         "logout()",
@@ -10625,7 +10999,7 @@
                 {
                     "relative_path": "app/Services/AuditTrail/HistoryService.php",
                     "filename": "HistoryService.php",
-                    "line_count": 244,
+                    "line_count": 250,
                     "public_methods": [
                         "hasTable()",
                         "log(string $module, array $fields)",
@@ -10642,7 +11016,7 @@
                 {
                     "relative_path": "app/Repositories/AuditTrail/HistoryRepository.php",
                     "filename": "HistoryRepository.php",
-                    "line_count": 206,
+                    "line_count": 207,
                     "public_methods": [
                         "hasTable()",
                         "insert(array $fields)",

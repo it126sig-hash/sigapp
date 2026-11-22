@@ -8,9 +8,20 @@ use CodeIgniter\Database\BaseBuilder;
 class PosisiKonsumenRepository
 {
     protected $db;
-    public function __construct()
+    public function __construct(?BaseConnection $db = null)
     {
-        $this->db = \Config\Database::connect();
+        $this->db = $db ?? \Config\Database::connect();
+    }
+
+    public function updateHargaNetAjb(int $idMkdt, float $hargaNetAjb): bool
+    {
+        if ($idMkdt <= 0) {
+            return false;
+        }
+
+        return (bool) $this->db->table('mkdt')
+            ->where('id_mkdt', $idMkdt)
+            ->update(['harga_net_ajb' => $hargaNetAjb]);
     }
     public function getBaseQuery($status = "Booking")
     {

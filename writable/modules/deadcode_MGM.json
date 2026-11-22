@@ -2,21 +2,16 @@
     {
         "layer": "Service",
         "file": "ReferralService.php",
-        "name": "getSubRowsByReferrer"
+        "name": "createReferral"
     },
     {
         "layer": "Service",
         "file": "ReferralService.php",
-        "name": "updateKeterangan"
+        "name": "syncFromKeuangan"
     },
     {
         "layer": "Service",
         "file": "ReferralService.php",
-        "name": "getCashoutBonusesByKavling"
-    },
-    {
-        "layer": "Service",
-        "file": "ReferralService.php",
-        "name": "getMgmNotificationContext"
+        "name": "markSelesai"
     }
 ]

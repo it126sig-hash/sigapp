@@ -3,18 +3,18 @@
 namespace App\Services\MGM;
 
 use App\Libraries\SimpleQrCode;
-use CodeIgniter\Database\BaseConnection;
+use App\Repositories\MGM\ReferralRepository;
 use RuntimeException;
 
 class ReferralQrService
 {
     private const DEFAULT_LANDING_PAGE_URL = 'https://sigapp.site';
 
-    private BaseConnection $db;
+    private ReferralRepository $repo;
 
-    public function __construct()
+    public function __construct(?ReferralRepository $repo = null)
     {
-        $this->db = db_connect();
+        $this->repo = $repo ?? new ReferralRepository();
     }
 
     public function generate(?string $kodeReferal, ?int $idMkdt, ?int $idProyek): array
@@ -31,7 +31,7 @@ class ReferralQrService
             throw new RuntimeException('Proyek aktif tidak ditemukan.');
         }
 
-        $data = $this->findReferralData($kodeReferal, $idMkdt, $idProyek);
+        $data = $this->repo->findQrReferralData($kodeReferal, $idMkdt, $idProyek);
         if (! $data) {
             throw new RuntimeException('Data referal tidak ditemukan pada proyek aktif.');
         }
@@ -62,37 +62,6 @@ class ReferralQrService
             'filename' => 'qr-referral-' . $this->safeFilename($kodeReferal) . '.png',
             'png' => $png,
         ];
-    }
-
-    private function findReferralData(string $kodeReferal, int $idMkdt, int $idProyek): ?object
-    {
-        $builder = $this->db->table('mkdt')
-            ->select('
-                mkdt.id_mkdt,
-                konsumen.id_konsumen,
-                konsumen.kode_referal,
-                konsumen.nama_konsumen,
-                proyek.id_proyek,
-                proyek.nama_proyek,
-                proyek.logo,
-                proyek.landing_page_url
-            ')
-            ->join('konsumen', 'konsumen.id_konsumen = mkdt.id_konsumen', 'left')
-            ->join('kavling', 'kavling.id_mkdt = mkdt.id_mkdt OR kavling.id_kavling = mkdt.id_kavling', 'left')
-            ->join('jalan', 'jalan.id_jalan = kavling.id_jalan', 'left')
-            ->join('cluster', 'cluster.id_cluster = jalan.id_cluster', 'left')
-            ->join('proyek', 'proyek.id_proyek = cluster.id_proyek', 'left')
-            ->where('proyek.id_proyek', $idProyek);
-
-        if ($idMkdt > 0) {
-            $builder->where('mkdt.id_mkdt', $idMkdt);
-        }
-
-        if ($kodeReferal !== '') {
-            $builder->where('konsumen.kode_referal', $kodeReferal);
-        }
-
-        return $builder->get()->getRow();
     }
 
     private function buildTargetUrl(string $landingPageUrl, string $kodeReferal): string

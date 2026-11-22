@@ -6,7 +6,7 @@ use App\Repositories\MGM\ReferralRepository;
 use App\Models\ReferralModel;
 use App\Models\ReferralBonusModel;
 use App\Models\ReferralBonusHistoryModel;
-use App\Models\KonsumenModel;
+use App\Services\Mkdt\KonsumenService;
 use App\Services\NotifikasiService;
 use App\Services\FileAccessService;
 
@@ -19,15 +19,36 @@ class ReferralService
     protected $model;
     protected $bonusModel;
     protected $historyModel;
-    protected $konsumenModel;
+    private ?KonsumenService $konsumenService = null;
 
-    public function __construct()
-    {
-        $this->repo = new ReferralRepository();
+    public function __construct(
+        ?ReferralRepository $repo = null,
+        ?KonsumenService $konsumenService = null
+    ) {
+        $this->repo = $repo ?? new ReferralRepository();
         $this->model = new ReferralModel();
         $this->bonusModel = new ReferralBonusModel();
         $this->historyModel = new ReferralBonusHistoryModel();
-        $this->konsumenModel = new KonsumenModel();
+        $this->konsumenService = $konsumenService;
+    }
+
+    protected function konsumenService(): KonsumenService
+    {
+        if ($this->konsumenService === null) {
+            $this->konsumenService = new KonsumenService();
+        }
+
+        return $this->konsumenService;
+    }
+
+    public function getListMGM(int $idProyek, array $filters = []): array
+    {
+        return $this->repo->getListMGM($idProyek, $filters);
+    }
+
+    public function searchReferrerOptions(string $search, int $idProyek): array
+    {
+        return $this->repo->searchReferrerOptions($search, $idProyek);
     }
 
     /**
@@ -92,24 +113,25 @@ class ReferralService
      */
     public function generateKodeReferal(int $idKonsumen): string
     {
-        $konsumen = $this->konsumenModel->find($idKonsumen);
-        if ($konsumen && $konsumen->kode_referal) {
-            return $konsumen->kode_referal; // already has one
+        $existingKode = $this->repo->findKonsumenKodeReferal($idKonsumen);
+        if ($existingKode !== null && $existingKode !== '') {
+            return $existingKode; // already has one
         }
 
         $characters = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-        $db = \Config\Database::connect();
-        
+
         do {
             $randomString = '';
             for ($i = 0; $i < 2; $i++) {
                 $randomString .= $characters[rand(0, strlen($characters) - 1)];
             }
-            $kode = $randomString . str_pad($idKonsumen, 4, '0', STR_PAD_LEFT);
-            $exists = $db->table('konsumen')->where('kode_referal', $kode)->countAllResults();
-        } while ($exists > 0);
+            $kode = $randomString . str_pad((string) $idKonsumen, 4, '0', STR_PAD_LEFT);
+        } while ($this->repo->isKodeReferalExists($kode));
 
-        $this->konsumenModel->update($idKonsumen, ['kode_referal' => $kode]);
+        if ($idKonsumen > 0) {
+            $this->konsumenService()->upsert($idKonsumen, ['kode_referal' => $kode]);
+        }
+
         return $kode;
     }
 
@@ -828,8 +850,7 @@ class ReferralService
 
     private function logHistory(?int $idBonus, ?int $idReferral, string $action, $before = null, $after = null, array $payload = [], ?string $note = null): void
     {
-        $db = \Config\Database::connect();
-        if (!$db->tableExists('referral_bonus_histories')) {
+        if (!$this->repo->hasHistoryTable()) {
             return;
         }
 
