@@ -296,22 +296,65 @@ class ProduksiService
 
     public function getDetailByKavling(int $idKavling, ?int $idProduksi): array
     {
-        $files = [];
+        $files   = [];
+        $kavling = null;
+
         if ($idKavling > 0) {
-            $files = $this->repo->getFilesByKavling($idKavling);
-            $files = $this->fileAccessService->addAccessUrlsToRows($files, 'file_produksi');
+            $kavling = $this->repo->getKavlingProduksiById($idKavling);
+            $files   = $this->repo->getFilesByKavling($idKavling);
+            $files   = $this->fileAccessService->addAccessUrlsToRows($files, 'file_produksi');
         }
+
+        if (($idProduksi === null || $idProduksi <= 0) && $kavling && !empty($kavling->id_produksi)) {
+            $idProduksi = (int) $kavling->id_produksi;
+        }
+
+        $cl = $idKavling > 0 ? $this->repo->getChecklistWorkForProduksi($idKavling) : [];
 
         if ($idProduksi && $idProduksi > 0) {
             $prod = $this->repo->getByIdWithUsers($idProduksi);
             if ($prod) {
-                $prod->cl = $this->repo->getChecklistWorkForProduksi($idKavling);
+                if ($kavling) {
+                    $prod->id_kavling          = (int) $kavling->id_kavling;
+                    $prod->no_kavling          = $kavling->no_kavling ?? null;
+                    $prod->nama_jalan          = $kavling->nama_jalan ?? null;
+                    $prod->nama_cluster        = $kavling->nama_cluster ?? null;
+                    $prod->no_tipe_rumah       = $kavling->no_tipe_rumah ?? null;
+                    $prod->tipe_rumah          = $kavling->tipe_rumah ?? null;
+                    $prod->hj_tipe_rumah       = $kavling->hj_tipe_rumah ?? null;
+                    $prod->tipe_rumah_aktif    = $kavling->tipe_rumah_aktif ?? ($kavling->tipe_rumah ?? null);
+                    $prod->id_gambar_kerja     = $kavling->id_gambar_kerja ?? null;
+                    $prod->sumurbor            = $prod->sumurbor ?? $kavling->sumurbor ?? null;
+                    $prod->sumurbor_tanggal    = $prod->sumurbor_tanggal ?? $kavling->sumurbor_tanggal ?? null;
+                    $prod->sumurbor_keterangan = $prod->sumurbor_keterangan ?? $kavling->sumurbor_keterangan ?? null;
+                    $prod->sumurbor_updated    = $prod->sumurbor_updated ?? $kavling->sumurbor_updated ?? null;
+                    $prod->sumurbor_oleh_u     = $prod->sumurbor_oleh_u ?? $kavling->sumurbor_oleh_u ?? null;
+                }
+                $prod->cl    = $cl;
                 $prod->files = $files;
                 return (array) $prod;
             }
         }
 
-        return ['files' => $files];
+        return [
+            'id_kavling'          => $kavling ? (int) $kavling->id_kavling : ($idKavling > 0 ? $idKavling : null),
+            'id_produksi'         => $idProduksi && $idProduksi > 0 ? $idProduksi : null,
+            'no_kavling'          => $kavling->no_kavling ?? null,
+            'nama_jalan'          => $kavling->nama_jalan ?? null,
+            'nama_cluster'        => $kavling->nama_cluster ?? null,
+            'no_tipe_rumah'       => $kavling->no_tipe_rumah ?? null,
+            'tipe_rumah'          => $kavling->tipe_rumah ?? null,
+            'hj_tipe_rumah'       => $kavling->hj_tipe_rumah ?? null,
+            'tipe_rumah_aktif'    => $kavling->tipe_rumah_aktif ?? ($kavling->tipe_rumah ?? null),
+            'id_gambar_kerja'     => $kavling->id_gambar_kerja ?? null,
+            'sumurbor'            => $kavling->sumurbor ?? null,
+            'sumurbor_tanggal'    => $kavling->sumurbor_tanggal ?? null,
+            'sumurbor_keterangan' => $kavling->sumurbor_keterangan ?? null,
+            'sumurbor_updated'    => $kavling->sumurbor_updated ?? null,
+            'sumurbor_oleh_u'     => $kavling->sumurbor_oleh_u ?? null,
+            'cl'                  => $cl,
+            'files'               => $files,
+        ];
     }
 
     public function getHistory(int $idKavling, int $limit = 10, int $offset = 0): array
@@ -671,37 +714,69 @@ class ProduksiService
 
     public function deleteFoto(int $id, int $userId): array
     {
-        $file = $this->repo->getFileById($id);
-        if (!$file) {
-            return ['success' => false, 'messages' => 'File tidak ditemukan'];
-        }
-
-        if ($this->fileService->moveFotoToTrash($file)) {
-            $deleted = $this->repo->deleteFileById($id);
-            if ($deleted && $this->repo->hasProduksiChangeHistoryTable()) {
-                $this->repo->insertProduksiChangeHistory([
-                    'id_kavling'  => (int) $file->id_kavling,
-                    'id_produksi' => null,
-                    'action'      => 'delete_file',
-                    'summary'     => 'File/foto produksi dihapus',
-                    'old_data'    => null,
-                    'new_data'    => null,
-                    'files'       => json_encode([[
-                        'kategori'        => $file->kategori ?? null,
-                        'file_name'       => $file->file_name ?? null,
-                        'file_keterangan' => $file->file_keterangan ?? null,
-                    ]]),
-                    'add_by'      => $userId,
-                    'created_at'  => date('Y-m-d H:i:s'),
-                ]);
-            }
+        if ($id <= 0) {
             return [
-                'success'  => $deleted,
-                'messages' => $deleted ? 'File berhasil dipindahkan ke folder trash' : 'Terjadi kesalahan saat menghapus data file dari database',
+                'success'  => false,
+                'code'     => 400,
+                'messages' => 'ID file tidak valid',
             ];
         }
 
-        return ['success' => false, 'messages' => 'Terjadi kesalahan saat memindahkan file ke folder trash'];
+        $file = $this->repo->getFileById($id);
+        if (!$file) {
+            return [
+                'success'  => false,
+                'code'     => 404,
+                'messages' => 'File tidak ditemukan',
+            ];
+        }
+
+        if (!$this->fileService->moveFotoToTrash($file)) {
+            return [
+                'success'  => false,
+                'code'     => 500,
+                'messages' => 'Terjadi kesalahan saat memindahkan file ke folder trash',
+            ];
+        }
+
+        $this->db->transStart();
+        $deleted = $this->repo->deleteFileById($id);
+        if ($deleted && $this->repo->hasProduksiChangeHistoryTable()) {
+            $this->repo->insertProduksiChangeHistory([
+                'id_kavling'  => (int) $file->id_kavling,
+                'id_produksi' => null,
+                'action'      => 'delete_file',
+                'summary'     => 'File/foto produksi dihapus',
+                'old_data'    => null,
+                'new_data'    => null,
+                'files'       => json_encode([[
+                    'kategori'        => $file->kategori ?? null,
+                    'file_name'       => $file->file_name ?? null,
+                    'file_keterangan' => $file->file_keterangan ?? null,
+                ]]),
+                'add_by'      => $userId,
+                'created_at'  => date('Y-m-d H:i:s'),
+            ]);
+        }
+        $this->db->transComplete();
+
+        if (!$deleted || $this->db->transStatus() === false) {
+            return [
+                'success'  => false,
+                'code'     => 500,
+                'messages' => 'Terjadi kesalahan saat menghapus data file dari database',
+            ];
+        }
+
+        return [
+            'success'  => true,
+            'code'     => 200,
+            'messages' => 'File berhasil dihapus',
+            'data'     => [
+                'id'         => $id,
+                'id_kavling' => (int) ($file->id_kavling ?? 0),
+            ],
+        ];
     }
 
     public function addJalan(array $postVars, int $userId): array
@@ -841,7 +916,7 @@ class ProduksiService
 
         $data = [
             'no_slf'                       => $postVars['no_slf'] ?? null,
-            'tanggal_slf'                  => $postVars['tanggal_slf'] ?? null,
+            'tanggal_slf'                  => $postVars['tanggal_slf'] ?? $postVars['tgl_slf'] ?? null,
             'penanggungjawab'              => $postVars['penanggungjawab'] ?? null,
             'id_proyek'                    => $postVars['id_proyek'] ?? null,
             'fungsi_utama'                 => $postVars['fungsi_utama'] ?? null,
@@ -851,11 +926,13 @@ class ProduksiService
             'nomor_pendaftaran_bangunan'   => $postVars['nomor_pendaftaran_bangunan'] ?? null,
             'penerbitan_slf_no'            => $postVars['penerbitan_slf_no'] ?? null,
             'penerbitan_slf_tgl'           => $postVars['penerbitan_slf_tgl'] ?? null,
+            'perpanjangan_slf_no'          => $postVars['perpanjangan_slf_no'] ?? null,
+            'perpanjangan_slf_tgl'         => $postVars['perpanjangan_slf_tgl'] ?? null,
             'perpanjangan_slf_ke'          => $postVars['perpanjangan_slf_ke'] ?? null,
             'persyaratan_administrasi'     => $postVars['persyaratan_administrasi'] ?? null,
-            'persyaratan_fungsi_bangunan'  => $postVars['persyaratan_fungsi_bangunan'] ?? null,
-            'persyaratan_peruntukan'       => $postVars['persyaratan_peruntukan'] ?? null,
-            'persyaratan_tata_bangunan'    => $postVars['persyaratan_tata_bangunan'] ?? null,
+            'persyaratan_fungsi_bangunan'  => $postVars['persyaratan_fungsi_bangunan'] ?? $postVars['fungsi_bangunan'] ?? null,
+            'persyaratan_peruntukan'       => $postVars['persyaratan_peruntukan'] ?? $postVars['fungsi_peruntukan'] ?? null,
+            'persyaratan_tata_bangunan'    => $postVars['persyaratan_tata_bangunan'] ?? $postVars['fungsi_tata_bangunan'] ?? null,
             'persyaratan_kelaikan'         => $postVars['persyaratan_kelaikan'] ?? null,
             'id_kavling'                   => $idKavling,
             'created_at'                   => date('Y-m-d H:i:s'),

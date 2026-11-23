@@ -2,7 +2,7 @@
 
 **Status:** `MAPPED`  
 **Readiness Score:** `60/100`  
-**Last Synced:** `2026-11-14 16:14:28` @ `7b1acf6`  
+**Last Synced:** `2026-11-23 10:21:12` @ `2b19370`  
 
 ## Purpose
 Autentikasi sesi multi-device, revocations, proteksi login, dan audit sesi pengguna.
@@ -69,7 +69,7 @@ Autentikasi sesi multi-device, revocations, proteksi login, dan audit sesi pengg
 ## File Inventory
 ### Controllers (5)
 - `app/Controllers/Web/DeviceAuthController.php` (167 baris, 2 public methods: `attemptLogin()`, `logout()`)
-- `app/Controllers/Api/Auth/AuthController.php` (298 baris, 3 public methods: `login()`, `logout()`, `me()`)
+- `app/Controllers/Api/Auth/AuthController.php` (304 baris, 3 public methods: `login()`, `logout()`, `me()`)
 - `app/Controllers/Api/AuthDeviceController.php` (125 baris, 3 public methods: `index()`, `revoke(int $deviceId)`, `revokeOthers()`)
 - `app/Controllers/Api/AdminAuthDeviceController.php` (77 baris, 3 public methods: `index(int $userId)`, `revoke(int $userId, int $deviceId)`, `revokeAll(int $userId)`)
 - `app/Controllers/Web/LandingController.php` (16 baris, 1 public methods: `index()`)
@@ -128,6 +128,7 @@ _Jalankan `php spark module:deadcode Auth` untuk mengaudit dead code kandidat._
 - **Bersih / Terverifikasi:** Seluruh 13 rute di `app/Config/Routes.php` sudah eksplisit (`0` legacy/AutoRoute), dan kedua Web controller (`DeviceAuthController`, `LandingController`) sudah bersih.
 
 ## Change Log
+- `2026-11-23` [`BUGFIX-HTTPS-PROXY-COOKIE`] — Penambahan helper `isHttpsRequest()` pada `app/Controllers/Api/Auth/AuthController.php` (`isSecure()` atau `HTTP_X_FORWARDED_PROTO === 'https'`) agar `setSpaCookie()` dan `expireSpaCookie()` menerbitkan atribut `Secure` secara konsisten di balik reverse proxy SSL subdomain cross-origin (`https://app.sigapp.site` $\leftrightarrow$ `https://sigapp.site`), disinkronkan via `php spark module:sync Auth`.
 - `2026-11-22` [`AUDIT`] — Audit verifikasi migrasi modular: status `INCOMPLETE` (Score `60/100`, `MAPPED`); temuan 9 file flat non-modular, pelanggaran DB di `AuthController` & `DeviceManagementService`, serta 2 API controller belum mewarisi `BaseApiController`.
 - `2026-11-14` [`AVATAR-API-BRIDGE`] — Penambahan field `avatar_url` (`/files/profile_photo/{id}/thumbnail` atau `null`) pada response `AuthController::login()` & `AuthController::me()`, didukung oleh `case 'profile_photo':` di `FileAccessService::resolveMetadata()`.
 - `2026-11-12` [`SECURITY-AUTH`] — Penguatan arsitektur autentikasi Hybrid Dual-Mode: Implementasi `HttpOnly` Cookie `sigapp_spa_token` untuk Web SPA (`X-Client-Platform: web-spa`) dengan response `access_token: null`, penambahan validasi Device Binding (`DeviceSessionService::verifyDeviceBinding()`) berdasarkan `User-Agent` (`browser` & `platform`) untuk mitigasi session hijacking, pemeliharaan Bearer token untuk Native Capacitor, dan dukungan cookie fallback di `AuthController`, `DeviceLoginFilter`, serta `AuthDeviceController`.

@@ -319,7 +319,19 @@
 
 #modal_divisi7 .detail-file-body,
 #modal_divisi7 .input-foto-meta {
+	display: flex;
+	flex: 1 1 auto;
+	flex-direction: column;
 	padding: .75rem;
+}
+
+#modal_divisi7 .detail-file-title {
+	color: #111827;
+	font-size: .88rem;
+	font-weight: 800;
+	line-height: 1.25;
+	margin-bottom: .35rem;
+	overflow-wrap: anywhere;
 }
 
 #modal_divisi7 .input-foto-meta strong {
@@ -334,6 +346,38 @@
 	color: #667085;
 	font-size: .78rem;
 	line-height: 1.35;
+	overflow-wrap: anywhere;
+}
+
+#modal_divisi7 .detail-file-action {
+	align-items: center;
+	display: flex;
+	flex-wrap: wrap;
+	gap: .4rem;
+	justify-content: space-between;
+	margin-top: auto;
+	padding-top: .75rem;
+}
+
+#modal_divisi7 .detail-file-action .btn {
+	border-radius: 6px;
+	font-size: .76rem;
+	font-weight: 600;
+	padding: .35rem .55rem;
+	white-space: nowrap;
+}
+
+#modal_divisi7 .detail-file-action .btn-hapus-foto {
+	background: #fff;
+	border-color: #fca5a5;
+	color: #dc2626;
+}
+
+#modal_divisi7 .detail-file-action .btn-hapus-foto:hover,
+#modal_divisi7 .detail-file-action .btn-hapus-foto:focus {
+	background: #fef2f2;
+	border-color: #dc2626;
+	color: #991b1b;
 }
 
 #modal_divisi7 .input-foto > div {
@@ -1135,10 +1179,40 @@
 .dark-layout #modal_divisi7 .modal-title,
 .dark-layout #modal_divisi7 .produksi-modal-title,
 .dark-layout #modal_divisi7 .divider .divider-text,
+.dark-layout #modal_divisi7 .detail-file-title,
 .dark-layout #modal_komplain_produksi .modal-title,
 .dark-layout #modal-pr_slf .modal-title,
 .dark-layout #modal-cashoutsubkon .modal-title,
 .dark-layout #modal_produksi_add_jalan .modal-title,
 .dark-layout #modal_fothersproduksi .modal-title {
 	color: #f8fafc !important;
+}
+
+.dark-layout #modal_divisi7 .input-foto-container,
+.dark-layout #modal_divisi7 .detail-file-tile {
+	background: #283046;
+	border-color: rgba(255, 255, 255, .08);
+}
+
+.dark-layout #modal_divisi7 .input-foto,
+.dark-layout #modal_divisi7 .detail-file-preview {
+	background: #1e293b;
+	border-bottom-color: rgba(255, 255, 255, .08);
+}
+
+.dark-layout #modal_divisi7 .detail-file-meta {
+	color: #cbd5e1;
+}
+
+.dark-layout #modal_divisi7 .detail-file-action .btn-hapus-foto {
+	background: rgba(220, 38, 38, .12);
+	border-color: rgba(248, 113, 113, .45);
+	color: #fca5a5;
+}
+
+.dark-layout #modal_divisi7 .detail-file-action .btn-hapus-foto:hover,
+.dark-layout #modal_divisi7 .detail-file-action .btn-hapus-foto:focus {
+	background: rgba(220, 38, 38, .25);
+	border-color: #f87171;
+	color: #fee2e2;
 }

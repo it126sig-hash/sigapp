@@ -130,7 +130,7 @@ class SiteplanService
         if ($this->userInGroups(['1', '7', '8'])) {
             $viewData['list']                     = $this->siteplanRepository->getChecklistSubItemsWithGroup($idProyek);
             $hasAkses['proyek']                   = $this->siteplanRepository->userHasProjectAccess($proyek, $userId);
-            $hasAkses['update_tanggal_pembangunan'] = $this->userHasUpdateTanggalPembangunanAccess($userId);
+            $hasAkses['update_tanggal_pembangunan'] = true;
         } elseif ($this->userInGroups(['5'])) {
             $hasAkses['legal'] = $this->siteplanRepository->userHasProjectAccess($proyek, $userId);
         }
@@ -234,9 +234,7 @@ class SiteplanService
                 'has_project_access'         => $hasProjectAccess,
                 'proyek'                     => $isAdmin || $hasProjectAccess,
                 'legal'                      => $this->userInGroups(['5']) && $hasProjectAccess,
-                'update_tanggal_pembangunan' => $this->userInGroups(['1', '7', '8'])
-                    ? $this->userHasUpdateTanggalPembangunanAccess($userId)
-                    : false,
+                'update_tanggal_pembangunan' => $this->userInGroups(['1', '7', '8']),
                 'can_manage_planning'        => $this->userInGroups(['1', '6']),
                 'can_edit_legal'             => $this->userInGroups(['1', '5']),
                 'can_edit_produksi'          => $this->userInGroups(['1', '7']),

@@ -1,8 +1,8 @@
 # Module: Legal
 
 **Status:** `REFACTORED`  
-**Readiness Score:** `90/100`  
-**Last Synced:** `2026-11-22 07:45:53` @ `4e1c7fe`  
+**Readiness Score:** `100/100`  
+**Last Synced:** `2026-11-23 21:54:16` @ `2b19370`  
 
 ## Purpose
 Administrasi dan tracking perizinan lahan, sertifikat HGB/PBB/PBG/AJB, dan dokumen legalitas kavling maupun proyek perumahan.
@@ -49,6 +49,8 @@ Administrasi dan tracking perizinan lahan, sertifikat HGB/PBB/PBG/AJB, dan dokum
 
 ### B. Public PHP Services (Backend Contract Antar-Modul)
 #### `LegalService.php`
+- `getDocumentCategories()`
+- `getDocumentCategoryLabel(int|string|null $kategori)`
 - `simpan(array $data)`
 - `cleanNumeric(mixed $value)`
 - `deleteDocument($id)`
@@ -59,13 +61,13 @@ Administrasi dan tracking perizinan lahan, sertifikat HGB/PBB/PBG/AJB, dan dokum
 ### Controllers (3)
 - `app/Controllers/Web/Legal/LegalController.php` (23 baris, 2 public methods: `index()`, `list_legalitas()`)
 - `app/Controllers/Web/Legal/LegalPageController.php` (27 baris, 2 public methods: `privacyPolicy()`, `termsOfService()`)
-- `app/Controllers/Api/Legal/LegalController.php` (318 baris, 8 public methods: `save()`, `getDataByID()`, `removeDoc()`, `getDoc()`, `upload()`, `edit_others()`, `getListLegalitas()`, `meta()`)
+- `app/Controllers/Api/Legal/LegalController.php` (389 baris, 8 public methods: `save()`, `getDataByID()`, `removeDoc()`, `getDoc()`, `upload()`, `edit_others()`, `getListLegalitas()`, `meta()`)
 
 ### Services (1)
-- `app/Services/Legal/LegalService.php` (175 baris, 5 public methods)
+- `app/Services/Legal/LegalService.php` (256 baris, 7 public methods)
 
 ### Repositories (1)
-- `app/Repositories/Legal/LegalRepository.php` (215 baris, 13 public methods: `getLegalDataById($id_legal)`, `insertLegal(array $data)`, `updateLegal(int $idLegal, array $data)`, `updateKavlingLegal(int $idKavling, int $idLegal)`, `getKavlingLegalTaxes($id_kavling)`, `getFileDocById($id)`, `deleteFileDoc($id)`, `getFileDocsByKavling($id_kavling, $id_group = 5)`, `insertFileDoc(array $data)`, `updateOthers($id_kavling, array $data)`, `getDatatableLegalitasData($var)`, `getDatatableLegalitasFilteredCount($var)`, `getDatatableLegalitasTotalCount()`)
+- `app/Repositories/Legal/LegalRepository.php` (329 baris, 17 public methods: `getProyekOptions()`, `getClusterOptionsByProyek(?int $idProyek)`, `getJalanOptionsByClusterIds(array $clusterIds)`, `getKavlingLegalId(int $idKavling)`, `getLegalDataById($id_legal)`, `insertLegal(array $data)`, `updateLegal(int $idLegal, array $data)`, `updateKavlingLegal(int $idKavling, int $idLegal)`, `getKavlingLegalTaxes($id_kavling)`, `getFileDocById($id)`, `deleteFileDoc($id)`, `getFileDocsByKavling($id_kavling, $id_group = 5)`, `insertFileDoc(array $data)`, `updateOthers($id_kavling, array $data)`, `getDatatableLegalitasData($var)`, `getDatatableLegalitasFilteredCount($var)`, `getDatatableLegalitasTotalCount(?int $idProyek = null, string $statusLegal = 'has_legal')`)
 
 ### Models (1)
 - `app/Models/LegalModel.php`
@@ -105,11 +107,8 @@ Administrasi dan tracking perizinan lahan, sertifikat HGB/PBB/PBG/AJB, dan dokum
 - [x] Has Repository Layer
 - [x] Web & API Controllers Separated
 - [x] Explicit Routes Defined
-- [ ] Zero Controller Layer Violations
+- [x] Zero Controller Layer Violations
 - [x] MODULE.md Initialized
-
-> **Layer Violations Detected:**
-> - `app/Controllers/Api/Legal/LegalController.php`: Database::connect()
 
 ## Dead Code Candidates
 _Jalankan `php spark module:deadcode Legal` untuk mengaudit dead code kandidat._
@@ -122,16 +121,20 @@ _Jalankan `php spark module:deadcode Legal` untuk mengaudit dead code kandidat._
 
 ### Audit Verifikasi Migrasi (2026-11-22)
 - **Ledger Status:** `COMPLETED (Catatan Minor)` — Status `REFACTORED`, Readiness Score `90/100`.
-- **Temuan Nyata:**
-  - `App\Controllers\Api\Legal\LegalController::meta()` memanggil `\Config\Database::connect()` dan menjalankan query langsung `$db->table('proyek'|'cluster'|'jalan')` pada L253-277 di lapisan Controller (seharusnya didelegasikan ke `LegalRepository`/`LegalService`).
+- **Temuan Nyata (Telah Diselesaikan pada 2026-11-23):**
+  - `App\Controllers\Api\Legal\LegalController::meta()` sebelumnya memanggil `\Config\Database::connect()` dan query langsung tabel `proyek`/`cluster`/`jalan` pada L253-277; seluruh query tersebut telah dipindahkan ke `LegalRepository` (`getProyekOptions()`, `getClusterOptionsByProyek()`, `getJalanOptionsByClusterIds()`), sehingga skor kesiapan naik menjadi `100/100`.
 - **Verifikasi Bersih (Non-Issue / Terkonfirmasi):**
-  - `Api\Legal\LegalController` mewarisi `BaseApiController` (L10); `getListLegalitas()` (L183-248) masih menghasilkan HTML DataTables secara default namun sudah mendukung fallback `?format=raw` (L192-203).
-  - `Web\Legal\LegalController` (22 baris) dan `Web\Legal\LegalPageController` (26 baris) tipis, hanya merender view, tanpa akses Repository langsung atau respons JSON.
-  - `Services\Legal\LegalService` (174 baris) menggunakan `\Config\Database::connect()` (L20) hanya untuk manajemen transaksi DB (`transStart`/`transComplete`/`transStatus`/`transRollback` pada L36-68 dan L116-138), tanpa query `->table()`/`->query()` atau mutasi tabel modul lain.
+  - `Api\Legal\LegalController` mewarisi `BaseApiController` (L10); `getListLegalitas()` mendukung `?format=raw` dengan pagination SPA (`items` + `meta`), tanpa memutus format array DataTables 19-kolom legacy.
+  - `Web\Legal\LegalController` (23 baris) dan `Web\Legal\LegalPageController` (27 baris) tipis, hanya merender view, tanpa akses Repository langsung atau respons JSON.
+  - `Services\Legal\LegalService` (256 baris) menggunakan `\Config\Database::connect()` hanya untuk manajemen transaksi DB (`transStart`/`transComplete`/`transStatus`/`transRollback`), tanpa query `->table()`/`->query()` atau mutasi tabel modul lain.
   - 5 Zero-Downtime Shims (`app/Controllers/Legal.php`, `app/Controllers/Web/LegalPageController.php`, `app/Controllers/Api/LegalController.php`, `app/Services/LegalService.php`, `app/Repositories/LegalRepository.php`) terkonfirmasi sebagai thin delegator (13 baris) dengan 0 pelanggaran.
   - 16 rute eksplisit modular (`privacy-policy`, `toc`, `legalitas`, dan `/api/legal/*`) aktif di `app/Config/Routes.php` (0 legacy routes, 0 autoroutes).
 
 ## Change Log
+- **`2026-11-23` [`API_BRIDGE` / `FIX`] — Pembersihan Layer Violation `meta()` (`100/100`) & Penyesuaian API SPA Vue (`RAW_JSON_READY` Zero-Downtime):**
+  - `Api\Legal\LegalController`: Menghapus `\Config\Database::connect()` di `meta()` (dipindahkan ke `LegalRepository`), menambah `ensureMenuAccess(['/legalitas', '/siteplan'])`, menggunakan `$this->readRequestData()` pada `save()` & `edit_others()`, mendukung server-side pagination SPA (`page`, `per_page`, `items`, `meta`) pada `getListLegalitas?format=raw`, mengembalikan `{ id_legal, id_kavling }` di `save()`, melampirkan `kategori_label` di `getDoc()`, serta memperluas `mime_in` `upload()` ke `application/pdf,image/jpeg,image/png,image/webp` dan key `file`/`fl-file`.
+  - `LegalRepository`: Menambah `getProyekOptions()`, `getClusterOptionsByProyek()`, `getJalanOptionsByClusterIds()`, `getKavlingLegalId()`; memperbarui query list legalitas untuk me-select `kavling.id_kavling`, `kavling.id_legal`, `hargajual.id_tipe`, & `tipe_rumah_aktif`, mendukung filter `status_legal` (`has_legal`/`empty_legal`/`all`), pencarian nomor dokumen legal, & filter `recordsTotal` per `id_proyek`.
+  - `LegalService`: Menambah `DOCUMENT_CATEGORIES`, `getDocumentCategories()`, `getDocumentCategoryLabel()`, `simpan(): int` dengan `cleanNumeric()` + null tanggal kosong, serta `uploadDocument(): int`.
 - `2026-11-22` [`AUDIT`] — Audit verifikasi migrasi modular: status `COMPLETED (Catatan Minor)` (Score 90/100); terkonfirmasi pelanggaran minor `Database::connect()` pada `Api\Legal\LegalController::meta()` (L253-277) serta sinkronisasi skor & checklist `MODULE.md`.
 - **`2026-11-11` [`REFACTOR`] — Refactoring Lengkap Modul Legal (Thin Controller, Modular Structure, External Assets):**
   - **Routes & Public Contracts:**

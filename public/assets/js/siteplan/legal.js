@@ -164,7 +164,27 @@ function fl_upload() {
     });
 }
 
-function open_legal(sh, role, id_kavling) {
+function open_legal() {
+     if (editdtt.length == 0)
+            return swal('error', 'Terjad Kesalahan', 'Tidak ada kavling yang dipilih')
+
+        //bug isi data with addmode
+        if (editdtt.length > 1) {
+            swal('error', 'Terjad Kesalahan', 'Tidak bisa merubah data lebih dari 1 kavling')
+            hapus_seleksi();
+            return;
+        }
+
+        let role,
+            sh = editdtt[0],
+            id_kavling = sh.id.substr(3);
+
+        //jika admin login
+        if (roleid == 1)
+            role = $('#pilih-divisi option:selected').val()
+        else
+            role = roleid
+
     if (sh.data.tipe == "kavling") {
         return open_flegal(sh, role, id_kavling);
     } else {

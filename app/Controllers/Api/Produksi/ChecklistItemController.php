@@ -33,7 +33,8 @@ class ChecklistItemController extends BaseApiController
 
     public function getOne(): ResponseInterface
     {
-        $id = (int) ($this->request->getPost('id_item') ?? 0);
+        $data = $this->readRequestData();
+        $id   = (int) ($data['id_item'] ?? $data['idItem'] ?? $this->request->getVar('id_item') ?? 0);
         if ($id <= 0) {
             return $this->error('ID item tidak valid', 400);
         }
@@ -49,8 +50,9 @@ class ChecklistItemController extends BaseApiController
 
     public function add(): ResponseInterface
     {
+        $data   = $this->readRequestData();
         $userId = (int) user_id();
-        $result = $this->checklistService->createItem((array) $this->request->getPost(), $userId);
+        $result = $this->checklistService->createItem($data, $userId);
         $result['token'] = csrf_hash();
 
         return $this->response->setJSON($result);
@@ -58,7 +60,8 @@ class ChecklistItemController extends BaseApiController
 
     public function edit($id = null)
     {
-        $id = (int) ($id ?? $this->request->getPost('idItem') ?? $this->request->getPost('id_item') ?? 0);
+        $data = $this->readRequestData();
+        $id   = (int) ($id ?? $data['idItem'] ?? $data['id_item'] ?? $this->request->getVar('idItem') ?? $this->request->getVar('id_item') ?? 0);
         if ($id <= 0) {
             return $this->response->setJSON([
                 'token'    => csrf_hash(),
@@ -68,7 +71,7 @@ class ChecklistItemController extends BaseApiController
         }
 
         $userId = (int) user_id();
-        $result = $this->checklistService->updateItem($id, (array) $this->request->getPost(), $userId);
+        $result = $this->checklistService->updateItem($id, $data, $userId);
         $result['token'] = csrf_hash();
 
         return $this->response->setJSON($result);
@@ -76,7 +79,8 @@ class ChecklistItemController extends BaseApiController
 
     public function remove(): ResponseInterface
     {
-        $id = (int) ($this->request->getPost('id_item') ?? 0);
+        $data = $this->readRequestData();
+        $id   = (int) ($data['id_item'] ?? $data['idItem'] ?? $this->request->getVar('id_item') ?? 0);
         if ($id <= 0) {
             return $this->response->setJSON([
                 'token'    => csrf_hash(),

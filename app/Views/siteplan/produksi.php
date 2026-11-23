@@ -749,7 +749,7 @@
 										<input type="file" class="custom-file-input produksi-photo-input" accept="image/*"
 											name="listrik_disediakan_foto" id="listrik_disediakan_foto"
 											onchange="displayUploadedFiles(this, 'list_listrik_disediakan_foto')" />
-										<label class="custom-file-label" id="labe_listrik_disediakan_foto"
+										<label class="custom-file-label" id="label_listrik_disediakan_foto"
 											for="listrik_disediakan_foto"></label>
 
 									</div>

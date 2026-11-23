@@ -22,6 +22,7 @@ class ProduksiFileService
         'jalan_foto_update',
         'listrik_pln_foto',
         'listrik_disediakan_dokumen',
+        'listrik_disediakan_foto',
         'air_komunal',
         'air_tanah',
         'air_pdam',
@@ -65,7 +66,11 @@ class ProduksiFileService
             $fotoAccuracy      = $requestVars['foto_accuracy_' . $category] ?? [];
             $coordinateSource  = $requestVars['foto_coordinate_source_' . $category] ?? [];
 
-            foreach ($requestFiles[$category] as $i => $img) {
+            $categoryFiles = is_array($requestFiles[$category])
+                ? $requestFiles[$category]
+                : [$requestFiles[$category]];
+
+            foreach ($categoryFiles as $i => $img) {
                 if (!($img instanceof UploadedFile) || $img->getSize() === 0) {
                     continue;
                 }
@@ -74,10 +79,18 @@ class ProduksiFileService
                 $this->fileAccessService->storeAs($img, $lok, $name);
                 $this->compressImageIfPossible($lok . $name);
 
-                \Config\Services::image()
-                    ->withFile($this->fileAccessService->privatePath($lok . $name))
-                    ->resize(150, 150, true, 'height')
-                    ->save($this->fileAccessService->privatePath($thumbLok . $name));
+                $storedPath = $this->fileAccessService->privatePath($lok . $name);
+                $mime       = is_file($storedPath) ? (mime_content_type($storedPath) ?: '') : '';
+                if (in_array($mime, self::IMAGE_MIME_TYPES, true)) {
+                    try {
+                        \Config\Services::image()
+                            ->withFile($storedPath)
+                            ->resize(150, 150, true, 'height')
+                            ->save($this->fileAccessService->privatePath($thumbLok . $name));
+                    } catch (\Throwable $e) {
+                        log_message('warning', 'Gagal membuat thumbnail foto produksi: ' . $e->getMessage());
+                    }
+                }
 
                 $fileKeterangan = $ket[$i] ?? null;
                 if ($category === 'prod_foto_konstruksi') {
@@ -165,22 +178,60 @@ class ProduksiFileService
     }
 
     /**
-     * Move a foto to trash folder (soft delete).
-     * Returns true on success, false on failure.
+     * Move a foto (and its thumbnail if present) to trash folder (soft delete).
+     * If the physical file is already missing on disk, returns true so DB cleanup can proceed.
      */
     public function moveFotoToTrash(object $file): bool
     {
-        $filePath        = $file->lokasi . $file->file_name;
-        $trashDir        = 'uploads/produksi/trash/' . date('Ymd') . '/';
-        $fileAbsPath     = $this->fileAccessService->existingPath($filePath);
-        $trashAbsDir     = $this->fileAccessService->privatePath($trashDir);
-
-        if (!is_dir($trashAbsDir)) {
-            mkdir($trashAbsDir, 0777, true);
+        $lokasi   = rtrim((string) ($file->lokasi ?? ''), '/');
+        $fileName = (string) ($file->file_name ?? '');
+        if ($fileName === '') {
+            return true;
         }
 
-        $trashAbsPath = $trashAbsDir . DIRECTORY_SEPARATOR . basename($file->file_name);
+        $baseName  = basename($fileName);
+        $filePath  = ($lokasi !== '' ? $lokasi . '/' : '') . $fileName;
+        $thumbPath = ($lokasi !== '' ? $lokasi . '/' : '') . 'thumbnails/' . $fileName;
+        $trashDir  = 'uploads/produksi/trash/' . date('Ymd') . '/';
 
-        return $fileAbsPath && is_file($fileAbsPath) && rename($fileAbsPath, $trashAbsPath);
+        $fileAbsPath = $this->fileAccessService->existingPath($filePath);
+        if ($fileAbsPath && is_file($fileAbsPath)) {
+            $trashAbsDir = $this->fileAccessService->privatePath($trashDir);
+            if (! is_dir($trashAbsDir) && ! mkdir($trashAbsDir, 0775, true) && ! is_dir($trashAbsDir)) {
+                return false;
+            }
+
+            $trashAbsPath = $trashAbsDir . DIRECTORY_SEPARATOR . $baseName;
+            if (is_file($trashAbsPath)) {
+                $trashAbsPath = $trashAbsDir . DIRECTORY_SEPARATOR . uniqid('', true) . '_' . $baseName;
+            }
+
+            if (! @rename($fileAbsPath, $trashAbsPath)) {
+                return false;
+            }
+        }
+
+        $thumbAbsPath = $this->fileAccessService->existingPath($thumbPath);
+        if ($thumbAbsPath && is_file($thumbAbsPath)) {
+            $trashThumbAbsDir = $this->fileAccessService->privatePath($trashDir . 'thumbnails/');
+            if (! is_dir($trashThumbAbsDir)) {
+                @mkdir($trashThumbAbsDir, 0775, true);
+            }
+
+            if (is_dir($trashThumbAbsDir)) {
+                $trashThumbAbsPath = $trashThumbAbsDir . DIRECTORY_SEPARATOR . $baseName;
+                if (is_file($trashThumbAbsPath)) {
+                    $trashThumbAbsPath = $trashThumbAbsDir . DIRECTORY_SEPARATOR . uniqid('', true) . '_' . $baseName;
+                }
+
+                if (! @rename($thumbAbsPath, $trashThumbAbsPath)) {
+                    @unlink($thumbAbsPath);
+                }
+            } else {
+                @unlink($thumbAbsPath);
+            }
+        }
+
+        return true;
     }
 }

@@ -153,6 +153,7 @@ class KavlingRequestController extends BaseApiController
                 'nama_jalan'          => (string) $item->nama_jalan,
                 'current_id_tipe'     => ! empty($item->id_tipe) ? (int) $item->id_tipe : null,
                 'current_tipe_label'  => $currentTipeLabel,
+                'current_tipe_rumah'  => $namaTipe !== '' ? $namaTipe : null,
                 'has_active_konsumen' => $hasActive,
                 'nama_konsumen'       => $namaKonsumen,
                 'status_mkdt'         => $statusMkdt,

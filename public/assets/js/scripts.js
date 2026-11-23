@@ -1746,12 +1746,19 @@ function readSelectedPhotoCoordinate(file, callback) {
 }
 
 function showFoto(data, imbuhan = "", del = true, options = {}) {
+  if (!Array.isArray(data)) {
+    return;
+  }
+
+  const allowDelete = del === true || del === "true";
+
   data.forEach((item) => {
     const containerElement = document.getElementById(
       `${imbuhan}list_${item.kategori}`,
     );
     if (containerElement) {
-      const isDocument = item.file_name.endsWith(".pdf") || item.file_name.endsWith(".xlsx");
+      const fileName = String(item.file_name || "");
+      const isDocument = fileName.endsWith(".pdf") || fileName.endsWith(".xlsx");
       const fileHref = item.access_url || file_url('file_produksi', item.id);
       const downloadHref = item.download_url || file_url('file_produksi', item.id, true);
       const gpsDownloadHref = !isDocument && options.embedGpsMetadata
@@ -1769,8 +1776,9 @@ function showFoto(data, imbuhan = "", del = true, options = {}) {
         const link = document.createElement("a");
         link.href = fileHref;
         link.target = "_blank";
+        link.rel = "noopener noreferrer";
         link.classList.add("detail-file-icon", "btn", "btn-outline-primary");
-        link.innerHTML = `<i class="${item.file_name.endsWith(".pdf") ? "far fa-file-pdf" : "far fa-file-excel"}"></i><span class="ml-50">Lihat File</span>`;
+        link.innerHTML = `<i class="${fileName.endsWith(".pdf") ? "far fa-file-pdf" : "far fa-file-excel"}"></i><span class="ml-50">Lihat File</span>`;
         imgContainer.appendChild(link);
       } else {
         const img = document.createElement("img");
@@ -1803,10 +1811,14 @@ function showFoto(data, imbuhan = "", del = true, options = {}) {
       const viewButton = document.createElement("a");
       viewButton.href = fileHref;
       viewButton.target = "_blank";
+      viewButton.rel = "noopener noreferrer";
       viewButton.innerHTML = '<i class="fas fa-external-link-alt"></i> Lihat';
       viewButton.classList.add("btn", "btn-outline-primary", "btn-sm");
 
       const downloadButton = document.createElement("button");
+      downloadButton.type = "button";
+      downloadButton.title = "Unduh";
+      downloadButton.setAttribute("aria-label", "Unduh");
       downloadButton.innerHTML = '<i class="fas fa-download"></i>';
       downloadButton.classList.add("btn", "btn-primary", "btn-sm");
 
@@ -1819,30 +1831,26 @@ function showFoto(data, imbuhan = "", del = true, options = {}) {
         link.click();
       });
 
-      // console.log(del)
-      if (del == true) {
+      actionDiv.appendChild(viewButton);
+      actionDiv.appendChild(downloadButton);
+
+      if (allowDelete) {
         const deleteButton = document.createElement("button");
-        deleteButton.innerText = "Hapus";
-        deleteButton.style.position = "absolute";
-        deleteButton.style.top = "5px";
-        deleteButton.style.left = "5px";
-        deleteButton.style.backgroundColor = "red";
-        deleteButton.style.color = "white";
-        deleteButton.style.border = "none";
-        deleteButton.style.cursor = "pointer";
+        deleteButton.type = "button";
+        deleteButton.classList.add("btn", "btn-outline-danger", "btn-sm", "btn-hapus-foto");
+        deleteButton.dataset.fotoId = item.id;
+        deleteButton.innerHTML = '<i class="fas fa-trash-alt mr-25"></i>Hapus';
 
         deleteButton.addEventListener("click", function (event) {
           event.preventDefault();
           hapusFoto(item.id);
         });
 
-        imgDiv.appendChild(deleteButton);
+        actionDiv.appendChild(deleteButton);
       }
 
       imgDiv.appendChild(imgContainer);
       bodyDiv.appendChild(actionDiv);
-      actionDiv.appendChild(viewButton);
-      actionDiv.appendChild(downloadButton);
       imgDiv.appendChild(bodyDiv);
 
       containerElement.appendChild(imgDiv);
@@ -1856,45 +1864,76 @@ function hapusFoto(id) {
     text: "Anda tidak akan dapat mengembalikan ini!",
     icon: "warning",
     showCancelButton: true,
-    confirmButtonColor: "#3085d6",
-    cancelButtonColor: "#d33",
+    confirmButtonColor: "#dc2626",
+    cancelButtonColor: "#6b7280",
     confirmButtonText: "Ya, hapus!",
+    cancelButtonText: "Batal",
   }).then((result) => {
-    if (result.isConfirmed) {
-      $.ajax({
-        url: base_url + "/produksi/hapus_foto",
-        type: "post",
-        data: {
-          [csrfName]: csrfHash,
-          id: id,
-        },
+    if (!result.isConfirmed) {
+      return;
+    }
 
-        success: function (response) {
-          if (response.success) {
-            Swal.fire({
-              icon: "success",
-              title: "Berhasil",
-              text: "Foto berhasil dihapus",
-            }).then(() => {
-              $(`#foto_produksi_${id}`).remove();
-            });
-          } else {
-            Swal.fire({
-              icon: "error",
-              title: "Gagal",
-              text: "Foto gagal dihapus",
-            });
+    const $btn = $(`.btn-hapus-foto[data-foto-id="${id}"]`);
+    $btn.prop("disabled", true);
+
+    $.ajax({
+      url: base_url.replace(/\/+$/, "") + "/api/produksi/hapus_foto",
+      type: "post",
+      dataType: "json",
+      data: {
+        [csrfName]: csrfHash,
+        id: id,
+      },
+      success: function (response) {
+        if (response && response.token) {
+          csrfHash = response.token;
+        }
+
+        if (response && response.success) {
+          $(`#foto_produksi_${id}`).remove();
+
+          const modalKavlingId =
+            $("#modal_divisi7 .id_kavling").val() || $("#id_kavling").val();
+          if (
+            typeof loadProduksiHistory === "function" &&
+            modalKavlingId &&
+            $("#modal_divisi7").hasClass("show")
+          ) {
+            loadProduksiHistory(modalKavlingId, false);
           }
-        },
-        error: function () {
+
+          Swal.fire({
+            icon: "success",
+            title: "Berhasil",
+            text: (response && response.messages) || "Foto berhasil dihapus",
+          });
+        } else {
+          $btn.prop("disabled", false);
           Swal.fire({
             icon: "error",
             title: "Gagal",
-            text: "Terjadi kesalahan saat menghapus foto",
+            text:
+              (response && (response.messages || response.message)) ||
+              "Foto gagal dihapus",
           });
-        },
-      });
-    }
+        }
+      },
+      error: function (xhr) {
+        $btn.prop("disabled", false);
+        const errJson = xhr && xhr.responseJSON ? xhr.responseJSON : null;
+        if (errJson && errJson.token) {
+          csrfHash = errJson.token;
+        }
+
+        Swal.fire({
+          icon: "error",
+          title: "Gagal",
+          text:
+            (errJson && (errJson.messages || errJson.message)) ||
+            "Terjadi kesalahan saat menghapus foto",
+        });
+      },
+    });
   });
 }
 

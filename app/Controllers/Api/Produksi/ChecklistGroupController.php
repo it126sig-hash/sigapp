@@ -33,7 +33,8 @@ class ChecklistGroupController extends BaseApiController
 
     public function getOne(): ResponseInterface
     {
-        $id = (int) ($this->request->getPost('id_group') ?? 0);
+        $data = $this->readRequestData();
+        $id   = (int) ($data['id_group'] ?? $data['idGroup'] ?? $this->request->getVar('id_group') ?? 0);
         if ($id <= 0) {
             return $this->error('ID group tidak valid', 400);
         }
@@ -49,8 +50,9 @@ class ChecklistGroupController extends BaseApiController
 
     public function add(): ResponseInterface
     {
+        $data   = $this->readRequestData();
         $userId = (int) user_id();
-        $result = $this->checklistService->createGroup((array) $this->request->getPost(), $userId);
+        $result = $this->checklistService->createGroup($data, $userId);
         $result['token'] = csrf_hash();
 
         return $this->response->setJSON($result);
@@ -58,7 +60,8 @@ class ChecklistGroupController extends BaseApiController
 
     public function edit($id = null)
     {
-        $id = (int) ($id ?? $this->request->getPost('idGroup') ?? $this->request->getPost('id_group') ?? 0);
+        $data = $this->readRequestData();
+        $id   = (int) ($id ?? $data['idGroup'] ?? $data['id_group'] ?? $this->request->getVar('idGroup') ?? $this->request->getVar('id_group') ?? 0);
         if ($id <= 0) {
             return $this->response->setJSON([
                 'token'    => csrf_hash(),
@@ -68,7 +71,7 @@ class ChecklistGroupController extends BaseApiController
         }
 
         $userId = (int) user_id();
-        $result = $this->checklistService->updateGroup($id, (array) $this->request->getPost(), $userId);
+        $result = $this->checklistService->updateGroup($id, $data, $userId);
         $result['token'] = csrf_hash();
 
         return $this->response->setJSON($result);
@@ -76,7 +79,8 @@ class ChecklistGroupController extends BaseApiController
 
     public function remove(): ResponseInterface
     {
-        $id = (int) ($this->request->getPost('id_group') ?? 0);
+        $data = $this->readRequestData();
+        $id   = (int) ($data['id_group'] ?? $data['idGroup'] ?? $this->request->getVar('id_group') ?? 0);
         if ($id <= 0) {
             return $this->response->setJSON([
                 'token'    => csrf_hash(),

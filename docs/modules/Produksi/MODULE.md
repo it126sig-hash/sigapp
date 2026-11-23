@@ -2,7 +2,7 @@
 
 **Status:** `REFACTORED`  
 **Readiness Score:** `100/100`  
-**Last Synced:** `2026-11-12 14:14:43` @ `a68829a`  
+**Last Synced:** `2026-11-23 10:21:14` @ `2b19370`  
 
 ## Purpose
 Manajemen konstruksi lapangan perumahan, monitoring tahapan serah terima fisik (ST 0%, 25%, 50%, 75%, 100%), pelaporan komplain paska serah terima, pengawasan sub-kontraktor (subkon), pengelolaan gambar kerja & SLF, serta sistem checklist inspeksi lapangan berbasis hierarki grup, item, dan sub-item.
@@ -32,138 +32,125 @@ Manajemen konstruksi lapangan perumahan, monitoring tahapan serah terima fisik (
 - `checklist_work` *(akses tulis eksklusif hanya untuk modul Produksi)*
 
 ### Shared Tables (Dibaca dari modul lain)
-- `kavling` *(membaca data nomor kavling, cluster, tipe, dan status ST)*
-- `jalan` *(membaca dan memperbarui progres infrastruktur jalan lingkungan)*
+- `kavling`
+- `jalan`
 
 ## Contracts
 ### A. Public HTTP Endpoints & Routes Inventory
 | Method | URI / Pattern | Tipe | Handler | Status Migrasi | Target API / Catatan |
 |---|---|---|---|---|---|
-| `GET\|POST` | `/api/produksi/meta` | `Explicit` | `App\Controllers\Api\Produksi\ProduksiController::meta` | 🟢 MIGRATED | Full JSON RAW_JSON_READY metadata dropdowns (subkon, cluster, status) |
-| `GET` | `/produksi/mobile` | `Explicit` | `App\Controllers\Web\Produksi\ProduksiController::produksiMobile` | 🟢 MIGRATED | Halaman web view interaksi lapangan mobile |
-| `GET` | `/checklist-group` | `Explicit` | `App\Controllers\Web\Produksi\ChecklistGroupController::index` | 🟢 MIGRATED | Halaman web master data Checklist Group |
-| `GET` | `/checklistGroup` | `Explicit` | `App\Controllers\Web\Produksi\ChecklistGroupController::index` | 🟢 MIGRATED | Alias rute web master Checklist Group |
-| `GET` | `/checklist-item` | `Explicit` | `App\Controllers\Web\Produksi\ChecklistItemController::index` | 🟢 MIGRATED | Halaman web master data Checklist Item |
-| `GET` | `/checklistItem` | `Explicit` | `App\Controllers\Web\Produksi\ChecklistItemController::index` | 🟢 MIGRATED | Alias rute web master Checklist Item |
-| `GET` | `/checklist-sub-item` | `Explicit` | `App\Controllers\Web\Produksi\ChecklistSubItemController::index` | 🟢 MIGRATED | Halaman web master data Checklist Sub-Item |
-| `GET` | `/checklistSubItem` | `Explicit` | `App\Controllers\Web\Produksi\ChecklistSubItemController::index` | 🟢 MIGRATED | Alias rute web master Checklist Sub-Item |
-| `POST` | `/api/produksi/get_data_by_id` | `Explicit` | `App\Controllers\Api\Produksi\ProduksiController::get_data_by_id` | 🟢 MIGRATED | Ambil detail kavling, progres ST, foto, dan histori |
-| `POST` | `/api/produksi/getBayarProduksi` | `Explicit` | `App\Controllers\Api\Produksi\ProduksiController::getBayarProduksi` | 🟢 MIGRATED | Ambil rincian pembayaran produksi subkon per kavling |
-| `POST` | `/api/produksi/getBayarProduksiListItem` | `Explicit` | `App\Controllers\Api\Produksi\ProduksiController::getBayarProduksiListItem` | 🟢 MIGRATED | Dropdown opsi item pekerjaan pembayaran subkon |
-| `POST` | `/api/produksi/saveBayarProduksi` | `Explicit` | `App\Controllers\Api\Produksi\ProduksiController::saveBayarProduksi` | 🟢 MIGRATED | Simpan pembayaran termin subkon via Service (`cleanNumeric`) |
-| `POST` | `/api/produksi/deleteBayarProduksi` | `Explicit` | `App\Controllers\Api\Produksi\ProduksiController::deleteBayarProduksi` | 🟢 MIGRATED | Hapus data pembayaran produksi subkon |
-| `POST` | `/api/produksi/get_data_komplain_by_id` | `Explicit` | `App\Controllers\Api\Produksi\ProduksiController::get_data_komplain_by_id` | 🟢 MIGRATED | Ambil data komplain lapangan kavling |
-| `POST` | `/api/produksi/save_komplain_produksi` | `Explicit` | `App\Controllers\Api\Produksi\ProduksiController::save_komplain_produksi` | 🟢 MIGRATED | Simpan / update status komplain fisik lapangan |
-| `POST` | `/api/produksi/save` | `Explicit` | `App\Controllers\Api\Produksi\ProduksiController::save` | 🟢 MIGRATED | Simpan update progres konstruksi ST kavling |
-| `POST` | `/api/produksi/upload-mobile` | `Explicit` | `App\Controllers\Api\Produksi\ProduksiController::uploadMobile` | 🟢 MIGRATED | Upload multi-foto progres dari perangkat lapangan |
-| `POST` | `/api/produksi/history` | `Explicit` | `App\Controllers\Api\Produksi\ProduksiController::history` | 🟢 MIGRATED | Ambil histori perubahan progres konstruksi kavling |
-| `POST` | `/api/produksi/saveSLF` | `Explicit` | `App\Controllers\Api\Produksi\ProduksiController::saveSLf` | 🟢 MIGRATED | Simpan pengajuan Sertifikat Laik Fungsi (SLF) |
-| `GET` | `/api/produksi/getSlf` | `Explicit` | `App\Controllers\Api\Produksi\ProduksiController::getSlf` | 🟢 MIGRATED | Ambil daftar SLF yang terdaftar |
-| `POST` | `/api/produksi/hapusSLF` | `Explicit` | `App\Controllers\Api\Produksi\ProduksiController::hapusSLF` | 🟢 MIGRATED | Hapus dokumen SLF |
-| `GET` | `/api/produksi/getSLFPDF/(:num)` | `Explicit` | `App\Controllers\Api\Produksi\ProduksiController::getSLFPDF/$1` | 🟢 MIGRATED | Unduh / cetak PDF Sertifikat Laik Fungsi |
-| `POST` | `/api/produksi/getKavling` | `Explicit` | `App\Controllers\Api\Produksi\ProduksiController::getKavling` | 🟢 MIGRATED | Pencarian data kavling untuk modul produksi |
-| `POST` | `/api/produksi/hapus_foto` | `Explicit` | `App\Controllers\Api\Produksi\ProduksiController::hapus_foto` | 🟢 MIGRATED | Hapus foto bukti progres lapangan (soft delete trash) |
-| `POST` | `/api/produksi/get_gambarkerja` | `Explicit` | `App\Controllers\Api\Produksi\ProduksiController::get_gambarkerja` | 🟢 MIGRATED | Ambil dokumen gambar kerja arsitektur unit |
-| `POST` | `/api/produksi/add_jalan` | `Explicit` | `App\Controllers\Api\Produksi\ProduksiController::add_jalan` | 🟢 MIGRATED | Catat riwayat progres pembangunan jalan lingkungan |
-| `POST` | `/api/produksi/edit_others` | `Explicit` | `App\Controllers\Api\Produksi\ProduksiController::edit_others` | 🟢 MIGRATED | Update data spesifikasi / fasilitas tambahan kavling |
-| `GET\|POST` | `/subkon/list/ambil` | `Explicit` | `App\Controllers\Api\Produksi\SubkonController::getList` | 🟢 MIGRATED | Rute eksplisit legacy dropdown/DataTables subkon |
-| `GET\|POST` | `/subkon/list` | `Explicit` | `App\Controllers\Api\Produksi\SubkonController::getList` | 🟢 MIGRATED | Rute eksplisit daftar subkon |
-| `GET\|POST` | `/api/subkon/list` | `Explicit` | `App\Controllers\Api\Produksi\SubkonController::getList` | 🟢 MIGRATED | API eksplisit daftar subkon |
-| `POST` | `/api/produksi/sales/get_data_by_id` | `Explicit` | `App\Controllers\Api\Produksi\SalesController::get_data_by_id` | 🟢 MIGRATED | Ambil data checklist & serah terima untuk Sales |
-| `POST` | `/api/produksi/sales/save_checklist` | `Explicit` | `App\Controllers\Api\Produksi\SalesController::save_checklist` | 🟢 MIGRATED | Simpan checklist serah terima unit konsumen |
-| `POST` | `/api/produksi/sales/get_data_komplain_by_id` | `Explicit` | `App\Controllers\Api\Produksi\SalesController::get_data_komplain_by_id` | 🟢 MIGRATED | Ambil data komplain konsumen via Sales |
-| `POST` | `/api/produksi/sales/batalkan_komplain` | `Explicit` | `App\Controllers\Api\Produksi\SalesController::batalkan_komplain` | 🟢 MIGRATED | Batalkan tiket komplain konsumen |
-| `POST` | `/api/produksi/sales/save_komplain_sales` | `Explicit` | `App\Controllers\Api\Produksi\SalesController::save_komplain_sales` | 🟢 MIGRATED | Simpan komplain baru dari konsumen ke unit |
-| `POST` | `/api/produksi/sales/get_data_serah_terima_by_id` | `Explicit` | `App\Controllers\Api\Produksi\SalesController::get_data_serah_terima_by_id` | 🟢 MIGRATED | Ambil detail dokumen serah terima fisik |
-| `POST` | `/api/produksi/sales/save_serah_terima` | `Explicit` | `App\Controllers\Api\Produksi\SalesController::save_serah_terima` | 🟢 MIGRATED | Simpan rekam serah terima fisik unit ke konsumen |
-| `POST` | `/sales/get_data_by_id` | `Explicit` | `App\Controllers\Api\Produksi\SalesController::get_data_by_id` | 🟢 MIGRATED | Rute legacy flat Sales serah terima |
-| `POST` | `/sales/save_checklist` | `Explicit` | `App\Controllers\Api\Produksi\SalesController::save_checklist` | 🟢 MIGRATED | Rute legacy flat Sales checklist |
-| `POST` | `/sales/get_data_komplain_by_id` | `Explicit` | `App\Controllers\Api\Produksi\SalesController::get_data_komplain_by_id` | 🟢 MIGRATED | Rute legacy flat Sales ambil komplain |
-| `POST` | `/sales/batalkan_komplain` | `Explicit` | `App\Controllers\Api\Produksi\SalesController::batalkan_komplain` | 🟢 MIGRATED | Rute legacy flat Sales batalkan komplain |
-| `POST` | `/sales/save_komplain_sales` | `Explicit` | `App\Controllers\Api\Produksi\SalesController::save_komplain_sales` | 🟢 MIGRATED | Rute legacy flat Sales simpan komplain |
-| `POST` | `/sales/get_data_serah_terima_by_id` | `Explicit` | `App\Controllers\Api\Produksi\SalesController::get_data_serah_terima_by_id` | 🟢 MIGRATED | Rute legacy flat Sales ambil serah terima |
-| `POST` | `/sales/save_serah_terima` | `Explicit` | `App\Controllers\Api\Produksi\SalesController::save_serah_terima` | 🟢 MIGRATED | Rute legacy flat Sales simpan serah terima |
-| `GET\|POST` | `/checklistGroup/getAll` | `Explicit` | `App\Controllers\Api\Produksi\ChecklistGroupController::getAll` | 🟢 MIGRATED | DataTables list Checklist Group |
-| `POST` | `/checklistGroup/getOne` | `Explicit` | `App\Controllers\Api\Produksi\ChecklistGroupController::getOne` | 🟢 MIGRATED | Ambil 1 record Checklist Group |
-| `POST` | `/checklistGroup/add` | `Explicit` | `App\Controllers\Api\Produksi\ChecklistGroupController::add` | 🟢 MIGRATED | Tambah master Checklist Group |
-| `POST` | `/checklistGroup/edit` | `Explicit` | `App\Controllers\Api\Produksi\ChecklistGroupController::edit` | 🟢 MIGRATED | Edit master Checklist Group |
-| `POST` | `/checklistGroup/remove` | `Explicit` | `App\Controllers\Api\Produksi\ChecklistGroupController::remove` | 🟢 MIGRATED | Hapus master Checklist Group |
-| `GET\|POST` | `/api/checklist-group/getAll` | `Explicit` | `App\Controllers\Api\Produksi\ChecklistGroupController::getAll` | 🟢 MIGRATED | API DataTables list Checklist Group |
-| `POST` | `/api/checklist-group/getOne` | `Explicit` | `App\Controllers\Api\Produksi\ChecklistGroupController::getOne` | 🟢 MIGRATED | API Ambil 1 record Checklist Group |
-| `POST` | `/api/checklist-group/add` | `Explicit` | `App\Controllers\Api\Produksi\ChecklistGroupController::add` | 🟢 MIGRATED | API Tambah master Checklist Group |
-| `POST` | `/api/checklist-group/edit` | `Explicit` | `App\Controllers\Api\Produksi\ChecklistGroupController::edit` | 🟢 MIGRATED | API Edit master Checklist Group |
-| `POST` | `/api/checklist-group/remove` | `Explicit` | `App\Controllers\Api\Produksi\ChecklistGroupController::remove` | 🟢 MIGRATED | API Hapus master Checklist Group |
-| `GET\|POST` | `/checklistItem/getAll` | `Explicit` | `App\Controllers\Api\Produksi\ChecklistItemController::getAll` | 🟢 MIGRATED | DataTables list Checklist Item |
-| `POST` | `/checklistItem/getOne` | `Explicit` | `App\Controllers\Api\Produksi\ChecklistItemController::getOne` | 🟢 MIGRATED | Ambil 1 record Checklist Item |
-| `POST` | `/checklistItem/add` | `Explicit` | `App\Controllers\Api\Produksi\ChecklistItemController::add` | 🟢 MIGRATED | Tambah master Checklist Item |
-| `POST` | `/checklistItem/edit` | `Explicit` | `App\Controllers\Api\Produksi\ChecklistItemController::edit` | 🟢 MIGRATED | Edit master Checklist Item |
-| `POST` | `/checklistItem/remove` | `Explicit` | `App\Controllers\Api\Produksi\ChecklistItemController::remove` | 🟢 MIGRATED | Hapus master Checklist Item |
-| `GET\|POST` | `/api/checklist-item/getAll` | `Explicit` | `App\Controllers\Api\Produksi\ChecklistItemController::getAll` | 🟢 MIGRATED | API DataTables list Checklist Item |
-| `POST` | `/api/checklist-item/getOne` | `Explicit` | `App\Controllers\Api\Produksi\ChecklistItemController::getOne` | 🟢 MIGRATED | API Ambil 1 record Checklist Item |
-| `POST` | `/api/checklist-item/add` | `Explicit` | `App\Controllers\Api\Produksi\ChecklistItemController::add` | 🟢 MIGRATED | API Tambah master Checklist Item |
-| `POST` | `/api/checklist-item/edit` | `Explicit` | `App\Controllers\Api\Produksi\ChecklistItemController::edit` | 🟢 MIGRATED | API Edit master Checklist Item |
-| `POST` | `/api/checklist-item/remove` | `Explicit` | `App\Controllers\Api\Produksi\ChecklistItemController::remove` | 🟢 MIGRATED | API Hapus master Checklist Item |
-| `GET\|POST` | `/checklistSubItem/getAll` | `Explicit` | `App\Controllers\Api\Produksi\ChecklistSubItemController::getAll` | 🟢 MIGRATED | DataTables list Checklist Sub-Item |
-| `POST` | `/checklistSubItem/getOne` | `Explicit` | `App\Controllers\Api\Produksi\ChecklistSubItemController::getOne` | 🟢 MIGRATED | Ambil 1 record Checklist Sub-Item |
-| `POST` | `/checklistSubItem/add` | `Explicit` | `App\Controllers\Api\Produksi\ChecklistSubItemController::add` | 🟢 MIGRATED | Tambah master Checklist Sub-Item |
-| `POST` | `/checklistSubItem/edit` | `Explicit` | `App\Controllers\Api\Produksi\ChecklistSubItemController::edit` | 🟢 MIGRATED | Edit master Checklist Sub-Item |
-| `POST` | `/checklistSubItem/remove` | `Explicit` | `App\Controllers\Api\Produksi\ChecklistSubItemController::remove` | 🟢 MIGRATED | Hapus master Checklist Sub-Item |
-| `GET\|POST` | `/api/checklist-sub-item/getAll` | `Explicit` | `App\Controllers\Api\Produksi\ChecklistSubItemController::getAll` | 🟢 MIGRATED | API DataTables list Checklist Sub-Item |
-| `POST` | `/api/checklist-sub-item/getOne` | `Explicit` | `App\Controllers\Api\Produksi\ChecklistSubItemController::getOne` | 🟢 MIGRATED | API Ambil 1 record Checklist Sub-Item |
-| `POST` | `/api/checklist-sub-item/add` | `Explicit` | `App\Controllers\Api\Produksi\ChecklistSubItemController::add` | 🟢 MIGRATED | API Tambah master Checklist Sub-Item |
-| `POST` | `/api/checklist-sub-item/edit` | `Explicit` | `App\Controllers\Api\Produksi\ChecklistSubItemController::edit` | 🟢 MIGRATED | API Edit master Checklist Sub-Item |
-| `POST` | `/api/checklist-sub-item/remove` | `Explicit` | `App\Controllers\Api\Produksi\ChecklistSubItemController::remove` | 🟢 MIGRATED | API Hapus master Checklist Sub-Item |
+| `GET` | `/produksi/mobile` | `Explicit` | `ProduksiController::produksiMobile` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `GET` | `/checklist-group` | `Explicit` | `ChecklistGroupController::index` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `GET` | `/checklistGroup` | `Explicit` | `ChecklistGroupController::index` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `GET` | `/checklist-item` | `Explicit` | `ChecklistItemController::index` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `GET` | `/checklistItem` | `Explicit` | `ChecklistItemController::index` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `GET` | `/checklist-sub-item` | `Explicit` | `ChecklistSubItemController::index` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `GET` | `/checklistSubItem` | `Explicit` | `ChecklistSubItemController::index` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `/api/produksi/get_data_by_id` | `Explicit` | `ProduksiController::get_data_by_id` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `/api/produksi/getBayarProduksi` | `Explicit` | `ProduksiController::getBayarProduksi` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `/api/produksi/getBayarProduksiListItem` | `Explicit` | `ProduksiController::getBayarProduksiListItem` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `/api/produksi/saveBayarProduksi` | `Explicit` | `ProduksiController::saveBayarProduksi` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `/api/produksi/deleteBayarProduksi` | `Explicit` | `ProduksiController::deleteBayarProduksi` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `/api/produksi/get_data_komplain_by_id` | `Explicit` | `ProduksiController::get_data_komplain_by_id` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `/api/produksi/save_komplain_produksi` | `Explicit` | `ProduksiController::save_komplain_produksi` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `/api/produksi/save` | `Explicit` | `ProduksiController::save` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `/api/produksi/upload-mobile` | `Explicit` | `ProduksiController::uploadMobile` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `/api/produksi/history` | `Explicit` | `ProduksiController::history` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `/api/produksi/saveSLF` | `Explicit` | `ProduksiController::saveSLf` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `GET` | `/api/produksi/getSlf` | `Explicit` | `ProduksiController::getSlf` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `/api/produksi/hapusSLF` | `Explicit` | `ProduksiController::hapusSLF` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `GET` | `/api/produksi/getSLFPDF/(:num)` | `Explicit` | `ProduksiController::getSLFPDF/$1` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `/api/produksi/getKavling` | `Explicit` | `ProduksiController::getKavling` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `/api/produksi/hapus_foto` | `Explicit` | `ProduksiController::hapus_foto` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `/api/produksi/get_gambarkerja` | `Explicit` | `ProduksiController::get_gambarkerja` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `/api/produksi/add_jalan` | `Explicit` | `ProduksiController::add_jalan` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `/api/produksi/edit_others` | `Explicit` | `ProduksiController::edit_others` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `/api/produksi/sales/get_data_by_id` | `Explicit` | `SalesController::get_data_by_id` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `/api/produksi/sales/save_checklist` | `Explicit` | `SalesController::save_checklist` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `/api/produksi/sales/get_data_komplain_by_id` | `Explicit` | `SalesController::get_data_komplain_by_id` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `/api/produksi/sales/batalkan_komplain` | `Explicit` | `SalesController::batalkan_komplain` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `/api/produksi/sales/save_komplain_sales` | `Explicit` | `SalesController::save_komplain_sales` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `/api/produksi/sales/get_data_serah_terima_by_id` | `Explicit` | `SalesController::get_data_serah_terima_by_id` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `/api/produksi/sales/save_serah_terima` | `Explicit` | `SalesController::save_serah_terima` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `/sales/get_data_by_id` | `Explicit` | `SalesController::get_data_by_id` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `/sales/save_checklist` | `Explicit` | `SalesController::save_checklist` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `/sales/get_data_komplain_by_id` | `Explicit` | `SalesController::get_data_komplain_by_id` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `/sales/batalkan_komplain` | `Explicit` | `SalesController::batalkan_komplain` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `/sales/save_komplain_sales` | `Explicit` | `SalesController::save_komplain_sales` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `/sales/get_data_serah_terima_by_id` | `Explicit` | `SalesController::get_data_serah_terima_by_id` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `/sales/save_serah_terima` | `Explicit` | `SalesController::save_serah_terima` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `/checklistGroup/getOne` | `Explicit` | `ChecklistGroupController::getOne` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `/checklistGroup/add` | `Explicit` | `ChecklistGroupController::add` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `/checklistGroup/edit` | `Explicit` | `ChecklistGroupController::edit` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `/checklistGroup/remove` | `Explicit` | `ChecklistGroupController::remove` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `/api/checklist-group/getOne` | `Explicit` | `ChecklistGroupController::getOne` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `/api/checklist-group/add` | `Explicit` | `ChecklistGroupController::add` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `/api/checklist-group/edit` | `Explicit` | `ChecklistGroupController::edit` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `/api/checklist-group/remove` | `Explicit` | `ChecklistGroupController::remove` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `/checklistItem/getOne` | `Explicit` | `ChecklistItemController::getOne` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `/checklistItem/add` | `Explicit` | `ChecklistItemController::add` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `/checklistItem/edit` | `Explicit` | `ChecklistItemController::edit` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `/checklistItem/remove` | `Explicit` | `ChecklistItemController::remove` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `/api/checklist-item/getOne` | `Explicit` | `ChecklistItemController::getOne` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `/api/checklist-item/add` | `Explicit` | `ChecklistItemController::add` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `/api/checklist-item/edit` | `Explicit` | `ChecklistItemController::edit` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `/api/checklist-item/remove` | `Explicit` | `ChecklistItemController::remove` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `/checklistSubItem/getOne` | `Explicit` | `ChecklistSubItemController::getOne` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `/checklistSubItem/add` | `Explicit` | `ChecklistSubItemController::add` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `/checklistSubItem/edit` | `Explicit` | `ChecklistSubItemController::edit` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `/checklistSubItem/remove` | `Explicit` | `ChecklistSubItemController::remove` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `/api/checklist-sub-item/getOne` | `Explicit` | `ChecklistSubItemController::getOne` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `/api/checklist-sub-item/add` | `Explicit` | `ChecklistSubItemController::add` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `/api/checklist-sub-item/edit` | `Explicit` | `ChecklistSubItemController::edit` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
+| `POST` | `/api/checklist-sub-item/remove` | `Explicit` | `ChecklistSubItemController::remove` | 🟢 MIGRATED | Endpoint terstruktur di Api/Web |
 
 ### B. Public PHP Services (Backend Contract Antar-Modul)
-#### `App\Services\Produksi\ProduksiService`
-- `cleanNumeric(mixed $value)`: Helper pembersihan format nominal rupiah menjadi format numerik baku (float/int).
-- `save(array $var, array $uploadedFiles, int $userId)`: Simpan mutasi progres konstruksi kavling (ST 0-100%), unggah foto bukti, dan audit history.
-- `saveMobileUpload(int $idKavling, ?int $idProduksi, array $files, array $vars, int $userId)`: Endpoint upload foto berstempel GPS dari aplikasi lapangan.
-- `saveBayarProduksi(int $idKavling, int $idItemProduksi, mixed $nominal, string $tanggalBayar, string $keterangan, int $userId)`: Transaksi pembayaran termin subkon terenkapsulasi dengan pembersihan nominal via `cleanNumeric()`.
-- `deleteBayarProduksi(int $id, int $userId)`: Pembatalan pembayaran subkon.
-- `getBayarProduksiData(int $idKavling)`: Pengambilan histori dan rekapitulasi pembayaran subkon per unit kavling.
-- `getDetailByKavling(int $idKavling, ?int $idProduksi)`: Detail komprehensif data konstruksi, subkon, gambar kerja, dan foto progres.
-- `getHistory(int $idKavling, int $limit = 10, int $offset = 0)`: Riwayat audit perubahan data produksi lapangan.
-- `getKomplainDetail(int $idKavling)`: Data detail tiket komplain fisik unit kavling.
-- `saveKomplainProduksi(array $data, array $uploadedFiles, int $userId)`: Pembaruan penanganan komplain fisik oleh divisi Produksi.
-- `saveKomplainSales(array $data, array $uploadedFiles, int $userId)`: Pencatatan komplain fisik awal dari konsumen oleh divisi Sales.
-- `batalkanKomplain(int $idKavling, ?int $idKomplain)`: Pembatalan tiket komplain.
-- `getSerahTerimaDetail(int $idKavling)`: Data detail berita acara serah terima unit kavling.
-- `saveSerahTerima(array $data, int $userId)`: Penyimpanan rekam serah terima fisik unit.
-- `getChecklistSalesDetail(int $idKavling)`: Pengambilan daftar status checklist inspeksi unit untuk serah terima.
-- `saveChecklistSales(int $idKavling, mixed $isChecked, array $postVars, int $userId)`: Penyimpanan hasil checklist inspeksi kelayakan bangunan.
-- `deleteFoto(int $id, int $userId)`: Penghapusan foto progres konstruksi.
-- `addJalan(array $postVars, int $userId)`: Pencatatan progres pembangunan infrastruktur jalan.
-- `editOthers(int $id, array $postVars, array $uploadedFiles, int $userId)`: Pembaruan fasilitas dan spesifikasi tambahan kavling.
-- `saveSlf(array $postVars, int $userId)`: Pembuatan dan pengajuan data Sertifikat Laik Fungsi.
-- `deleteSlf(int $id)`: Penghapusan data SLF.
-
-#### `App\Services\Produksi\ProduksiFileService`
-- `uploadFotoGroups(array $requestFiles, array $requestVars, int $idKavling)`: Pengunggahan batch foto progres konstruksi berdasarkan kategori progres ST.
-- `moveFotoToTrash(object $file)`: Pemindahan file foto ke folder trash (soft delete) untuk preservasi data.
-
-#### `App\Services\Produksi\PhotoGpsMetadataService`
-- `prepareDownload(array $file)`: Ekstraksi metadata EXIF/GPS foto lapangan dan pembentukan stempel koordinat.
-- `cleanup(?string $temporaryPath)`: Pembersihan berkas sementara pasca-unduh metadata foto.
-
-#### `App\Services\Produksi\ChecklistService`
-- `getAllGroups(bool $asDatatable = false)`: Pengambilan daftar grup checklist master.
-- `getGroup(int $id)`: Pengambilan data detail 1 grup checklist.
-- `createGroup(array $data, int $userId)`: Pembuatan grup checklist baru.
-- `updateGroup(int $id, array $data, int $userId)`: Pembaruan grup checklist.
-- `deleteGroup(int $id)`: Penghapusan grup checklist.
-- `getAllItems(bool $asDatatable = false)`: Pengambilan daftar item checklist master.
-- `getItem(int $id)`: Pengambilan data detail 1 item checklist.
-- `createItem(array $data, int $userId)`: Pembuatan item checklist baru.
-- `updateItem(int $id, array $data, int $userId)`: Pembaruan item checklist.
-- `deleteItem(int $id)`: Penghapusan item checklist.
-- `getAllSubItems(bool $asDatatable = false)`: Pengambilan daftar sub-item checklist master.
-- `getSubItem(int $id)`: Pengambilan data detail 1 sub-item checklist.
-- `createSubItem(array $data, int $userId)`: Pembuatan sub-item checklist baru.
-- `updateSubItem(int $id, array $data, int $userId)`: Pembaruan sub-item checklist.
-- `deleteSubItem(int $id)`: Penghapusan sub-item checklist.
-- `getActiveGroups()`: Pengambilan grup checklist aktif.
-- `getActiveGroupsWithItems()`: Pengambilan hierarki checklist aktif lengkap beserta item dan sub-item untuk form inspeksi lapangan.
+#### `ProduksiService.php`
+- `cleanNumeric(mixed $value)`
+- `save(array $var, array $uploadedFiles, int $userId)`
+- `saveMobileUpload(int $idKavling, ?int $idProduksi, array $files, array $vars, int $userId)`
+- `saveBayarProduksi(int $idKavling, int $idItemProduksi, mixed $nominal, string $tanggalBayar, string $keterangan, int $userId)`
+- `deleteBayarProduksi(int $id, int $userId)`
+- `getBayarProduksiData(int $idKavling)`
+- `getDetailByKavling(int $idKavling, ?int $idProduksi)`
+- `getHistory(int $idKavling, int $limit = 10, int $offset = 0)`
+- `getKomplainDetail(int $idKavling)`
+- `saveKomplainProduksi(array $data, array $uploadedFiles, int $userId)`
+- `saveKomplainSales(array $data, array $uploadedFiles, int $userId)`
+- `batalkanKomplain(int $idKavling, ?int $idKomplain)`
+- `getSerahTerimaDetail(int $idKavling)`
+- `saveSerahTerima(array $data, int $userId)`
+- `getChecklistSalesDetail(int $idKavling)`
+- `saveChecklistSales(int $idKavling, mixed $isChecked, array $postVars, int $userId)`
+- `deleteFoto(int $id, int $userId)`
+- `addJalan(array $postVars, int $userId)`
+- `editOthers(int $id, array $postVars, array $uploadedFiles, int $userId)`
+- `saveSlf(array $postVars, int $userId)`
+- `deleteSlf(int $id)`
+#### `ProduksiFileService.php`
+- `uploadFotoGroups(array $requestFiles, array $requestVars, int $idKavling)`
+- `moveFotoToTrash(object $file)`
+#### `PhotoGpsMetadataService.php`
+- `prepareDownload(array $file)`
+- `cleanup(?string $temporaryPath)`
+#### `ChecklistService.php`
+- `getAllGroups(bool $asDatatable = false)`
+- `getGroup(int $id)`
+- `createGroup(array $data, int $userId)`
+- `updateGroup(int $id, array $data, int $userId)`
+- `deleteGroup(int $id)`
+- `getAllItems(bool $asDatatable = false)`
+- `getItem(int $id)`
+- `createItem(array $data, int $userId)`
+- `updateItem(int $id, array $data, int $userId)`
+- `deleteItem(int $id)`
+- `getAllSubItems(bool $asDatatable = false)`
+- `getSubItem(int $id)`
+- `createSubItem(array $data, int $userId)`
+- `updateSubItem(int $id, array $data, int $userId)`
+- `deleteSubItem(int $id)`
+- `getActiveGroups()`
+- `getActiveGroupsWithItems()`
 
 ## File Inventory
 ### Controllers (10)
@@ -171,21 +158,21 @@ Manajemen konstruksi lapangan perumahan, monitoring tahapan serah terima fisik (
 - `app/Controllers/Web/Produksi/ChecklistGroupController.php` (18 baris, 1 public methods: `index()`)
 - `app/Controllers/Web/Produksi/ChecklistItemController.php` (27 baris, 1 public methods: `index()`)
 - `app/Controllers/Web/Produksi/ChecklistSubItemController.php` (27 baris, 1 public methods: `index()`)
-- `app/Controllers/Api/Produksi/ProduksiController.php` (359 baris, 20 public methods: `meta()`, `get_data_by_id()`, `history()`, `getBayarProduksiListItem()`, `getBayarProduksi()`, `saveBayarProduksi()`, `deleteBayarProduksi()`, `get_data_komplain_by_id()`, `save_komplain_produksi()`, `save()`, `uploadMobile()`, `saveSLf()`, `getSlf()`, `hapusSLF()`, `getSLFPDF($id)`, `getKavling()`, `hapus_foto()`, `get_gambarkerja()`, `add_jalan()`, `edit_others()`)
+- `app/Controllers/Api/Produksi/ProduksiController.php` (435 baris, 20 public methods: `meta()`, `get_data_by_id()`, `history()`, `getBayarProduksiListItem()`, `getBayarProduksi()`, `saveBayarProduksi()`, `deleteBayarProduksi()`, `get_data_komplain_by_id()`, `save_komplain_produksi()`, `save()`, `uploadMobile()`, `saveSLf()`, `getSlf()`, `hapusSLF()`, `getSLFPDF($id)`, `getKavling()`, `hapus_foto()`, `get_gambarkerja()`, `add_jalan()`, `edit_others()`)
 - `app/Controllers/Api/Produksi/SubkonController.php` (37 baris, 1 public methods: `getList()`)
 - `app/Controllers/Api/Produksi/SalesController.php` (92 baris, 7 public methods: `get_data_by_id()`, `save_checklist()`, `get_data_komplain_by_id()`, `batalkan_komplain()`, `save_komplain_sales()`, `get_data_serah_terima_by_id()`, `save_serah_terima()`)
-- `app/Controllers/Api/Produksi/ChecklistGroupController.php` (94 baris, 5 public methods: `getAll()`, `getOne()`, `add()`, `edit($id = null)`, `remove()`)
-- `app/Controllers/Api/Produksi/ChecklistItemController.php` (94 baris, 5 public methods: `getAll()`, `getOne()`, `add()`, `edit($id = null)`, `remove()`)
-- `app/Controllers/Api/Produksi/ChecklistSubItemController.php` (94 baris, 5 public methods: `getAll()`, `getOne()`, `add()`, `edit($id = null)`, `remove()`)
+- `app/Controllers/Api/Produksi/ChecklistGroupController.php` (98 baris, 5 public methods: `getAll()`, `getOne()`, `add()`, `edit($id = null)`, `remove()`)
+- `app/Controllers/Api/Produksi/ChecklistItemController.php` (98 baris, 5 public methods: `getAll()`, `getOne()`, `add()`, `edit($id = null)`, `remove()`)
+- `app/Controllers/Api/Produksi/ChecklistSubItemController.php` (98 baris, 5 public methods: `getAll()`, `getOne()`, `add()`, `edit($id = null)`, `remove()`)
 
 ### Services (4)
-- `app/Services/Produksi/ProduksiService.php` (1017 baris, 21 public methods)
-- `app/Services/Produksi/ProduksiFileService.php` (187 baris, 2 public methods)
+- `app/Services/Produksi/ProduksiService.php` (1094 baris, 21 public methods)
+- `app/Services/Produksi/ProduksiFileService.php` (238 baris, 2 public methods)
 - `app/Services/Produksi/PhotoGpsMetadataService.php` (191 baris, 2 public methods)
 - `app/Services/Produksi/ChecklistService.php` (334 baris, 17 public methods)
 
 ### Repositories (2)
-- `app/Repositories/Produksi/ProduksiRepository.php` (553 baris, 47 public methods: `getFilesByKavling(int $idKavling)`, `insertFiles(array $files)`, `hasProduksiChangeHistoryTable()`, `insertProduksiChangeHistory(array $fields)`, `countProduksiChangeHistory(int $idKavling)`, `getProduksiChangeHistory(int $idKavling, int $limit, int $offset)`, `getFileById(int $id)`, `deleteFileById(int $id)`, `getBayarList(int $idKavling)`, `getBayarItemList(string $search)`, `getRiwayatBayarByKavling(int $idKavling)`, `insertBayarSingle(array $data)`, `deleteBayar(int $id)`, `getByIdWithUsers(int $idProduksi)`, `getSlfList()`, `getSlfById(int $id)`, `getSlfKavlingData(array $idKavlingList)`, `insertSlf(array $data)`, `deleteSlfById(int $id)`, `getKavlingByProyek(int $idProyek, string $search, ?int $idKavling = null)`, `getKavlingProduksiById(int $idKavling)`, `createOther(array $fields)`, `getOtherById(int $id)`, `updateOthers(int $id, array $fields)`, `hasJalanProgressHistoryTable()`, `insertJalanProgressHistory(array $fields)`, `getSubkonList(string $search)`, `getGambarKerjaById(int $id)`, `getKavlingById(int $idKavling)`, `getKavlingCheckStatus(int $idKavling)`, `getKavlingOwnerKomplain(int $idKavling, int $idKomplain)`, `updateKavling(int $idKavling, array $data)`, `getProduksiRaw(int $idProduksi)`, `insertProduksi(array $data)`, `updateProduksi(int $idProduksi, array $data)`, `getKomplainWithUsers(int $idKavling)`, `insertKomplain(array $data)`, `updateKomplain(int $idKomplain, array $data)`, `deleteKomplain(int $idKomplain)`, `getSerahTerimaByKavling(int $idKavling)`, `insertSerahTerima(array $data)`, `updateSerahTerima(int $idSerahTerima, array $data)`, `getChecklistWorkByKavling(int $idKavling)`, `getChecklistWorkWithUsers(int $idKavling)`, `getChecklistWorkForProduksi(int $idKavling)`, `getAllSubitemIds()`, `upsertChecklistWork(int $idKavling, int $idSubitem, array $data)`)
+- `app/Repositories/Produksi/ProduksiRepository.php` (681 baris, 50 public methods: `getFilesByKavling(int $idKavling)`, `insertFiles(array $files)`, `hasProduksiChangeHistoryTable()`, `insertProduksiChangeHistory(array $fields)`, `countProduksiChangeHistory(int $idKavling)`, `getProduksiChangeHistory(int $idKavling, int $limit, int $offset)`, `getFileById(int $id)`, `deleteFileById(int $id)`, `getBayarList(int $idKavling)`, `getBayarItemList(string $search)`, `getRiwayatBayarByKavling(int $idKavling)`, `insertBayarSingle(array $data)`, `deleteBayar(int $id)`, `getByIdWithUsers(int $idProduksi)`, `getSlfList(?int $idProyek = null)`, `getSlfById(int $id)`, `getSlfKavlingData(array $idKavlingList)`, `insertSlf(array $data)`, `deleteSlfById(int $id)`, `getKavlingByProyek(int $idProyek, string $search, ?int $idKavling = null)`, `getKavlingProduksiById(int $idKavling)`, `createOther(array $fields)`, `getOtherById(int $id)`, `updateOthers(int $id, array $fields)`, `hasJalanProgressHistoryTable()`, `insertJalanProgressHistory(array $fields)`, `getSubkonList(string $search)`, `getGambarKerjaById(int $id)`, `getKavlingById(int $idKavling)`, `getKavlingCheckStatus(int $idKavling)`, `getKavlingOwnerKomplain(int $idKavling, int $idKomplain)`, `updateKavling(int $idKavling, array $data)`, `getProduksiRaw(int $idProduksi)`, `insertProduksi(array $data)`, `updateProduksi(int $idProduksi, array $data)`, `getKomplainWithUsers(int $idKavling)`, `insertKomplain(array $data)`, `updateKomplain(int $idKomplain, array $data)`, `deleteKomplain(int $idKomplain)`, `getSerahTerimaByKavling(int $idKavling)`, `insertSerahTerima(array $data)`, `updateSerahTerima(int $idSerahTerima, array $data)`, `getChecklistWorkByKavling(int $idKavling)`, `getChecklistWorkWithUsers(int $idKavling)`, `getChecklistWorkForProduksi(int $idKavling)`, `getAllSubitemIds()`, `upsertChecklistWork(int $idKavling, int $idSubitem, array $data)`, `getChecklistSubItemsWithGroup()`, `getProyekDetailForSlf(int $idProyek)`, `hasUpdateTanggalPembangunanAccess(int $userId)`)
 - `app/Repositories/Produksi/ChecklistRepository.php` (199 baris, 18 public methods: `getAllGroups()`, `getActiveGroups()`, `getGroupById(int $id)`, `insertGroup(array $data)`, `updateGroup(int $id, array $data)`, `toggleGroupStatus(int $id)`, `getAllItems()`, `getItemById(int $id)`, `getItemsByGroup(int $idGroup)`, `insertItem(array $data)`, `updateItem(int $id, array $data)`, `toggleItemStatus(int $id)`, `getAllSubItems()`, `getSubItemById(int $id)`, `insertSubItem(array $data)`, `updateSubItem(int $id, array $data)`, `toggleSubItemStatus(int $id)`, `getActiveGroupsWithItems()`)
 
 ### Models (9)
@@ -199,36 +186,34 @@ Manajemen konstruksi lapangan perumahan, monitoring tahapan serah terima fisik (
 - `app/Models/ChecklistSubItemModel.php`
 - `app/Models/ChecklistWorkModel.php`
 
-### Views (2 folder + 1 shared modal)
+### Views (2 folder)
 - `app/Views/checklist` (3 file: `checklistGroup.php`, `checklistItem.php`, `checklistSubItem.php`)
 - `app/Views/direksi` (1 file: `list-tagihan-pending.php`)
-- `app/Views/siteplan/produksi.php` (Shared modal interaktif siteplan untuk manajemen progres ST, komplain, pembayaran subkon, dan checklist unit)
-
-### CSS & Frontend Styling (1 file)
-- `public/assets/css/produksi.css` (25.1 KB, 3-Tier CSS eksternal ber-scope `#modal-produksi`, `#modal-gambar-kerja`, `#modal-tambah-jalan`, `#modal-preview-gps`, tema `#2057a3`, tabs 1-baris scrollable horizontal untuk mobile, badge status, support dark layout)
 
 ### JavaScript (3 file)
-- `public/assets/js/siteplan/produksi.js` (1900 baris, modul JS utama untuk modal produksi, dropzone upload, kalkulasi pembayaran subkon, dan checklist ST)
-- `public/assets/js/siteplan/produksi_mobile.js` (354 baris, interface input lapangan mobile)
-- `public/assets/js/siteplan/direksi.js` (131 baris, interface monitoring direksi untuk tagihan konstruksi)
+- `public/assets/js/siteplan/produksi.js` (1900 baris)
+- `public/assets/js/siteplan/produksi_mobile.js` (354 baris)
+- `public/assets/js/siteplan/direksi.js` (131 baris)
 
 ### Zero-Downtime Shims (11 file)
-- `app/Controllers/Produksi.php` — Shim fallback controller web & legacy AutoRoute
-- `app/Controllers/Api/ProduksiController.php` — Shim fallback controller API flat
-- `app/Controllers/Subkon.php` — Shim fallback controller subkon legacy
-- `app/Controllers/ChecklistGroup.php` — Shim fallback controller checklist group
-- `app/Controllers/ChecklistItem.php` — Shim fallback controller checklist item
-- `app/Controllers/ChecklistSubItem.php` — Shim fallback controller checklist sub-item
-- `app/Controllers/Sales.php` — Shim fallback controller sales serah terima & komplain
-- `app/Services/ProduksiService.php` — Shim fallback service di root namespace
-- `app/Services/ProduksiFileService.php` — Shim fallback file service di root namespace
-- `app/Services/PhotoGpsMetadataService.php` — Shim fallback GPS service di root namespace
-- `app/Repositories/ProduksiRepository.php` — Shim fallback repository di root namespace
+- `app/Controllers/Produksi.php`
+- `app/Controllers/Api/ProduksiController.php`
+- `app/Controllers/Subkon.php`
+- `app/Controllers/ChecklistGroup.php`
+- `app/Controllers/ChecklistItem.php`
+- `app/Controllers/ChecklistSubItem.php`
+- `app/Controllers/Sales.php`
+- `app/Services/ProduksiService.php`
+- `app/Services/ProduksiFileService.php`
+- `app/Services/PhotoGpsMetadataService.php`
+- `app/Repositories/ProduksiRepository.php`
 
-## Key Functions & Core Business Logic
+## Key Functions
 - **Controller (`App\Controllers\Api\Produksi\ProduksiController`):**
-  - `meta()`: Menyediakan metadata JSON murni (RAW_JSON_READY) untuk opsi dropdown filter subkon, cluster, dan tahapan ST tanpa coupling HTML.
+  - `meta()`: Menyediakan metadata JSON murni (RAW_JSON_READY) untuk opsi dropdown filter subkon, cluster, dan tahapan ST tanpa coupling HTML, serta `permissions.update_tanggal_pembangunan` (`true` untuk role `1`, `7`, `8`).
   - `save()`: Validasi request input update progres ST kavling, delegasi mutasi multi-tabel ke `ProduksiService::save()`.
+  - `hapus_foto()`: Endpoint `POST /api/produksi/hapus_foto` dengan guard login (`401`), guard role Admin (`1`) / Produksi (`7`) (`403`), validasi integer positif `id` (`400`), delegasi ke `ProduksiService::deleteFoto()`, dan respons JSON standar `{ success, messages, data: { id, id_kavling }, token }`.
+  - `resolveUserRoleIds(int $userId)` *(private)*: Resolusi array integer role user aktif dengan fallback ke `FileAccessService::getUserRoles($userId)`.
   - `saveBayarProduksi()` & `deleteBayarProduksi()`: Endpoint mutasi finansial pembayaran subkon, membersihkan input nominal dan mendelegasikan transaksi ke Service.
   - `uploadMobile()`: Endpoint penerima multi-upload foto lapangan dengan stempel GPS.
   - `save_komplain_produksi()` & `get_data_komplain_by_id()`: Manajemen siklus perbaikan komplain unit.
@@ -240,13 +225,15 @@ Manajemen konstruksi lapangan perumahan, monitoring tahapan serah terima fisik (
   - `cleanNumeric(mixed $value)`: Pembersihan format input nominal mata uang (membuang `.` atau format ribuan rupiah) menjadi float/integer murni untuk mencegah kegagalan kalkulasi DB.
   - `saveBayarProduksi()`: Transaksi DB (`transStart`/`transComplete`) penyimpanan pembayaran termin subkon dengan validasi sanitasi nominal uang via `cleanNumeric()`.
   - `save(array $var, array $uploadedFiles, int $userId)`: Pengendali transaksi utama progres ST kavling; mengoordinasikan update status `kavling`, `produksi`, upload foto via `ProduksiFileService`, dan pencatatan audit log `insertProduksiChangeHistory()`.
+  - `deleteFoto(int $id, int $userId)`: Validasi `$id > 0` (`400`), lookup record foto (`404`), pemindahan file & thumbnail ke trash via `ProduksiFileService::moveFotoToTrash()` (`500` bila gagal IO), serta transaksi DB (`transStart()`/`transComplete()`) untuk `deleteFileById()` + `insertProduksiChangeHistory('delete_file')`, mengembalikan `data: { id, id_kavling }`.
   - `saveKomplainProduksi()` & `saveKomplainSales()`: Penanganan tiket komplain unit dengan enkapsulasi DB transaction.
   - `saveSerahTerima()`: Penyimpanan dokumen BAST fisik unit ke tabel `serah_terima`.
 - **Service (`App\Services\Produksi\ProduksiFileService`):**
   - `uploadFotoGroups()`: Validasi mime type, enkripsi nama file, resize/kompresi foto lapangan, dan penyimpanan ke storage folder per kavling.
-  - `moveFotoToTrash()`: Soft delete foto bukti progres ke direktori trash tanpa merusak integritas link referensi histori lama.
+  - `moveFotoToTrash(object $file)`: Soft delete foto fisik dan thumbnail (`thumbnails/`) ke `uploads/produksi/trash/YYYYMMDD/`; tetap mengembalikan `true` jika file fisik sudah hilang di disk agar pembersihan record yatim di DB tetap berjalan.
 - **Service (`App\Services\Produksi\PhotoGpsMetadataService`):**
   - `prepareDownload()`: Membaca tag EXIF dari file foto, mengekstrak koordinat lintang/bujur (Latitude/Longitude), dan merender preview watermarked GPS untuk kebutuhan verifikasi lapangan.
+  - `cleanup(?string $temporaryPath)`: Pembersihan berkas sementara pasca-unduh metadata foto.
 - **Service (`App\Services\Produksi\ChecklistService`):**
   - Manajemen pohon hierarki checklist (`Group -> Item -> SubItem`) serta penyajian DataTables atau data murni untuk inspeksi lapangan.
 - **Repository (`App\Repositories\Produksi\ProduksiRepository`):**
@@ -254,6 +241,10 @@ Manajemen konstruksi lapangan perumahan, monitoring tahapan serah terima fisik (
   - Menghapus method mati/dead-code `upsertBayarItems()` yang memiliki 0 pemanggil lintas codebase.
 - **Repository (`App\Repositories\Produksi\ChecklistRepository`):**
   - Query struktur checklist hierarkis dengan optimasi JOIN antar `checklist_group`, `checklist_item`, dan `checklist_subitem`.
+- **Frontend JavaScript (`public/assets/js/siteplan/produksi.js` & `public/assets/js/scripts.js`):**
+  - `open_fproduksi(sh, role, id_kavling)` (`produksi.js`): Membuka modal `#modal_divisi7`, menghapus restriction disable `.tgl_bangun` berbasis `has_akses.update_tanggal_pembangunan` maupun kondisi `!r.tanggal_pembangunan` (memastikan `.tgl_bangun` + Flatpickr `altInput` selalu aktif sementara validasi wajib-isi tetap berlaku), serta menambahkan `'listrik_disediakan_foto'` pada daftar reset kategori.
+  - `showFoto(data, imbuhan, del, options)` (`scripts.js`): Merender tile file/foto tersimpan dengan guard ketat `allowDelete = del === true || del === "true"` sehingga modal read-only (`#modal_detail` dengan `del = "false"`) tidak merender tombol hapus, sedangkan `#modal_divisi7` merender tombol `.btn-hapus-foto` (`type="button"`) di `.detail-file-action` sejajar dengan tombol Lihat & Download.
+  - `hapusFoto(id)` (`scripts.js`): Konfirmasi SweetAlert2, request `POST /api/produksi/hapus_foto`, refresh `csrfHash` pada `success`/`error`, menghapus elemen `#foto_produksi_<id>`, dan me-refresh `loadProduksiHistory()` saat `#modal_divisi7` sedang terbuka.
 
 ## Deprecated & Legacy Shims
 - **Deprecated Routes / Endpoints:**
@@ -285,11 +276,11 @@ Manajemen konstruksi lapangan perumahan, monitoring tahapan serah terima fisik (
 
 ## Dead Code Candidates
 _Jalankan `php spark module:deadcode Produksi` untuk mengaudit dead code kandidat._
-- Method mati `ProduksiRepository::upsertBayarItems()` (0 pemanggil lintas codebase) telah berhasil dibersihkan dari class repository modular `App\Repositories\Produksi\ProduksiRepository`.
 
 ## Notes
 - **Cross-Module Callers:**
-  - Modul `Siteplan`: Memanggil modal `app/Views/siteplan/produksi.php` dan skrip `public/assets/js/siteplan/produksi.js`, `public/assets/js/siteplan/produksi_mobile.js` yang berinteraksi intensif dengan API `/api/produksi/*` dan `ProduksiService`.
+  - Modul `Siteplan`: Memanggil modal `app/Views/siteplan/produksi.php` (`#modal_divisi7`) dan skrip `public/assets/js/siteplan/produksi.js`, `public/assets/js/siteplan/produksi_mobile.js` yang berinteraksi intensif dengan API `/api/produksi/*` dan `ProduksiService`, serta `SiteplanService::getViewSiteplanData()` / `SiteplanService::getMeta()` untuk `has_akses.update_tanggal_pembangunan`.
+  - Shared UI Helper (`public/assets/js/scripts.js`): `showFoto()` & `hapusFoto()` dipanggil oleh `produksi.js` (`#modal_divisi7`, mode editable `del = true`) maupun `siteplan-detail-modal.js` (`#modal_detail`, mode read-only `del = "false"`).
   - Modul `Keuangan` / `Cashout`: Mengakses data master subkon dan riwayat pembayaran fisik kavling untuk verifikasi SPP serta pencairan kasbon termin subkon.
   - Modul `MKDT` / `Sales`: Mengakses endpoint `/api/produksi/sales/*` untuk berita acara serah terima fisik unit (BAST), pengisian checklist kelayakan bangunan, dan tiket komplain paska-huni.
   - Modul `Direksi`: Mengakses view `app/Views/direksi/list-tagihan-pending.php` dan endpoint produksi untuk pengawasan tagihan konstruksi berjalan.
@@ -304,6 +295,21 @@ _Jalankan `php spark module:deadcode Produksi` untuk mengaudit dead code kandida
   4. `app/Services/Produksi/ProduksiFileService.php:36` memanggil `\Config\Database::connect()->getFieldNames('file_produksi')` langsung di `__construct()`.
 
 ## Change Log
+- `2026-11-23` [`BUGFIX-CORS-SLF-PDF`] — Pembaruan `Api\Produksi\ProduksiController::getSLFPDF()` untuk mengembalikan PDF melalui `$this->mpdf->renderBinary()` + `ResponseInterface` tanpa `exit()`, sehingga filter `Cors::after` tetap berjalan untuk request cross-origin blob XHR (`https://app.sigapp.site` $\leftrightarrow$ `https://sigapp.site`) dengan tetap menjaga Zero-Downtime terhadap `Web\Produksi\ProduksiController::getSLFPDF()`, disinkronkan via `php spark module:sync Produksi`.
+- **`2026-11-23` [`FEATURE`] — Hapus Restriction Tanggal Pembangunan & Perbaikan Tombol Hapus Foto Produksi (`#modal_divisi7`):**
+  - **Routes & Public Contracts:**
+    - `POST /api/produksi/hapus_foto` (`App\Controllers\Api\Produksi\ProduksiController::hapus_foto`): Diperketat dengan guard login (`401`), guard role Admin (`1`) / Produksi (`7`) (`403`), validasi integer positif `id` (`400`), dan respons JSON standar `{ success, messages, data: { id, id_kavling }, token }`.
+    - `GET|POST /api/produksi/meta` (`ProduksiController::meta`): Menyelaraskan `permissions.update_tanggal_pembangunan = true` untuk role `1`, `7`, `8` pada alur desktop/Siteplan (halaman `produksi_mobile.php` tidak diubah).
+  - **Controller / Service / Repo / Model:**
+    - `app/Controllers/Api/Produksi/ProduksiController.php`: Menambahkan helper `resolveUserRoleIds(int $userId)` (private), memperketat `hapus_foto()`, dan menyelaraskan `meta()`.
+    - `app/Services/Produksi/ProduksiService.php`: Memperbarui `deleteFoto(int $id, int $userId)` (validasi `$id > 0`, transaksi DB `transStart()`/`transComplete()` untuk `deleteFileById()` + `insertProduksiChangeHistory('delete_file')`, return `data: { id, id_kavling }`).
+    - `app/Services/Produksi/ProduksiFileService.php`: Memperbarui `moveFotoToTrash(object $file)` untuk memindahkan file fisik dan thumbnail (`thumbnails/`) ke `uploads/produksi/trash/YYYYMMDD/` serta tetap mengembalikan `true` jika file fisik sudah hilang di disk agar pembersihan record DB tetap berjalan.
+  - **View / CSS / JS:**
+    - `app/Views/siteplan/produksi.php`: Memperbaiki typo ID `labe_listrik_disediakan_foto` -> `label_listrik_disediakan_foto`.
+    - `public/assets/js/siteplan/produksi.js`: `open_fproduksi()` menghapus restriction disable `.tgl_bangun` berbasis `has_akses.update_tanggal_pembangunan` maupun kondisi `!r.tanggal_pembangunan` (termasuk Flatpickr `altInput`), serta menambahkan `'listrik_disediakan_foto'` ke reset `categories`.
+    - `public/assets/js/scripts.js`: `showFoto()` menambahkan guard ketat `allowDelete = del === true || del === "true"` dan merender tombol `.btn-hapus-foto` (`type="button"`) di `.detail-file-action` sejajar Lihat & Download; `hapusFoto(id)` mengarah ke `/api/produksi/hapus_foto`, memperbarui `csrfHash`, menghapus `#foto_produksi_<id>`, dan me-refresh `loadProduksiHistory()`.
+    - `public/assets/css/produksi.css`: Menambahkan styling ter-scope `#modal_divisi7` untuk `.detail-file-body`, `.detail-file-title`, `.detail-file-meta`, `.detail-file-action`, `.btn-hapus-foto`, dan `.dark-layout`.
+  - **Deprecations:** Tidak ada.
 - `2026-11-22` [`AUDIT`] — Audit verifikasi migrasi modular: status `COMPLETED (Catatan Minor)` (Score 100/100); tercatat temuan minor layer di `Web\Produksi\ProduksiController` (instansiasi `HakaksesModel` & akses langsung `ProduksiRepository`), `Web\Produksi\ChecklistItemController` & `ChecklistSubItemController` (akses langsung `ChecklistRepository`), `Api\Produksi\ProduksiController` (akses langsung repo & render view PDF), serta `ProduksiFileService` (`getFieldNames` via `Database::connect()`).
 - **`2026-11-12` [`REFACTOR`] — Refactoring Lengkap Modul Produksi (Thin Controller, Modular Web & API Architecture, Encapsulated Transactions, Clean Numeric, Scoped CSS & External Asset Separation):**
   - **Routes & Public Contracts:**

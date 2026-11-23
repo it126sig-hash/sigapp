@@ -2816,11 +2816,7 @@ Date.prototype.toDateInputValue = (function() {
 
         if (role == 7) { //produksi
             open_produksi(sh, role, id_kavling)
-        } else if (role == 5) { //legal
-            open_legal(sh, role, id_kavling)
-        } else if (role == 4) { //mkdt
-            open_mkdt(sh, role, id_kavling)
-        } else if (role == 3) { //keunagan
+        }  else if (role == 3) { //keunagan
             if (!sh.data.id_mkdt) {
                 return swal('error', 'Terjad Kesalahan', `Belum ada data konsumen di kavling ${sh.data.nama_jalan}, No. ${sh.data.no_kavling}`)
             }

@@ -257,6 +257,12 @@ class AuthController extends BaseApiController
         return null;
     }
 
+    private function isHttpsRequest(): bool
+    {
+        return $this->request->isSecure()
+            || strtolower(trim((string) $this->request->getServer('HTTP_X_FORWARDED_PROTO'))) === 'https';
+    }
+
     private function setSpaCookie(string $rawDeviceToken): void
     {
         $app = config(App::class);
@@ -268,7 +274,7 @@ class AuthController extends BaseApiController
                 'path'     => $app->cookiePath ?: '/',
                 'domain'   => $app->cookieDomain ?? '',
                 'prefix'   => $app->cookiePrefix ?? '',
-                'secure'   => (bool) ($app->cookieSecure || $this->request->isSecure()),
+                'secure'   => (bool) ($app->cookieSecure || $this->isHttpsRequest()),
                 'httponly' => true,
                 'samesite' => Cookie::SAMESITE_LAX,
                 'raw'      => true,
@@ -287,7 +293,7 @@ class AuthController extends BaseApiController
                 'path'     => $app->cookiePath ?: '/',
                 'domain'   => $app->cookieDomain ?? '',
                 'prefix'   => $app->cookiePrefix ?? '',
-                'secure'   => (bool) ($app->cookieSecure || $this->request->isSecure()),
+                'secure'   => (bool) ($app->cookieSecure || $this->isHttpsRequest()),
                 'httponly' => true,
                 'samesite' => Cookie::SAMESITE_LAX,
                 'raw'      => true,

@@ -2197,7 +2197,25 @@ function delete_kons() {
   $("#mkdt_data_baru").val(1);
 }
 
-function open_mkdt(sh, role, id_kavling) {
+function open_mkdt() {
+   if (editdtt.length == 0)
+        return swal('error', 'Terjad Kesalahan', 'Tidak ada kavling yang dipilih')
+   //bug isi data with addmode
+   if (editdtt.length > 1) {
+        swal('error', 'Terjad Kesalahan', 'Tidak bisa merubah data lebih dari 1 kavling')
+        hapus_seleksi();
+        return;
+   }
+  let role,
+      sh = editdtt[0],
+      id_kavling = sh.id.substr(3);
+
+  //jika admin login
+  if (roleid == 1)
+      role = $('#pilih-divisi option:selected').val()
+  else
+      role = roleid
+    
   if (sh.data.tipe != "kavling")
     return swal("error", "Tidak ada kavling terpilih", null, true);
 

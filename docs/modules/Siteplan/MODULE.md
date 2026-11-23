@@ -2,7 +2,7 @@
 
 **Status:** `REFACTORED`  
 **Readiness Score:** `100/100`  
-**Last Synced:** `2026-11-21 18:12:53` @ `004ca42`  
+**Last Synced:** `2026-11-23 20:21:49` @ `2b19370`  
 
 ## Purpose
 Visualisasi peta interaktif kavling, filter multi-departemen, dan status spasial visual.
@@ -166,7 +166,7 @@ Visualisasi peta interaktif kavling, filter multi-departemen, dan status spasial
 - `app/Controllers/Api/Siteplan/KalendarController.php` (132 baris, 2 public methods: `meta()`, `getEvents()`)
 
 ### Services (7)
-- `app/Services/Siteplan/SiteplanService.php` (956 baris, 16 public methods)
+- `app/Services/Siteplan/SiteplanService.php` (954 baris, 16 public methods)
 - `app/Services/Siteplan/SiteplanDetailService.php` (540 baris, 1 public methods)
 - `app/Services/Siteplan/SiteplanDataService.php` (127 baris, 3 public methods)
 - `app/Services/Siteplan/SiteplanUrgentService.php` (396 baris, 7 public methods)
@@ -203,11 +203,6 @@ Visualisasi peta interaktif kavling, filter multi-departemen, dan status spasial
 - `public/assets/js/siteplan/tiket-overlay.js` (462 baris)
 - `public/assets/js/siteplan/target-overlay.js` (363 baris)
 
-### CSS (3 file)
-- `public/assets/css/siteplan-target.css` (2812 baris)
-- `public/assets/css/siteplan-planning.css` (488 baris)
-- `public/assets/css/siteplan-request-kavling.css` (1295 baris)
-
 ### Zero-Downtime Shims (13 file)
 - `app/Controllers/Siteplan.php`
 - `app/Controllers/Modal.php`
@@ -233,7 +228,7 @@ Visualisasi peta interaktif kavling, filter multi-departemen, dan status spasial
   - `TargetController`: Endpoint `/api/target/{list,detail,save,add-kavling,update-kavling-tipe,remove-kavling,history,request-change,requests,review-request}` dengan RBAC mutasi/approval eksklusif group `1` (Admin) dan `4` (MKDT) via `authorizeMutation()`, RBAC pengajuan perubahan tipe eksklusif group `1` dan `6` (Planning) via `authorizePlanningRequest()`, akses daftar request untuk group `1`/`4`/`6`/`11` via `authorizeRequestList()` (`403` untuk role lain), verifikasi akses proyek (`authorizeProjectAccess()`), dukungan lookup `detail()` via `id_target` atau pasangan `id_proyek` + `tahun_target`, dukungan input batch (`id_kavlings`, `id_target_kavlings`) pada `addKavling()`, `updateKavlingTipe()`, dan `removeKavling()` (validasi satu proyek via `resolveProjectIdsForTargetKavlings()` dan pesan respons dinamis tunggal vs batch), serta delegasi penuh ke `TargetSiteplanService`.
   - `KalendarController`: Endpoint `/api/kalendar/{events,meta}`, `/api/siteplan/kalendar/{events,meta}`, dan fallback `/kalendar/getEvents` dengan dukungan `?format=raw` dan filter divisi/event.
 - **Service (`app/Services/Siteplan/SiteplanService.php`):**
-  - `getIndexState(int $userId)`, `getViewSiteplanData(?int $requestedProyekId, int $userId)`, `getProduksiMobileData(...)`, `getMeta(?int $idProyek, int $userId)`: Agregasi state halaman web dan metadata SPA siteplan (daftar proyek berizin, cluster, jalan, tipe, pph, ppn, checklist, `config_shape`, `permissions.{role_id, is_admin, has_project_access, can_manage_target, can_request_target_change}` via `resolvePrimaryRoleId()`, `has_akses.target` untuk group `1`/`4`/`11`, serta `siteplan_menus` dalam format JSON murni via `SiteplanMenuService::getMenusForSpa()`).
+  - `getIndexState(int $userId)`, `getViewSiteplanData(?int $requestedProyekId, int $userId)`, `getProduksiMobileData(...)`, `getMeta(?int $idProyek, int $userId)`: Agregasi state halaman web dan metadata SPA siteplan (daftar proyek berizin, cluster, jalan, tipe, pph, ppn, checklist, `config_shape`, `permissions.{role_id, is_admin, has_project_access, can_manage_target, can_request_target_change}` via `resolvePrimaryRoleId()`, `has_akses.target` untuk group `1`/`4`/`11`, `has_akses.update_tanggal_pembangunan` bernilai `true` untuk group `1`/`7`/`8` pada alur desktop/Siteplan di `getViewSiteplanData()` & `getMeta()` tanpa mengubah `getProduksiMobileData()`, serta `siteplan_menus` dalam format JSON murni via `SiteplanMenuService::getMenusForSpa()`).
   - `addKavlingOrOthers(array $post, int $userId)`, `editKavling(array $post, int $userId)`, `editOthers(array $post, int $userId)`: Mutasi kavling dan aset penunjang `others` dalam transaksi DB (`transBegin`/`transCommit`/`transRollback`), validasi duplikasi nomor kavling per jalan, serta integrasi pencatatan riwayat (`HistoryService`, `MkdtHistoryService`) dan notifikasi (`NotifikasiService`).
   - `getKavlingByMultipleId(array $ids)`, `getHargaKavling(array $ids)`, `getTurunPembangunan(array $ids)`, `setTurunPembangunan(array $post, mixed $file, int $userId)`: Pengambilan harga/turun bangun dan eksekusi perintah turun pembangunan (upload file perintah bangun via `FileAccessService`, update batch dalam DB transaction, log `MkdtHistoryService`, dan trigger `NotifikasiService` `NotificationEvent::TURUN_PEMBANGUNAN`).
 - **Service (`app/Services/Siteplan/SiteplanDetailService.php`):**
@@ -377,6 +372,15 @@ _Jalankan `php spark module:deadcode Siteplan` untuk mengaudit dead code kandida
   - `app/Services/Siteplan/TargetSiteplanService.php` (`__construct()`, L31-33): masih menginstansiasi `TargetSiteplanModel`, `TargetSiteplanKavlingModel`, dan `TargetSiteplanHistoryModel` ke properti yang tidak terpakai.
 
 ## Change Log
+- **`2026-11-23` [`API-BRIDGE`] — Pengayaan Payload `/api/siteplan/kavling` (`pa_tanggal_cair_last`) via `KavlingRepository`:**
+  - **Routes & Public Contracts:** Tidak ada rute baru; payload item kavling pada `GET|POST /api/siteplan/kavling` (`SiteplanDataService::getKavlings()` $\rightarrow$ `KavlingRepository::getAll()`) kini menyertakan field *backward-compatible* `pa_tanggal_cair_last` (tanggal pencairan hasil akad terakhir `MAX(pay.tanggal_cair)`) untuk kartu inspector `SiteplanInspectorCard.vue` di `sigapp-vue`.
+  - **Controller / Service / Repo / Model:** Perubahan query berada pada modul pemilik `Transaksi` (`app/Repositories/Transaksi/KavlingRepository.php`::`addPencairanAkadSelect()`, `LEFT JOIN` subquery `papay`), 100% *Zero-Downtime* untuk web legacy `sigapp.dev`.
+  - **Deprecations:** Tidak ada.
+- **`2026-11-23` [`FEATURE`] — Penyelarasan Flag `update_tanggal_pembangunan` untuk Modal Produksi Siteplan (`#modal_divisi7`):**
+  - **Routes & Public Contracts:** `GET /api/siteplan/meta` dan state `getViewSiteplanData()` mengembalikan `has_akses.update_tanggal_pembangunan = true` untuk role `1` (Admin), `7` (Produksi), dan `8` (Direksi).
+  - **Controller / Service / Repo / Model:** `app/Services/Siteplan/SiteplanService.php` menyelaraskan `getViewSiteplanData()` dan `getMeta()` untuk `update_tanggal_pembangunan` tanpa mengubah `getProduksiMobileData()` (`produksi_mobile.php` tetap utuh).
+  - **View / CSS / JS:** Perubahan frontend terkait modal Produksi dicatat pada modul `Produksi` (`app/Views/siteplan/produksi.php`, `public/assets/js/siteplan/produksi.js`, `public/assets/js/scripts.js`, `public/assets/css/produksi.css`).
+  - **Deprecations:** Tidak ada.
 - `2026-11-22` [`AUDIT`] — Audit verifikasi migrasi modular (`COMPLETED (Catatan Minor)`, Score `100%`): 6 controller modular, 58 explicit routes, dan 13 shims terverifikasi bersih (`Siteplan.php` murni delegator); dicatat temuan minor query `$this->db->table()` langsung pada `SiteplanService` (L932) dan `TargetSiteplanService` (L303, L634, L649, L1295) serta 3 instansiasi Model tak terpakai pada `TargetSiteplanService::__construct()` (L31-33).
 - **`2026-11-21` [`UI_REPORT`] — Border Luar Blok Kavling Target di Kanvas Siteplan (Opsi 1: `targetOverlayLayer` & Toleransi Celah):**
   - **Routes & Public Contracts:** Tidak ada perubahan Backend, Database, maupun Routes (`RAW_JSON_READY`). Kontrak JS publik baru `SiteplanTargetOverlay` (`public/assets/js/siteplan/target-overlay.js`), serta `resolveTargetCanvasHit()` di `public/assets/js/siteplan/master.js` kini mengembalikan flag `isTargetKavling` dengan `targetStroke: undefined` & `targetStrokeWidth: 0`.

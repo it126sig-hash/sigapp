@@ -33,7 +33,8 @@ class ChecklistSubItemController extends BaseApiController
 
     public function getOne(): ResponseInterface
     {
-        $id = (int) ($this->request->getPost('id_subitem') ?? 0);
+        $data = $this->readRequestData();
+        $id   = (int) ($data['id_subitem'] ?? $data['idSubitem'] ?? $this->request->getVar('id_subitem') ?? 0);
         if ($id <= 0) {
             return $this->error('ID subitem tidak valid', 400);
         }
@@ -49,8 +50,9 @@ class ChecklistSubItemController extends BaseApiController
 
     public function add(): ResponseInterface
     {
+        $data   = $this->readRequestData();
         $userId = (int) user_id();
-        $result = $this->checklistService->createSubItem((array) $this->request->getPost(), $userId);
+        $result = $this->checklistService->createSubItem($data, $userId);
         $result['token'] = csrf_hash();
 
         return $this->response->setJSON($result);
@@ -58,7 +60,8 @@ class ChecklistSubItemController extends BaseApiController
 
     public function edit($id = null)
     {
-        $id = (int) ($id ?? $this->request->getPost('idSubitem') ?? $this->request->getPost('id_subitem') ?? 0);
+        $data = $this->readRequestData();
+        $id   = (int) ($id ?? $data['idSubitem'] ?? $data['id_subitem'] ?? $this->request->getVar('idSubitem') ?? $this->request->getVar('id_subitem') ?? 0);
         if ($id <= 0) {
             return $this->response->setJSON([
                 'token'    => csrf_hash(),
@@ -68,7 +71,7 @@ class ChecklistSubItemController extends BaseApiController
         }
 
         $userId = (int) user_id();
-        $result = $this->checklistService->updateSubItem($id, (array) $this->request->getPost(), $userId);
+        $result = $this->checklistService->updateSubItem($id, $data, $userId);
         $result['token'] = csrf_hash();
 
         return $this->response->setJSON($result);
@@ -76,7 +79,8 @@ class ChecklistSubItemController extends BaseApiController
 
     public function remove(): ResponseInterface
     {
-        $id = (int) ($this->request->getPost('id_subitem') ?? 0);
+        $data = $this->readRequestData();
+        $id   = (int) ($data['id_subitem'] ?? $data['idSubitem'] ?? $this->request->getVar('id_subitem') ?? 0);
         if ($id <= 0) {
             return $this->response->setJSON([
                 'token'    => csrf_hash(),

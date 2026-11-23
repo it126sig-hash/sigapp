@@ -2,7 +2,7 @@
 
 **Status:** `REFACTORED`  
 **Readiness Score:** `100/100`  
-**Last Synced:** `2026-11-16 20:02:59` @ `af95026`  
+**Last Synced:** `2026-11-23 19:40:10` @ `2b19370`  
 
 ## Purpose
 Master data perencanaan proyek perumahan, cluster, tipe bangunan, dan jalan akses.
@@ -114,7 +114,7 @@ Master data perencanaan proyek perumahan, cluster, tipe bangunan, dan jalan akse
 - `app/Controllers/Api/Proyek/AksesProyekController.php` (121 baris, 5 public methods: `meta()`, `getAll()`, `getOne($id = null)`, `getAkses()`, `edit($id = null)`)
 
 ### Services (5)
-- `app/Services/Proyek/ProyekService.php` (700 baris, 12 public methods)
+- `app/Services/Proyek/ProyekService.php` (701 baris, 12 public methods)
 - `app/Services/Proyek/ClusterService.php` (274 baris, 7 public methods)
 - `app/Services/Proyek/TipeService.php` (527 baris, 7 public methods)
 - `app/Services/Proyek/JalanService.php` (289 baris, 7 public methods)
@@ -137,7 +137,7 @@ Master data perencanaan proyek perumahan, cluster, tipe bangunan, dan jalan akse
 - `app/Views/master` (9 file: `aksesproyek.php`, `cluster.php`, `configcolor.php`, `jalan.php`, `karyawan.php`, `listbank.php`, `pengaturanWarna.php`, `proyek.php`, `tipe.php`)
 
 ### JavaScript (2 file)
-- `public/assets/js/siteplan/planning.js` (1252 baris)
+- `public/assets/js/siteplan/planning.js` (1599 baris)
 - `public/assets/js/active-proyek.js` (218 baris)
 
 ### Zero-Downtime Shims (14 file)
@@ -159,7 +159,7 @@ Master data perencanaan proyek perumahan, cluster, tipe bangunan, dan jalan akse
 ## Key Functions
 - **Controller (`app/Controllers/Api/Proyek/TipeController.php`):** `getAll()`, `getDataTables()` *(menggunakan `readRequestData()` untuk menyatukan parameter JSON, query string, dan form-POST termasuk filter `only_active` dan `is_active`)*, `getOne($id = null)`, `add()`, `edit($id = null)`, `remove($id = null)`, `getListKavling($id = null)`
 - **Controller (`app/Controllers/Api/Proyek/JalanController.php`):** `getRequestData(): array` *(memeriksa header `Content-Type` `application/json` sebelum memanggil `$this->request->getJSON(true)` dan fallback ke `$this->request->getPost()`)*
-- **Service (`app/Services/Proyek/ProyekService.php`):** `getDropdownList()`, `getAll(array $params = [])`, `getOne(int $idProyek)`, `add(IncomingRequest $request)`, `edit(IncomingRequest $request)`
+- **Service (`app/Services/Proyek/ProyekService.php`):** `getDropdownList()`, `getAll(array $params = [])`, `getOne(int $idProyek)`, `add(IncomingRequest $request)`, `edit(IncomingRequest $request)` *(mendukung field upload `'logo'` terlebih dahulu dengan fallback `'logon'` untuk Zero-Downtime web legacy)*
 - **Service (`app/Services/Proyek/ClusterService.php`):** `getDataTables(array $params)`, `getAll(array $params)`, `getOne(int $idCluster)`, `add(array $postData)`, `edit(array $postData)`
 - **Service (`app/Services/Proyek/TipeService.php`):** `getAll(array $params)` *(mendukung `is_active`, `only_active`, `search`, 6 kolom spesifikasi teknis [`jumlah_kamar_tidur`, `jumlah_kamar_mandi`, `spesifikasi_teknis_atap`, `spesifikasi_teknis_dinding`, `spesifikasi_teknis_lantai`, `spesifikasi_teknis_pondasi`], serta access URL gambar [`gambar_tipe_access_url`, `gambar_denah_access_url`, `gambar_kerja_access_url`] pada `format=raw`; format non-raw tetap 8 elemen `[0..7]`)*, `getDataTables(array $params)` *(format `raw` menyertakan `is_active` & URL gambar; format legacy non-raw kini 10 kolom `[0..9]` dengan `is_active` di indeks `[8]` dan `id_tipe` di indeks `[9]`)*, `getListKavling(int $idTipe)`, `getOne(int $idTipe)`, `add(IncomingRequest $request)`, `edit(IncomingRequest $request)`, `requestFields(IncomingRequest $request)`, `validate(...)` *(mendukung `is_active` dengan rule `permit_empty|in_list[0,1]`)*
 - **Service (`app/Services/Proyek/JalanService.php`):** `getIndexData()`, `getAll(array $params)`, `getDataTables(array $params)`, `getOne(int $idJalan)`, `add($input)`, `edit($input)`, `requestFields($input): array` *(memeriksa header `Content-Type` `application/json` sebelum memanggil `$input->getJSON(true)` agar kompatibel dengan payload JSON maupun `form-urlencoded`)*
@@ -215,6 +215,8 @@ _Jalankan `php spark module:deadcode Proyek` untuk mengaudit dead code kandidat.
   - Kelima `App\Controllers\Web\Proyek\*Controller` masih memiliki `wantsJson()` yang mengembalikan `$this->response->setJSON(...)` (mode ganda HTML/JSON sesuai catatan migrasi `2026-11-11`).
 
 ## Change Log
+- `2026-11-23` [`BUGFIX`] — **Kompatibilitas Upload Logo (`'logo'`/`'logon'`) pada `ProyekService::edit()`:**
+  - `app/Services/Proyek/ProyekService.php` (`edit()`, L166): Memeriksa `$this->hasUploadedFile($request, 'logo')` terlebih dahulu sebelum fallback ke `'logon'`, sehingga upload logo proyek dari `sigapp-vue` (`ProyekModal.vue`) dan web legacy `sigapp.dev` sama-sama berjalan Zero-Downtime.
 - `2026-11-22` [`AUDIT`] — Audit verifikasi migrasi modular (`COMPLETED (Catatan Minor)`, Score `100/100`): mencatat query `db_connect()->table()` pada `JalanService.php` (L119–131, L162–163, L204–205, L220–221), `new KavlingModel()` pada `TipeService.php` L344, 5 controller shim `fat_legacy` + 3 rute legacy (`Routes.php` L128, L528, L531), dual-mode `wantsJson()` pada 5 `Web\Proyek\*Controller`, serta duplikasi rute `/aksesproyek` (`Routes.php` L129 & L137).
 - `2026-11-16` [`FEATURE`] — **Enhancement Fitur Target Siteplan (Fase 5–8): Eksposur 6 Kolom Spesifikasi Teknis & Pencarian Tipe Aktif (`TipeService::getAll` `format=raw`):**
   - **Routes & Public Contracts:** Tidak ada perubahan rute; memperluas payload JSON `TipeService::getAll()` pada mode `format=raw` (`GET|POST /api/tipe/all?only_active=1&format=raw`) dengan 6 kolom spesifikasi teknis (`jumlah_kamar_tidur`, `jumlah_kamar_mandi`, `spesifikasi_teknis_atap`, `spesifikasi_teknis_dinding`, `spesifikasi_teknis_lantai`, `spesifikasi_teknis_pondasi`) serta access URL gambar (`gambar_tipe_access_url`, `gambar_denah_access_url`, `gambar_kerja_access_url`) sementara format legacy non-raw tetap terjaga 8 elemen `[0..7]`.

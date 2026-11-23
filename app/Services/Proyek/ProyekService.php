@@ -163,8 +163,9 @@ class ProyekService
             $rules['file'] = $this->siteplanRules('file', 10000);
         }
 
-        if ($this->shouldUpload($request, 'logon', 'no_up_logo')) {
-            $rules['logon'] = $this->logoRules('logon');
+        $logoField = $this->hasUploadedFile($request, 'logo') ? 'logo' : 'logon';
+        if ($this->shouldUpload($request, $logoField, 'no_up_logo')) {
+            $rules[$logoField] = $this->logoRules($logoField);
         }
 
         if ($this->shouldUpload($request, 'logo_pt', 'no_up_logo_pt')) {
@@ -188,8 +189,8 @@ class ProyekService
                 $fields['siteplan'] = $siteplan['location'];
             }
 
-            if (isset($rules['logon'])) {
-                $logo = $this->storeImage($request, 'logon', 'uploads/logo/');
+            if (isset($rules[$logoField])) {
+                $logo = $this->storeImage($request, $logoField, 'uploads/logo/');
                 $fields['logo'] = $logo['location'];
             }
 

@@ -192,7 +192,7 @@ class ProduksiRepository
                 a.username as tanggal_pembangunan_oleh_u,
                 b.username as tanggal_pembangunan_diubah_oleh_u,
                 c.username as tanggal_selesai_pembangunan_diubah_oleh_u,
-                sumurbor, sumurbor_tanggal, sumurbor_keterangan,
+                sumurbor, sumurbor_tanggal, sumurbor_keterangan, kavling.sumurbor_updated,
                 d.username as sumurbor_oleh_u
             ')
             ->where('produksi.id_produksi', $idProduksi)
@@ -204,7 +204,7 @@ class ProduksiRepository
             ->get()->getRow() ?: null;
     }
 
-    public function getSlfList(): array
+    public function getSlfList(?int $idProyek = null): array
     {
         $subQuery = $this->db->table('kavling')
             ->select('GROUP_CONCAT(concat(jalan.nama_jalan," No. ", kavling.no_kavling ) ORDER BY jalan.nama_jalan, kavling.no_kavling SEPARATOR \', \')', false)
@@ -212,12 +212,47 @@ class ProduksiRepository
             ->where('FIND_IN_SET(kavling.id_kavling, list_slf.id_kavling)', null, false)
             ->getCompiledSelect();
 
-        return $this->db->table('list_slf')
-            ->select('list_slf.id, list_slf.no_slf, username, list_slf.created_at')
+        $builder = $this->db->table('list_slf')
+            ->select('
+                list_slf.id,
+                list_slf.id AS id_slf,
+                list_slf.no_slf,
+                list_slf.no_slf AS nomor_slf,
+                list_slf.id_proyek,
+                list_slf.id_kavling,
+                list_slf.tanggal_slf,
+                list_slf.penanggungjawab,
+                list_slf.fungsi_utama,
+                list_slf.fungsi_tambahan,
+                list_slf.jenis_bangunan,
+                list_slf.nama_bangunan,
+                list_slf.nomor_pendaftaran_bangunan,
+                list_slf.penerbitan_slf_no,
+                list_slf.penerbitan_slf_tgl,
+                list_slf.perpanjangan_slf_no,
+                list_slf.perpanjangan_slf_tgl,
+                list_slf.perpanjangan_slf_ke,
+                list_slf.persyaratan_administrasi,
+                list_slf.persyaratan_fungsi_bangunan,
+                list_slf.persyaratan_peruntukan,
+                list_slf.persyaratan_tata_bangunan,
+                list_slf.persyaratan_kelaikan,
+                users.username,
+                users.username AS oleh,
+                list_slf.created_at
+            ')
             ->select("($subQuery) AS kavling", false)
-            ->join('users', 'users.id = list_slf.add_by')
+            ->join('users', 'users.id = list_slf.add_by', 'left');
+
+        if ($idProyek !== null && $idProyek > 0) {
+            $builder->where('list_slf.id_proyek', $idProyek);
+        }
+
+        return $builder
             ->groupBy('list_slf.id')
-            ->get()->getResult();
+            ->orderBy('list_slf.id', 'DESC')
+            ->get()
+            ->getResult();
     }
 
     public function getSlfById(int $id): ?object
@@ -249,7 +284,7 @@ class ProduksiRepository
             ->join('proyek', 'cluster.id_proyek = proyek.id_proyek')
             ->join('tipe', 'tipe.id_tipe = kavling.id_tipe')
             ->join('mkdt', 'mkdt.id_kavling = kavling.id_kavling', 'left')
-            ->join('konsumen', 'konsumen.id_konsumen = mkdt.id_mkdt', 'left')
+            ->join('konsumen', 'konsumen.id_konsumen = mkdt.id_konsumen', 'left')
             ->whereIn('kavling.id_kavling', $idKavlingList)
             ->orderBy('jalan.nama_jalan', 'asc')
             ->orderBy('kavling.no_kavling', 'asc')
@@ -269,22 +304,34 @@ class ProduksiRepository
     public function getKavlingByProyek(int $idProyek, string $search, ?int $idKavling = null): array
     {
         $builder = $this->db->table('kavling')
-            ->select('
+            ->select("
                 kavling.id_kavling,
                 kavling.id_mkdt,
                 kavling.id_produksi,
+                cluster.id_cluster,
+                cluster.nama_cluster,
+                jalan.id_jalan,
                 nama_jalan,
                 no_kavling,
                 nama_konsumen,
+                tipe.id_tipe,
                 tipe.no_tipe_rumah,
-                tipe.tipe_rumah
-            ')
+                tipe.tipe_rumah,
+                tipe.id_gambar_kerja,
+                hargajual.id_tipe AS hj_tipe_rumah,
+                COALESCE(NULLIF(TRIM(hargajual.id_tipe), ''), tipe.tipe_rumah) AS tipe_rumah_aktif,
+                produksi.progres_bangunan,
+                kavling.status_komplain,
+                kavling.id_komplain
+            ")
             ->join('jalan', 'jalan.id_jalan = kavling.id_jalan')
             ->join('cluster', 'cluster.id_cluster = jalan.id_cluster')
             ->join('proyek', 'proyek.id_proyek = cluster.id_proyek')
             ->join('tipe', 'kavling.id_tipe = tipe.id_tipe')
-            ->join('mkdt', 'mkdt.id_kavling = kavling.id_kavling', 'left')
-            ->join('konsumen', 'konsumen.id_konsumen = mkdt.id_mkdt', 'left')
+            ->join('mkdt', 'mkdt.id_mkdt = kavling.id_mkdt', 'left')
+            ->join('konsumen', 'konsumen.id_konsumen = mkdt.id_konsumen', 'left')
+            ->join('hargajual', 'hargajual.id = kavling.harga_akhir', 'left')
+            ->join('produksi', 'produksi.id_produksi = kavling.id_produksi', 'left')
             ->where('proyek.id_proyek', $idProyek);
 
         if ($idKavling && $idKavling > 0) {
@@ -304,7 +351,29 @@ class ProduksiRepository
     public function getKavlingProduksiById(int $idKavling): ?object
     {
         return $this->db->table('kavling')
-            ->select('kavling.id_kavling, kavling.id_produksi')
+            ->select("
+                kavling.id_kavling,
+                kavling.id_produksi,
+                kavling.no_kavling,
+                kavling.sumurbor,
+                kavling.sumurbor_tanggal,
+                kavling.sumurbor_keterangan,
+                kavling.sumurbor_updated,
+                d.username AS sumurbor_oleh_u,
+                jalan.nama_jalan,
+                cluster.nama_cluster,
+                tipe.id_tipe,
+                tipe.no_tipe_rumah,
+                tipe.tipe_rumah,
+                tipe.id_gambar_kerja,
+                hargajual.id_tipe AS hj_tipe_rumah,
+                COALESCE(NULLIF(TRIM(hargajual.id_tipe), ''), tipe.tipe_rumah) AS tipe_rumah_aktif
+            ")
+            ->join('jalan', 'jalan.id_jalan = kavling.id_jalan', 'left')
+            ->join('cluster', 'cluster.id_cluster = jalan.id_cluster', 'left')
+            ->join('tipe', 'tipe.id_tipe = kavling.id_tipe', 'left')
+            ->join('hargajual', 'hargajual.id = kavling.harga_akhir', 'left')
+            ->join('users as d', 'd.id = kavling.sumurbor_oleh', 'left')
             ->where('kavling.id_kavling', $idKavling)
             ->get()
             ->getRow() ?: null;
@@ -548,5 +617,64 @@ class ProduksiRepository
         $data['id_kavling'] = $idKavling;
         $data['id_subitem'] = $idSubitem;
         return (bool) $this->db->table('checklist_work')->insert($data);
+    }
+
+    public function getChecklistSubItemsWithGroup(): array
+    {
+        return $this->db->table('checklist_subitem')
+            ->select('
+                checklist_subitem.id_subitem,
+                checklist_subitem.nama_subitem,
+                NULL AS satuan,
+                checklist_item.id_item,
+                checklist_item.nama_item,
+                checklist_group.id_group,
+                checklist_group.nama_group
+            ')
+            ->join('checklist_item', 'checklist_item.id_item = checklist_subitem.id_item')
+            ->join('checklist_group', 'checklist_item.id_group = checklist_group.id_group')
+            ->where('checklist_item.is_active', 1)
+            ->where('checklist_group.is_active', 1)
+            ->where('checklist_subitem.is_active', 1)
+            ->orderBy('checklist_item.id_group', 'asc')
+            ->orderBy('checklist_item.id_item', 'asc')
+            ->orderBy('checklist_subitem.id_subitem', 'asc')
+            ->get()
+            ->getResult();
+    }
+
+    public function getProyekDetailForSlf(int $idProyek): ?object
+    {
+        if ($idProyek <= 0) {
+            return null;
+        }
+
+        return $this->db->table('proyek')
+            ->select('id_proyek, nama_proyek, alamat_proyek, kelurahan, kecamatan, kota, provinsi, nama_pt, logo, logo_pt, siteplan')
+            ->where('id_proyek', $idProyek)
+            ->get()
+            ->getRow() ?: null;
+    }
+
+    public function hasUpdateTanggalPembangunanAccess(int $userId): bool
+    {
+        if ($userId <= 0) {
+            return false;
+        }
+
+        $rows = $this->db->table('hak_akses')
+            ->where('nama_akses', 'update_tanggal_pembangunan')
+            ->like('id_users', (string) $userId)
+            ->get()
+            ->getResult();
+
+        foreach ($rows as $row) {
+            $ids = array_filter(array_map('trim', explode(';', (string) ($row->id_users ?? ''))));
+            if (in_array((string) $userId, $ids, true)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 }

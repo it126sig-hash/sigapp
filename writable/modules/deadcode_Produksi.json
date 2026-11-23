@@ -8,50 +8,5 @@
         "layer": "Controller",
         "file": "ProduksiController.php",
         "name": "meta"
-    },
-    {
-        "layer": "Service",
-        "file": "ProduksiService.php",
-        "name": "saveBayarProduksi"
-    },
-    {
-        "layer": "Service",
-        "file": "ProduksiService.php",
-        "name": "deleteBayarProduksi"
-    },
-    {
-        "layer": "Service",
-        "file": "ProduksiService.php",
-        "name": "saveKomplainProduksi"
-    },
-    {
-        "layer": "Service",
-        "file": "ProduksiService.php",
-        "name": "saveKomplainSales"
-    },
-    {
-        "layer": "Service",
-        "file": "ProduksiService.php",
-        "name": "batalkanKomplain"
-    },
-    {
-        "layer": "Service",
-        "file": "ProduksiService.php",
-        "name": "saveSerahTerima"
-    },
-    {
-        "layer": "Service",
-        "file": "ProduksiService.php",
-        "name": "saveChecklistSales"
-    },
-    {
-        "layer": "Service",
-        "file": "ProduksiService.php",
-        "name": "addJalan"
-    },
-    {
-        "layer": "Service",
-        "file": "ProduksiService.php",
-        "name": "saveSlf"
     }
 ]

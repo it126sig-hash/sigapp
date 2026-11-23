@@ -186,8 +186,13 @@ class FileAccessService
         return $this->verifySignature($source, $identifier, $variant, $expires, $uid, $sig);
     }
 
-    public function signedUrl(string $source, int $id, int $expiresIn = 3600, ?string $variant = null, bool $download = false, ?int $userId = null): string
+    public function signedUrl(string $source, int $id, int|bool $expiresIn = 3600, ?string $variant = null, bool $download = false, ?int $userId = null): string
     {
+        if (is_bool($expiresIn)) {
+            $download  = $expiresIn;
+            $expiresIn = 3600;
+        }
+
         $uid = $userId ?: (function_exists('user_id') && user_id() ? (int) user_id() : 0);
         $expires = time() + max(60, $expiresIn);
         $sig = $this->generateSignature($source, $id, $variant, $expires, $uid);
@@ -361,28 +366,47 @@ class FileAccessService
 
     public function addAccessUrlsToRows(array $rows, string $source, string $idField = 'id'): array
     {
-        foreach ($rows as $row) {
-            $id = is_array($row) ? ($row[$idField] ?? null) : ($row->{$idField} ?? null);
-            if (!$id) {
-                continue;
-            }
-
-            if (is_array($row)) {
-                $row['access_url'] = $this->accessUrl($source, (int) $id);
-                $row['download_url'] = $this->accessUrl($source, (int) $id, true);
-                if ($source === 'file_produksi') {
-                    $row['thumbnail_url'] = $this->thumbnailUrl($source, (int) $id);
-                }
-            } else {
-                $row->access_url = $this->accessUrl($source, (int) $id);
-                $row->download_url = $this->accessUrl($source, (int) $id, true);
-                if ($source === 'file_produksi') {
-                    $row->thumbnail_url = $this->thumbnailUrl($source, (int) $id);
-                }
-            }
+        foreach ($rows as $index => $row) {
+            $rows[$index] = $this->addAccessUrlsToRow($row, $source, $idField);
         }
 
         return $rows;
+    }
+
+    public function addAccessUrlsToRow(mixed $row, string $source, string $idField = 'id'): mixed
+    {
+        $id = is_array($row) ? ($row[$idField] ?? null) : ($row->{$idField} ?? null);
+        if (!$id) {
+            return $row;
+        }
+
+        $intId          = (int) $id;
+        $accessUrl      = $this->accessUrl($source, $intId);
+        $downloadUrl    = $this->accessUrl($source, $intId, true);
+        $signedUrl      = $this->signedUrl($source, $intId, 3600, null, false);
+        $signedDownload = $this->signedUrl($source, $intId, 3600, null, true);
+
+        if (is_array($row)) {
+            $row['access_url']          = $accessUrl;
+            $row['download_url']        = $downloadUrl;
+            $row['signed_url']          = $signedUrl;
+            $row['signed_download_url'] = $signedDownload;
+            if ($source === 'file_produksi') {
+                $row['thumbnail_url']        = $this->thumbnailUrl($source, $intId);
+                $row['signed_thumbnail_url'] = $this->signedThumbnailUrl($source, $intId);
+            }
+        } elseif (is_object($row)) {
+            $row->access_url          = $accessUrl;
+            $row->download_url        = $downloadUrl;
+            $row->signed_url          = $signedUrl;
+            $row->signed_download_url = $signedDownload;
+            if ($source === 'file_produksi') {
+                $row->thumbnail_url        = $this->thumbnailUrl($source, $intId);
+                $row->signed_thumbnail_url = $this->signedThumbnailUrl($source, $intId);
+            }
+        }
+
+        return $row;
     }
 
     public function addSignedAccessUrlsToRows(array $rows, string $source, string $idField = 'id', int $expiresIn = 3600, ?int $userId = null): array

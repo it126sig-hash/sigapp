@@ -19,6 +19,8 @@ class LegalController extends BaseApiController
         ?LegalRepository $legalRepository = null,
         ?FileAccessService $fileAccessService = null
     ) {
+        helper(['auth', 'active_proyek']);
+
         $this->legalService      = $legalService ?? new LegalService();
         $this->legalRepository   = $legalRepository ?? new LegalRepository();
         $this->fileAccessService = $fileAccessService ?? new FileAccessService();
@@ -27,23 +29,34 @@ class LegalController extends BaseApiController
 
     public function save()
     {
+        if ($denied = $this->ensureMenuAccess(['/legalitas', '/siteplan'])) {
+            return $denied;
+        }
+
+        $postData = $this->readRequestData();
+
+        $this->validation->reset();
         $this->validation->setRules([
             'id_kavling' => [
                 'label' => 'ID Kavling',
-                'rules' => 'required',
+                'rules' => 'required|is_natural_no_zero',
             ],
         ]);
 
-        if ($this->validation->run($this->request->getPost()) === false) {
-            return $this->error($this->validation->listErrors(), 422);
+        if ($this->validation->run($postData) === false) {
+            $errors  = $this->validation->getErrors();
+            $message = implode(' ', $errors) ?: 'Validasi gagal.';
+
+            return $this->error($message, 422, $errors);
         }
 
-        $postData = (array) $this->request->getPost();
-
         try {
-            $this->legalService->simpan($postData);
+            $idLegal = $this->legalService->simpan($postData);
 
-            return $this->success(null, 'Berhasil menginput/memperbaharui data');
+            return $this->success([
+                'id_legal'   => $idLegal,
+                'id_kavling' => (int) ($postData['id_kavling'] ?? 0),
+            ], 'Berhasil menginput/memperbaharui data');
         } catch (\Throwable $e) {
             return $this->error($e->getMessage(), 500);
         }
@@ -51,8 +64,17 @@ class LegalController extends BaseApiController
 
     public function getDataByID()
     {
-        $idLegal   = (int) $this->request->getVar('id_legal');
-        $idKavling = (int) $this->request->getVar('id_kavling');
+        if ($denied = $this->ensureMenuAccess(['/legalitas', '/siteplan'])) {
+            return $denied;
+        }
+
+        $input     = $this->readRequestData();
+        $idLegal   = (int) ($input['id_legal'] ?? 0);
+        $idKavling = (int) ($input['id_kavling'] ?? 0);
+
+        if ($idLegal <= 0 && $idKavling > 0) {
+            $idLegal = $this->legalRepository->getKavlingLegalId($idKavling) ?? 0;
+        }
 
         $legal = $idLegal > 0 ? $this->legalRepository->getLegalDataById($idLegal) : null;
         $taxes = $idKavling > 0 ? $this->legalRepository->getKavlingLegalTaxes($idKavling) : null;
@@ -90,7 +112,12 @@ class LegalController extends BaseApiController
 
     public function removeDoc()
     {
-        $id = $this->request->getVar('id');
+        if ($denied = $this->ensureMenuAccess(['/legalitas', '/siteplan'])) {
+            return $denied;
+        }
+
+        $input = $this->readRequestData();
+        $id    = $input['id'] ?? null;
         if (empty($id)) {
             return $this->error('Tidak dapat melanjutkan perintah', 400);
         }
@@ -106,9 +133,20 @@ class LegalController extends BaseApiController
 
     public function getDoc()
     {
-        $idKavling = (int) $this->request->getVar('id_kavling');
+        if ($denied = $this->ensureMenuAccess(['/legalitas', '/siteplan'])) {
+            return $denied;
+        }
+
+        $input     = $this->readRequestData();
+        $idKavling = (int) ($input['id_kavling'] ?? 0);
         $data      = $this->legalRepository->getFileDocsByKavling($idKavling, 5);
         $data      = $this->fileAccessService->addAccessUrlsToRows($data, 'file_upload');
+
+        foreach ($data as $row) {
+            $kategoriCode        = isset($row->kategori) && is_numeric($row->kategori) ? (int) $row->kategori : 0;
+            $row->kategori       = $kategoriCode;
+            $row->kategori_label = $this->legalService->getDocumentCategoryLabel($kategoriCode);
+        }
 
         return $this->respond([
             'success'  => true,
@@ -120,33 +158,58 @@ class LegalController extends BaseApiController
 
     public function upload()
     {
+        if ($denied = $this->ensureMenuAccess(['/legalitas', '/siteplan'])) {
+            return $denied;
+        }
+
+        $postData      = $this->readRequestData();
+        $uploadedFiles = $this->request->getFiles();
+        $fileField     = isset($uploadedFiles['fl-file'])
+            ? 'fl-file'
+            : (isset($uploadedFiles['file']) ? 'file' : 'fl-file');
+
+        $this->validation->reset();
         $this->validation->setRules([
+            'id_kavling'   => ['label' => 'ID Kavling', 'rules' => 'required|is_natural_no_zero'],
             'fl-file_name' => ['label' => 'Nama File', 'rules' => 'permit_empty|max_length[255]'],
-            'fl-file'      => [
+            'file_name'    => ['label' => 'Nama File', 'rules' => 'permit_empty|max_length[255]'],
+            $fileField     => [
                 'label' => 'File',
-                'rules' => 'uploaded[fl-file]'
-                    . '|mime_in[fl-file,application/pdf]'
-                    . '|max_size[fl-file,12000]',
+                'rules' => "uploaded[{$fileField}]"
+                    . "|mime_in[{$fileField},application/pdf,image/jpeg,image/png,image/webp]"
+                    . "|max_size[{$fileField},12000]",
             ],
         ]);
 
-        if ($this->validation->run($this->request->getPost()) === false) {
-            return $this->error($this->validation->listErrors(), 422);
+        if ($this->validation->run($postData) === false) {
+            $errors  = $this->validation->getErrors();
+            $message = implode(' ', $errors) ?: 'Validasi gagal.';
+
+            return $this->error($message, 422, $errors);
         }
+
+        $kategori   = $postData['kategori'] ?? $postData['fl-kategori'] ?? 0;
+        $fileName   = (string) ($postData['file_name'] ?? $postData['fl-file_name'] ?? '');
+        $keterangan = (string) ($postData['keterangan'] ?? $postData['fl-keterangan'] ?? '');
 
         $data = [
             'id_group'   => 5,
-            'id_kavling' => $this->request->getPost('id_kavling'),
-            'kategori'   => $this->request->getPost('fl-kategori'),
-            'file_name'  => $this->request->getPost('fl-file_name'),
-            'keterangan' => $this->request->getPost('fl-keterangan'),
+            'id_kavling' => (int) ($postData['id_kavling'] ?? 0),
+            'kategori'   => is_numeric($kategori) ? (int) $kategori : 0,
+            'file_name'  => $fileName,
+            'keterangan' => $keterangan,
         ];
 
         try {
-            $file = $this->request->getFile('fl-file');
-            $this->legalService->uploadDocument($file, $data);
+            $file  = $this->request->getFile($fileField);
+            $docId = $this->legalService->uploadDocument($file, $data);
 
-            return $this->success(null, 'Data has been inserted successfully');
+            return $this->success([
+                'id'             => $docId,
+                'id_kavling'     => $data['id_kavling'],
+                'kategori'       => $data['kategori'],
+                'kategori_label' => $this->legalService->getDocumentCategoryLabel($data['kategori']),
+            ], 'Data has been inserted successfully');
         } catch (\Throwable $e) {
             return $this->error($e->getMessage(), 500);
         }
@@ -154,24 +217,34 @@ class LegalController extends BaseApiController
 
     public function edit_others()
     {
+        if ($denied = $this->ensureMenuAccess(['/legalitas', '/siteplan'])) {
+            return $denied;
+        }
+
+        $postData = $this->readRequestData();
+
+        $this->validation->reset();
         $this->validation->setRules([
             'id_kavling' => [
                 'label' => 'No Rumah',
-                'rules' => 'permit_empty|max_length[255]',
+                'rules' => 'required|is_natural_no_zero',
             ],
         ]);
 
-        if ($this->validation->run($this->request->getPost()) === false) {
-            return $this->error($this->validation->listErrors(), 422);
+        if ($this->validation->run($postData) === false) {
+            $errors  = $this->validation->getErrors();
+            $message = implode(' ', $errors) ?: 'Validasi gagal.';
+
+            return $this->error($message, 422, $errors);
         }
 
         $data = [
-            'legal_luas'       => $this->request->getPost('f_legal_luas'),
-            'legal_keterangan' => $this->request->getPost('f_legal_keterangan'),
+            'legal_luas'       => $postData['f_legal_luas'] ?? $postData['legal_luas'] ?? null,
+            'legal_keterangan' => $postData['f_legal_keterangan'] ?? $postData['legal_keterangan'] ?? null,
         ];
 
         try {
-            $idKavling = (int) $this->request->getPost('id_kavling');
+            $idKavling = (int) ($postData['id_kavling'] ?? 0);
             $this->legalService->editOthers($data, $idKavling);
 
             return $this->success(null, 'Data berhasil diperbaharui');
@@ -182,25 +255,47 @@ class LegalController extends BaseApiController
 
     public function getListLegalitas()
     {
-        $var = (array) $this->request->getVar();
+        if ($denied = $this->ensureMenuAccess(['/legalitas', '/siteplan'])) {
+            return $denied;
+        }
+
+        $var              = $this->readRequestData();
         $var['id_proyek'] = resolve_active_proyek_id($var['id_proyek'] ?? null);
+        $idProyek         = !empty($var['id_proyek']) ? (int) $var['id_proyek'] : null;
+
+        $statusLegal = (string) ($var['status_legal'] ?? 'has_legal');
+        if (!in_array($statusLegal, ['has_legal', 'empty_legal', 'all'], true)) {
+            $statusLegal = 'has_legal';
+        }
+        $var['status_legal'] = $statusLegal;
+
+        if ($this->isRawFormat()) {
+            $page          = max(1, (int) ($var['page'] ?? 1));
+            $perPage       = max(1, min(100, (int) ($var['per_page'] ?? 15)));
+            $var['start']  = ($page - 1) * $perPage;
+            $var['length'] = $perPage;
+
+            $results         = $this->legalRepository->getDatatableLegalitasData($var);
+            $recordsFiltered = $this->legalRepository->getDatatableLegalitasFilteredCount($var);
+            $recordsTotal    = $this->legalRepository->getDatatableLegalitasTotalCount($idProyek, $statusLegal);
+            $lastPage        = max(1, (int) ceil($recordsFiltered / $perPage));
+
+            return $this->success([
+                'items' => $results,
+                'meta'  => [
+                    'page'             => $page,
+                    'per_page'         => $perPage,
+                    'total'            => $recordsFiltered,
+                    'last_page'        => $lastPage,
+                    'records_total'    => $recordsTotal,
+                    'records_filtered' => $recordsFiltered,
+                ],
+            ], 'Data legalitas berhasil dimuat');
+        }
 
         $results         = $this->legalRepository->getDatatableLegalitasData($var);
         $recordsFiltered = $this->legalRepository->getDatatableLegalitasFilteredCount($var);
-        $recordsTotal    = $this->legalRepository->getDatatableLegalitasTotalCount();
-
-        $format = $this->request->getVar('format');
-        if ($format === 'raw') {
-            return $this->respond([
-                'success'         => true,
-                'messages'        => 'Data legalitas berhasil dimuat',
-                'token'           => csrf_hash(),
-                'draw'            => isset($var['draw']) ? (int) $var['draw'] : 1,
-                'recordsFiltered' => $recordsFiltered,
-                'recordsTotal'    => $recordsTotal,
-                'data'            => $results,
-            ]);
-        }
+        $recordsTotal    = $this->legalRepository->getDatatableLegalitasTotalCount($idProyek, $statusLegal);
 
         $dataArray = [];
         $no        = isset($var['start']) ? (int) $var['start'] : 0;
@@ -249,51 +344,27 @@ class LegalController extends BaseApiController
 
     public function meta()
     {
-        $activeProyekId = resolve_active_proyek_id($this->request->getVar('id_proyek'));
-        $db             = \Config\Database::connect();
-
-        $proyekList = $db->table('proyek')
-            ->select('id_proyek, nama_proyek, kode_keuangan as alias')
-            ->orderBy('nama_proyek', 'ASC')
-            ->get()->getResult();
-
-        $clusterList = [];
-        $jalanList   = [];
-
-        if ($activeProyekId) {
-            $clusterList = $db->table('cluster')
-                ->select('id_cluster, nama_cluster, id_proyek')
-                ->where('id_proyek', $activeProyekId)
-                ->orderBy('nama_cluster', 'ASC')
-                ->get()->getResult();
-
-            $clusterIds = array_column($clusterList, 'id_cluster');
-            if (!empty($clusterIds)) {
-                $jalanList = $db->table('jalan')
-                    ->select('id_jalan, nama_jalan, id_cluster')
-                    ->whereIn('id_cluster', $clusterIds)
-                    ->orderBy('nama_jalan', 'ASC')
-                    ->get()->getResult();
-            }
+        if ($denied = $this->ensureMenuAccess(['/legalitas', '/siteplan'])) {
+            return $denied;
         }
 
-        $documentCategories = [
-            'Sertifikat',
-            'PBB',
-            'PBG/IMB',
-            'BPHTB',
-            'PPH',
-            'AJB/PPJB',
-            'Lain-lain',
-        ];
+        $input          = $this->readRequestData();
+        $activeProyekId = resolve_active_proyek_id($input['id_proyek'] ?? null);
+
+        $proyekList  = $this->legalRepository->getProyekOptions();
+        $clusterList = $this->legalRepository->getClusterOptionsByProyek($activeProyekId);
+        $clusterIds  = array_map(static fn (object $c): int => (int) $c->id_cluster, $clusterList);
+        $jalanList   = $this->legalRepository->getJalanOptionsByClusterIds($clusterIds);
+
+        $documentCategories = $this->legalService->getDocumentCategories();
 
         $permissions = [
             'can_view'   => true,
-            'can_manage' => in_groups(['Admin', 'Legal', 'Direksi', 1, 5, 9]),
-            'can_edit'   => in_groups(['Admin', 'Legal', 1, 5]),
-            'can_delete' => in_groups(['Admin', 'Legal', 1, 5]),
-            'can_upload' => in_groups(['Admin', 'Legal', 1, 5]),
-            'is_admin'   => in_groups(['Admin', 1]),
+            'can_manage' => in_groups(['Admin', 'Legal', 'Direksi', 1, 5, 9, '1', '5', '9']),
+            'can_edit'   => in_groups(['Admin', 'Legal', 1, 5, '1', '5']),
+            'can_delete' => in_groups(['Admin', 'Legal', 1, 5, '1', '5']),
+            'can_upload' => in_groups(['Admin', 'Legal', 1, 5, '1', '5']),
+            'is_admin'   => in_groups(['Admin', 1, '1']),
         ];
 
         return $this->success([

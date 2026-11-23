@@ -7,6 +7,16 @@ use App\Services\FileAccessService;
 
 class LegalService
 {
+    public const DOCUMENT_CATEGORIES = [
+        ['value' => 2,  'label' => 'AJB'],
+        ['value' => 3,  'label' => 'PPJB'],
+        ['value' => 5,  'label' => 'PBB'],
+        ['value' => 6,  'label' => 'BAST'],
+        ['value' => 7,  'label' => 'BPHTB'],
+        ['value' => 14, 'label' => 'IMB / PBG'],
+        ['value' => 0,  'label' => 'Lainnya'],
+    ];
+
     protected LegalRepository $legalRepository;
     protected FileAccessService $fileAccessService;
     protected $db;
@@ -20,39 +30,109 @@ class LegalService
         $this->db                = \Config\Database::connect();
     }
 
-    public function simpan(array $data): bool
+    public function getDocumentCategories(): array
     {
-        // Validasi dan format angka kembali (pbb_pecah_*)
-        if (isset($data['pbb_pecah_jumlah_tagihan'])) {
-            $data['pbb_pecah_jumlah_tagihan'] = $this->cleanNumeric($data['pbb_pecah_jumlah_tagihan']);
+        return self::DOCUMENT_CATEGORIES;
+    }
+
+    public function getDocumentCategoryLabel(int|string|null $kategori): string
+    {
+        $code = is_numeric($kategori) ? (int) $kategori : 0;
+        foreach (self::DOCUMENT_CATEGORIES as $cat) {
+            if ($cat['value'] === $code) {
+                return $cat['label'];
+            }
         }
-        if (isset($data['pbb_pecah_njop_bumi'])) {
-            $data['pbb_pecah_njop_bumi'] = $this->cleanNumeric($data['pbb_pecah_njop_bumi']);
+
+        return 'Lainnya';
+    }
+
+    public function simpan(array $data): int
+    {
+        $numericFields = [
+            'pbb_pecah_jumlah_tagihan',
+            'pbb_pecah_njop_bumi',
+            'pbb_pecah_njop_bangunan',
+            'pbb_pecah_luas_bangunan',
+            'sertifikat_split_luas_tanah',
+            'bphtb_nominal_disetujui',
+            'pph_nominal_bayar',
+            'pph_nominal_validasi',
+            'pph_nominal_disetujui',
+        ];
+        foreach ($numericFields as $field) {
+            if (array_key_exists($field, $data)) {
+                $data[$field] = $data[$field] === null ? null : $this->cleanNumeric($data[$field]);
+            }
         }
-        if (isset($data['pbb_pecah_njop_bangunan'])) {
-            $data['pbb_pecah_njop_bangunan'] = $this->cleanNumeric($data['pbb_pecah_njop_bangunan']);
+
+        $dateFields = [
+            'pbb_pecah_tanggal_bayar',
+            'pbb_tgl_pembetulan',
+            'pbb_balik_nama_tgl_pengiriman',
+            'pbg_tanggal_terbit',
+            'pbg_tanggal_pengajuan',
+            'pbg_tanggal_kirim',
+            'pbg_tanggal_terbit_revisi',
+            'bphtb_tanggal_verifikasi',
+            'bphtb_jatuh_tempo',
+            'bphtb_perpanjang_jatuh_tempo',
+            'bphtb_tanggal_pembayaran',
+            'bphtb_tanggal_validasi',
+            'sertifikat_split_tanggal_terbit',
+            'sertifikat_split_tanggal_berakhir',
+            'sertifikat_split_tanggal_surat_ukur',
+            'sertifikat_balik_nama_tgl_pengiriman',
+            'pph_tgl_bayar',
+            'pph_tanggal_validasi',
+            'pph_tgl_permohonan',
+            'pph_tgl_selesai',
+            'ajb_tanggal',
+            'ajb_tanggal_dikirim',
+            'ppjb_tanggal',
+        ];
+        foreach ($dateFields as $field) {
+            if (array_key_exists($field, $data)) {
+                $val = is_string($data[$field]) ? trim($data[$field]) : $data[$field];
+                if ($val === '' || $val === '0000-00-00' || $val === null) {
+                    $data[$field] = null;
+                }
+            }
         }
+
+        $idKavling = (int) ($data['id_kavling'] ?? 0);
+        $idLegal   = (int) ($data['id_legal'] ?? 0);
+        if ($idLegal <= 0 && $idKavling > 0) {
+            $existingIdLegal = $this->legalRepository->getKavlingLegalId($idKavling);
+            if ($existingIdLegal !== null && $existingIdLegal > 0) {
+                $idLegal = $existingIdLegal;
+            }
+        }
+        unset($data['id_legal']);
 
         $this->db->transStart();
 
         try {
-            if (empty($data['id_legal'])) {
+            if ($idLegal <= 0) {
                 // Insert data baru
-                $data['add_by'] = user_id();
+                $data['add_by']     = user_id();
                 $data['created_at'] = date('Y-m-d H:i:s');
 
-                $insertID = $this->legalRepository->insertLegal($data);
-                if ($insertID) {
-                    $this->legalRepository->updateKavlingLegal((int) $data['id_kavling'], (int) $insertID);
+                $insertID = (int) $this->legalRepository->insertLegal($data);
+                if ($insertID > 0) {
+                    if ($idKavling > 0) {
+                        $this->legalRepository->updateKavlingLegal($idKavling, $insertID);
+                    }
+                    $idLegal = $insertID;
                 } else {
                     throw new \Exception('Gagal menambahkan data legal.');
                 }
             } else {
                 // Update data yang sudah ada
-                $data['edit_by'] = user_id();
+                $data['edit_by']    = user_id();
                 $data['updated_at'] = date('Y-m-d H:i:s');
 
-                if (!$this->legalRepository->updateLegal((int) $data['id_legal'], $data)) {
+                if (!$this->legalRepository->updateLegal($idLegal, $data)) {
                     throw new \Exception('Gagal memperbaharui data legal.');
                 }
             }
@@ -63,7 +143,7 @@ class LegalService
                 throw new \Exception('Transaksi database gagal.');
             }
 
-            return true;
+            return $idLegal;
         } catch (\Throwable $e) {
             $this->db->transRollback();
             throw $e;
@@ -140,7 +220,7 @@ class LegalService
         }
     }
 
-    public function uploadDocument($file, array $data): bool
+    public function uploadDocument($file, array $data): int
     {
         $originalname = $file->getClientName();
         $name         = $file->getRandomName();
@@ -153,11 +233,12 @@ class LegalService
         $data['upload_at']        = date('Y-m-d H:i:s');
         $data['upload_by']        = user_id();
 
-        if (!$this->legalRepository->insertFileDoc($data)) {
+        $insertId = (int) $this->legalRepository->insertFileDoc($data);
+        if ($insertId <= 0) {
             throw new \Exception('Gagal menyimpan referensi file ke database.');
         }
 
-        return true;
+        return $insertId;
     }
 
     public function editOthers(array $data, int $id_kavling): bool

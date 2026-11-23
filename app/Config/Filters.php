@@ -57,9 +57,11 @@ class Filters extends BaseFilters
     public array $required = [
         'before' => [
             'forcehttps', // Force Global Secure Requests
+            'cors',       // Handle CORS preflight before routing
             'pagecache',  // Web Page Caching
         ],
         'after' => [
+            'cors',        // Ensure CORS headers on all responses (including 401/404)
             'pagecache',   // Web Page Caching
             'performance', // Performance Metrics
             'toolbar',     // Debug Toolbar
@@ -74,14 +76,12 @@ class Filters extends BaseFilters
      */
     public array $globals = [
         'before' => [
-            'cors',
             'honeypot',
             'login' => ['except' => ['landing', 'login', 'privacy-policy', 'toc', 'api/public', 'api/public/*', 'bpb/verify/*', 'api/auth/login']],
             // 'csrf',
             // 'invalidchars',
         ],
         'after' => [
-            'cors',
             // 'honeypot',
             // 'secureheaders',
         ],

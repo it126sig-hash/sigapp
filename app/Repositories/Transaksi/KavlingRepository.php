@@ -244,6 +244,8 @@ class KavlingRepository
                 tipe.tipe_rumah,
                 tipe.no_tipe_rumah,
                 tipe.id_gambar_kerja,
+                hargajual.id_tipe as hj_tipe_rumah,
+                COALESCE(NULLIF(TRIM(hargajual.id_tipe), \'\'), tipe.tipe_rumah) as tipe_rumah_aktif,
                 produksi.progres_bangunan,
                 produksi.tanggal_pembangunan,
                 produksi.tanggal_rencana_selesai_pembangunan,
@@ -354,6 +356,19 @@ class KavlingRepository
             false
         );
 
+        $builder->join(
+            "(SELECT pg.id_plan,
+                     MAX(pay.tanggal_cair) AS pa_tanggal_cair_last
+              FROM pencairan_akad_payment pay
+              JOIN pencairan_akad_pengajuan pg ON pg.id = pay.id_pengajuan
+              WHERE pg.status <> 'void'
+                AND pay.total_cair > 0
+              GROUP BY pg.id_plan) papay",
+            'papay.id_plan = pap.id',
+            'left',
+            false
+        );
+
         $builder->select('
             pap.id AS pa_plan_id,
             pap.total_hasil_akad AS pa_total_hasil_akad,
@@ -361,7 +376,8 @@ class KavlingRepository
             papg.pa_pengajuan_outstanding_count,
             papg.pa_total_cair_sum,
             papg.pa_tanggal_pengajuan,
-            papg.pa_tanggal_pengajuan_last
+            papg.pa_tanggal_pengajuan_last,
+            papay.pa_tanggal_cair_last
         ', true);
     }
 
