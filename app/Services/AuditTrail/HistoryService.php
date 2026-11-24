@@ -21,6 +21,7 @@ class HistoryService
         'master_jalan'    => 'Master Jalan',
         'master_tipe'     => 'Master Tipe',
         'fee_sales'       => 'Fee Sales External',
+        'copilot'         => 'AI Copilot',
     ];
 
     protected HistoryRepository $repo;

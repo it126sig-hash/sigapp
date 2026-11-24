@@ -1072,6 +1072,13 @@ $routes->group('api/public', [
     });
 });
 
+$routes->group('api/public', [
+    'namespace' => 'App\Controllers\Api\Public',
+    'filter'    => 'throttle:60,60',
+], function ($routes) {
+    $routes->post('copilot/telegram/webhook', 'CopilotTelegramController::webhook');
+});
+
 // ── Master Sales External & Fee Sales ──────────────────────────────
 $routes->get('master-sales', '\App\Controllers\Web\SalesExternal\SalesExternalController::index', ['filter' => ['login', 'role:Admin,MKDT']]);
 $routes->get('fee-sales', '\App\Controllers\Web\SalesExternal\SalesExternalController::feeSales', ['filter' => 'login']);
@@ -1115,6 +1122,18 @@ $routes->group('api/permohonan', ['namespace' => 'App\Controllers\Api\Permohonan
     $routes->get('meta', 'PermohonanController::meta');
     $routes->get('summary', 'PermohonanController::summary');
     $routes->get('list', 'PermohonanController::list');
+});
+
+// ── AI Copilot (Web & API Routes) ──────────────────────────────────
+$routes->get('copilot', '\App\Controllers\Web\Copilot\CopilotController::index', ['filter' => 'login']);
+$routes->group('api/copilot', ['namespace' => 'App\Controllers\Api\Copilot', 'filter' => 'login'], function ($routes) {
+    $routes->get('meta', 'ChatController::meta');
+    $routes->get('history', 'ChatController::history');
+    $routes->post('chat', 'ChatController::chat');
+    $routes->get('settings', 'SettingController::index');
+    $routes->post('settings', 'SettingController::update');
+    $routes->post('telegram/link', 'TelegramLinkController::create');
+    $routes->delete('telegram/link', 'TelegramLinkController::delete');
 });
 
 
