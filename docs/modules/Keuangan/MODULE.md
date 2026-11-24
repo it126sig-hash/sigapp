@@ -2,7 +2,7 @@
 
 **Status:** `REFACTORED`  
 **Readiness Score:** `100/100`  
-**Last Synced:** `2026-11-19 11:59:10` @ `3b2ba76`  
+**Last Synced:** `2026-11-24 11:09:42` @ `7609063`  
 
 ## Purpose
 Sentralisasi finansial: Cash-In penagihan & pembayaran, Cash-Out subkon & operasional, SPP, bank KPR, pajak, dan ledger kas.
@@ -374,9 +374,9 @@ Sentralisasi finansial: Cash-In penagihan & pembayaran, Cash-Out subkon & operas
 - `printKuitansi($var)`
 - `printKuitansiUm($var)`
 - `printTagihan(string $noInv, int $actorId)`
-- `exportPBataloskonPdf($id_proyek, $id_cluster, $id_jalan)`
-- `exportPoskonPdf($id_proyek, $id_cluster, $id_jalan, $status)`
-- `exportPoskonXlsx($id_proyek, $id_cluster, $id_jalan, $status)`
+- `exportPBataloskonPdf($id_proyek, $id_cluster, $id_jalan, ?string $progressToken = null)`
+- `exportPoskonPdf($id_proyek, $id_cluster, $id_jalan, $status, array $filters = [], ?string $progressToken = null)`
+- `exportPoskonXlsx($id_proyek, $id_cluster, $id_jalan, $status, array $filters = [], ?string $progressToken = null)`
 #### `DanaJaminanService.php`
 - `getData(int $idMkdt, int $idKavling)`
 - `saveDanaAkad($request, int $actorId)`
@@ -458,7 +458,7 @@ Sentralisasi finansial: Cash-In penagihan & pembayaran, Cash-Out subkon & operas
 - `app/Services/Keuangan/Cashout/CashoutSubkonService.php` (919 baris, 13 public methods)
 - `app/Services/Keuangan/CashInReportService.php` (212 baris, 4 public methods)
 - `app/Services/Keuangan/HasilAkadReportService.php` (199 baris, 3 public methods)
-- `app/Services/Keuangan/PrintService.php` (720 baris, 7 public methods)
+- `app/Services/Keuangan/PrintService.php` (831 baris, 7 public methods)
 - `app/Services/Keuangan/DanaJaminanService.php` (739 baris, 11 public methods)
 - `app/Services/Keuangan/DireksiService.php` (372 baris, 9 public methods)
 - `app/Services/Keuangan/PenagihanService.php` (940 baris, 14 public methods)
@@ -517,9 +517,6 @@ Sentralisasi finansial: Cash-In penagihan & pembayaran, Cash-Out subkon & operas
 - `public/assets/js/cashout_kavling/index.js` (128 baris)
 - `public/assets/js/laporan-cash-in.js` (473 baris)
 - `public/assets/js/laporan-hasil-akad.js` (721 baris)
-
-### CSS (1 file)
-- `public/assets/css/booking-fee.css` (277 baris)
 
 ### Zero-Downtime Shims (44 file)
 - `app/Controllers/Keuangan.php`
@@ -661,7 +658,7 @@ Sentralisasi finansial: Cash-In penagihan & pembayaran, Cash-Out subkon & operas
 - **Service (`app/Services/Keuangan/Cashout/CashoutSubkonService.php`):** `getIndexData()`, `getMetaPayload()`, `getDataTables(array $var)`, `getDataTablesRaw(array $var)` (delegasi langsung ke `CashoutSubkonRepo::getDataTables()` untuk `?format=raw`), `getDetailList(int $id_cashout_subkon)`, `getCashoutSubkon(array $id_kavlings, ?int $id_cashout_subkon = null)`, `saveCashoutSubkon($post)`, `turunJatuhTempo($id_detail, $tanggal_jatuh_tempo, $berita_acara)`, `ajukanSPP($id_detail, $spp_no, $spp_tgl)`, `ajukanPencairan($id_detail, $spp_no, $spp_tgl, $pencairan_tgl)`, `pembayaran($id_detail, $cek_no, $cek_tgl)`, `getHistory($id_cashout_subkon)`, `num($number)`.
 - **Service (`app/Services/Keuangan/CashInReportService.php`):** `getAvailableYears(int $idProyek)`, `getSummary(int $idProyek, int $yearA, ?int $yearB = null)`, `getDetail(int $idProyek, array $request)`, `monthLabel(int $month)`
 - **Service (`app/Services/Keuangan/HasilAkadReportService.php`):** `getAvailableYears(int $idProyek)`, `getSummary(int $idProyek, int $yearA, ?int $yearB = null)`, `getDetail(int $idProyek, array $request)`. Mendukung kategori aktif `'akad'` berdampingan dengan backward-compatibility `'penjualan'`, `'pengajuan'`, dan `'cair'`; kalkulasi key finansial `total_hasil_akad` (akumulasi `m.harga_kpr_acc` dari `mkdt`), `total_akad`, dan `total_penjualan` pada payload summary bulanan & total tahunan via helper `assignAkadRow()` dan `emptyAmounts()`; normalisasi parameter request dan whitelist ordering column DataTables detail (`konsumen`, `kavling`, `tipe_rumah`, `total_hasil_akad`, `nominal`, `booking_tgl`, `akad_tgl`, `harga_jual`, `total_sudah_cair`, `tanggal_pengajuan`, `tanggal_cair`) via `normalizeDataTableRequest()`.
-- **Service (`app/Services/Keuangan/PrintService.php`):** `printSpptb(int $idKavling, int $idMkdt, int $idProyek)` (merender PDF `pdf/spptb-new` menggunakan `TransaksiRepository::getSpptbData()`, termasuk kolom `konsumen.status_pernikahan`), `printKuitansi($var)`, `printKuitansiUm($var)`, `printTagihan(string $noInv, int $actorId)` (Render PDF invoice/surat penagihan via mPDF dengan validasi `invoice_log` dan `kopsurat`, melempar `\DomainException` jika data tidak ditemukan), `exportPBataloskonPdf($id_proyek, $id_cluster, $id_jalan)`, `exportPoskonPdf($id_proyek, $id_cluster, $id_jalan, $status)`
+- **Service (`app/Services/Keuangan/PrintService.php`):** `printSpptb(int $idKavling, int $idMkdt, int $idProyek)` (merender PDF `pdf/spptb-new` menggunakan `TransaksiRepository::getSpptbData()`, termasuk kolom `konsumen.status_pernikahan`), `printKuitansi($var)`, `printKuitansiUm($var)`, `printTagihan(string $noInv, int $actorId)` (Render PDF invoice/surat penagihan via mPDF dengan validasi `invoice_log` dan `kopsurat`, melempar `\DomainException` jika data tidak ditemukan), `exportPBataloskonPdf($id_proyek, $id_cluster, $id_jalan, ?string $progressToken = null)`, `exportPoskonPdf($id_proyek, $id_cluster, $id_jalan, $status, array $filters = [], ?string $progressToken = null)`, `exportPoskonXlsx($id_proyek, $id_cluster, $id_jalan, $status, array $filters = [], ?string $progressToken = null)` (orkestrasi ekspor PDF/XLSX Posisi Konsumen menggunakan filter penuh via `buildPoskonExportRows()`, resolusi judul proyek aman `resolvePoskonProjectName()`, pelaporan progress batch per baris `reportRowIterationProgress()`, dan guard `0` baris).
 - **Service (`app/Services/Keuangan/DanaJaminanService.php`):** `getData(int $idMkdt, int $idKavling)`, `saveDanaAkad($request, int $actorId)`, `listPengajuan(int $idKavling)`, `storePengajuan($request, int $actorId)`, `cairkanPengajuan(int $idPengajuan, $request, int $actorId)`, `getHistory(int $idKavling)`, `rejectLegacyToggle()`, `getListDajam()`, `getMetaPayload()`, `getDownloadFile(int $idPengajuan)` (resolusi path lampiran dan signed download URL via `FileAccessService`), `getDanaAkadDetail(int $idMkdt, int $idKavling = 0)` (konsolidasi detail MKDT, konsumen, `list_dajam`, `dana_akad`, dan `list_pengajuan`).
 - **Repository (`app/Repositories/Keuangan/BankRepository.php`):** `getAllBanks(?string $search = null)`, `getActiveBanks()`, `getBankById(int $id)`, `insertBank(array $data)`, `updateBank(int $id, array $data)`, `deleteBank(int $id)`
 - **Repository (`app/Repositories/Keuangan/KeuanganRepository.php`):** `getTagihanById(int $idMkdt)`, `getTagihanTurunKPRById(int $idMkdt)`, `getAllJatuhTempo($id_proyek)`, `getLIKeu()`, `getBelumLunasQuery()`, `getJatuhTempoByProyek(?int $idProyek = null)` (query daftar konsumen/kavling belum lunas per proyek untuk jatuh tempo KPR), `getRiwayatSuratQuery(int $idProyek, $idCluster = null, $idJalan = null)` (builder query riwayat surat penagihan `invoice_log` per proyek/cluster/jalan)
@@ -859,6 +856,13 @@ _Jalankan `php spark module:deadcode Keuangan` untuk mengaudit dead code kandida
   - 6 Service lain (`PembayaranService`, `PajakService`, `CashOutService`, `CashoutSubkonService`, `DireksiService`, `PenagihanService`) hanya memakai `db_connect()` untuk transaksi DB tanpa `->table()`/`->query()` langsung.
 
 ## Change Log
+- **`2026-11-24` [`FEATURE`] — Sinkronisasi Filter Aktif & Progress Tracking pada `PrintService` Export Posisi Konsumen (Caller Lintas Modul: `MKDT`):**
+  - **Routes & Public Contracts:** Tidak ada perubahan rute HTTP di modul `Keuangan`. Memperluas parameter opsional pada `PrintService::exportPoskonPdf()`, `PrintService::exportPoskonXlsx()`, `PrintService::exportPBataloskonPdf()`, dan `PrintService::exportBatalPoskonXlsx()` dengan `array $filters = []` dan `?string $progressToken = null` (kompatibel penuh dengan pemanggil lama).
+  - **Controller / Service / Repo / Model:**
+    - `app/Services/Keuangan/PrintService.php`: Menambahkan helper `buildPoskonExportRows()` (memakai ulang `PosisiKonsumenRepository::getBaseQuery(null)`, `applyBaseFilters()`, dan `applyBaseSearch()`), `resolvePoskonProjectName()` (guard nama proyek aman untuk `0` baris), dan `reportRowIterationProgress()` (lapor progress batch ke `PosisiKonsumenService::writeExportProgress()`), serta menghapus raw `header(...)` attachment pada `exportPoskonXlsx()` yang sebelumnya berisiko bentrok dengan respon JSON.
+  - **View / CSS / JS:**
+    - `app/Views/pdf/poskon.php`: Menambahkan guard array `$poskon` kosong agar tidak memicu `Undefined array key 0` saat hasil filter export bernilai `0` baris.
+  - **Deprecations:** Tidak ada.
 - `2026-11-22` [`AUDIT`] — Audit verifikasi migrasi modular: status ledger `COMPLETED (Catatan Minor)` (Score 100/100, 147 rute eksplisit modular); temuan minor meliputi 4 orphan methods `db_connect()` di shim `Keuangan.php` (L248–368), `setJSON()` pada `Web\Keuangan\DireksiController::export_xlsx()` (L26–33), query `->table()`/`->query()` langsung di 9 Service, mutasi tabel `mkdt` di `DanaJaminanService` & `KeuanganService`, serta tabel `pencairan_akad_batch` yang belum tercatat di `owner_tables`.
 - **`2026-11-19` [`BUGFIX`] — Perbaikan Overflow Tombol & Metadata Verifier Card Booking Fee (`#modal_divisi3`):**
   - **Routes & Public Contracts:** Tidak berubah.

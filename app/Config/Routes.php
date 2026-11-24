@@ -858,6 +858,7 @@ $routes->group('api/mkdt/posisi-konsumen', ['namespace' => 'App\Controllers\Api\
     $routes->match(['get', 'post'], 'datatable-batal', 'PosisiKonsumenController::getDataTablesBatal');
     $routes->match(['get', 'post'], 'datatable/(:segment)', 'PosisiKonsumenController::getDataTables/$1');
     $routes->post('export/(:segment)/(:segment)', 'PosisiKonsumenController::exportPoskon/$1/$2');
+    $routes->get('export/progress/(:segment)', 'PosisiKonsumenController::exportProgress/$1');
     $routes->match(['get', 'post'], 'riwayat/(:segment)', 'PosisiKonsumenController::getRiwayatExport/$1');
 });
 

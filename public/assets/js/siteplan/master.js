@@ -741,6 +741,8 @@ Date.prototype.toDateInputValue = (function() {
         const isAkad = !isBatal && (
             row.akad == 1
             || hasValidTargetDate(row.akad_tgl)
+            || row.akad_indent == 1
+            || hasValidTargetDate(row.akad_indent_tgl)
         );
         const isBooking = !isBatal && !isAkad && (
             row.status_mkdt === 'Booking'
@@ -750,8 +752,6 @@ Date.prototype.toDateInputValue = (function() {
             || row.wawancara == 1
             || hasValidTargetDate(row.wawancara_tgl)
             || hasValidTargetDate(row.booking_tgl)
-            || row.akad_indent == 1
-            || hasValidTargetDate(row.akad_indent_tgl)
         );
         const hasConsumer = isAkad || isBooking;
         const otherMode = selectedTargetOtherMode();

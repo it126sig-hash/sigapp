@@ -7,6 +7,7 @@
 <link rel="stylesheet" type="text/css" href="<?= base_url() ?>app-assets/vendors/css/pickers/flatpickr/flatpickr.min.css">
 <link rel="stylesheet" type="text/css" href="<?= base_url() ?>app-assets/vendors/css/bootstrap/extensions/fixed-columns/fixedColumns.bootstrap4.css">
 <link rel="stylesheet" type="text/css" href="<?= base_url() ?>assets/css/richtext.min.css">
+<link rel="stylesheet" type="text/css" href="<?= base_url('assets/css/poskon-list-kavling.css') ?>?v=<?= filemtime(FCPATH . 'assets/css/poskon-list-kavling.css') ?>">
 <style>
   #poskon-filter {
     border: 1px solid #e5e7eb;
@@ -655,10 +656,10 @@
               <label for="filter_status_kavling">Status Konsumen</label>
               <select id="filter_status_kavling" class="form-control">
                 <option value="semua">Semua Status</option>
-                <option value="aktif" selected>Konsumen Aktif</option>
-                <option value="booking">Konsumen Booking</option>
-                <option value="indent">Konsumen Akad Indent</option>
-                <option value="akad">Konsumen Akad</option>
+                <option value="aktif" selected>Kavling Aktif</option>
+                <option value="indent">Akad Indent</option>
+                <option value="akad">Akad AJB</option>
+                <option value="ajb_indent">Akad AJB &amp; Indent</option>
               </select>
             </div>
           </div>
@@ -731,6 +732,31 @@
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-outline-secondary" data-dismiss="modal">Batal</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal fade" id="modal_export_progress" tabindex="-1" role="dialog" aria-labelledby="modalExportProgressLabel" aria-hidden="true" data-backdrop="static" data-keyboard="false">
+  <div class="modal-dialog modal-dialog-centered" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="modalExportProgressLabel">
+          <span class="poskon-export-title-icon"><i class="fa fa-file-export"></i></span>
+          <span id="poskon-export-modal-title">Mengeksport Data</span>
+        </h5>
+      </div>
+      <div class="modal-body">
+        <div class="poskon-export-card">
+          <div class="poskon-export-status-row">
+            <span id="poskon-export-progress-message" class="poskon-export-stage">Menyiapkan data export...</span>
+            <span id="poskon-export-progress-percent" class="poskon-export-percent">0%</span>
+          </div>
+          <div class="progress">
+            <div id="poskon-export-progress-bar" class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" style="width: 0%;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+          </div>
+          <p class="poskon-export-hint">Mohon tunggu, proses export sedang berlangsung dan akan otomatis mengunduh file setelah selesai.</p>
+        </div>
       </div>
     </div>
   </div>
@@ -1166,6 +1192,10 @@ if (!empty($roles)) {
             orderable: true
           },
           {
+            targets: 9,
+            visible: ($("#filter_status_kavling").val() || 'aktif') !== 'aktif'
+          },
+          {
             targets: [15],
             visible: false
           },
@@ -1418,7 +1448,7 @@ if (!empty($roles)) {
     function applyPoskonFilters() {
       if (table) {
         var filterVal = $("#filter_status_kavling").val() || 'aktif';
-        table.column(9).visible(filterVal !== 'booking');
+        table.column(9).visible(filterVal !== 'aktif');
         table.ajax.url(base_url + 'list-kavling/ambil').load(function() {
           table.columns.adjust();
           if (table.fixedColumns) table.fixedColumns().relayout();
@@ -1475,8 +1505,8 @@ if (!empty($roles)) {
       var jalanData = $("#id_jalan").select2('data')[0];
       if (jalanData && jalanData.id) addChip('id_jalan', 'Blok: ' + $('<div>').text(jalanData.text).html());
 
-      var status = $("#filter_status_kavling").val();
-      if (status && status !== 'aktif') addChip('filter_status_kavling', 'Status: ' + $("#filter_status_kavling option:selected").text());
+      var status = $("#filter_status_kavling").val() || 'aktif';
+      if (status && status !== 'aktif') addChip('filter_status_kavling', 'Status: ' + $('<div>').text($("#filter_status_kavling option:selected").text()).html());
 
       var bulan = $("#filter_bulan").val();
       var tahun = $("#filter_tahun").val();
@@ -1509,74 +1539,270 @@ if (!empty($roles)) {
       applyPoskonFilters();
     });
 
+    var isPoskonExportRunning = false;
+    var poskonExportModalShown = false;
+    var pendingPoskonExportModalHide = null;
+
+    $('#modal_export_progress')
+      .off('shown.bs.modal.poskonExport hidden.bs.modal.poskonExport')
+      .on('shown.bs.modal.poskonExport', function() {
+        poskonExportModalShown = true;
+        if (typeof pendingPoskonExportModalHide === 'function') {
+          var cb = pendingPoskonExportModalHide;
+          pendingPoskonExportModalHide = null;
+          cb();
+        }
+      })
+      .on('hidden.bs.modal.poskonExport', function() {
+        poskonExportModalShown = false;
+      });
+
+    function setPoskonExportButtonsDisabled(disabled, $activeBtn) {
+      var $excel = $("#btn_export_excel");
+      var $pdf = $("#btn_export_pdf");
+      var $toggle = $("#btn_export_toggle");
+
+      if (!$excel.data("old-html")) $excel.data("old-html", $excel.html());
+      if (!$pdf.data("old-html")) $pdf.data("old-html", $pdf.html());
+      if (!$toggle.data("old-html")) $toggle.data("old-html", $toggle.html());
+
+      $excel.prop("disabled", disabled);
+      $pdf.prop("disabled", disabled);
+      $toggle.prop("disabled", disabled);
+
+      $(".sigapp-mobile-action-btn").each(function() {
+        var text = $.trim($(this).text());
+        if (text === "Excel" || text === "PDF") {
+          $(this).prop("disabled", disabled);
+        }
+      });
+
+      if (disabled) {
+        if ($activeBtn && $activeBtn.length) {
+          $activeBtn.html("<i class='fa fa-spinner fa-spin mr-50'></i> Sedang Mengeksport");
+        }
+        $toggle.html("<i class='fa fa-spinner fa-spin'></i> Exporting...");
+      } else {
+        $excel.html($excel.data("old-html"));
+        $pdf.html($pdf.data("old-html"));
+        $toggle.html($toggle.data("old-html"));
+      }
+    }
+
+    function updateExportProgressModal(percent, message) {
+      var safePercent = Math.max(0, Math.min(100, parseInt(percent, 10) || 0));
+      $("#poskon-export-progress-bar")
+        .css("width", safePercent + "%")
+        .attr("aria-valuenow", safePercent);
+      $("#poskon-export-progress-percent").text(safePercent + "%");
+      if (message) {
+        $("#poskon-export-progress-message").text(message);
+      }
+    }
+
+    function openExportProgressModal(type) {
+      poskonExportModalShown = false;
+      pendingPoskonExportModalHide = null;
+      var formatLabel = type === "xlsx" ? "Excel (.xlsx)" : "PDF (.pdf)";
+      $("#poskon-export-modal-title").text("Mengeksport " + formatLabel);
+      updateExportProgressModal(5, "Menyiapkan data export...");
+      $("#modal_export_progress").modal({
+        backdrop: "static",
+        keyboard: false,
+        show: true
+      });
+    }
+
+    function closeExportProgressModal(onClosed) {
+      var $modal = $("#modal_export_progress");
+      var doHide = function() {
+        if ($modal.hasClass("show")) {
+          $modal.one("hidden.bs.modal.poskonExportClose", function() {
+            if (typeof onClosed === "function") onClosed();
+          });
+          $modal.modal("hide");
+        } else {
+          $modal.removeClass("show").attr("aria-hidden", "true").css("display", "");
+          $(".modal-backdrop").remove();
+          $("body").removeClass("modal-open").css("padding-right", "");
+          if (typeof onClosed === "function") onClosed();
+        }
+      };
+
+      if ($modal.hasClass("show") && !poskonExportModalShown) {
+        pendingPoskonExportModalHide = doHide;
+      } else {
+        doHide();
+      }
+    }
+
     $("#btn_export_excel").on('click', function(e) {
       if (!activeProyekId()) {
         return Swal.fire({
           icon: 'error',
           title: "Proyek belum dipilih",
           showConfirmButton: false
-        })
+        });
       }
       e.preventDefault();
+      if (isPoskonExportRunning || $(this).prop("disabled")) return;
 
-      const $btn = $(this);
+      export_file("xlsx", $(this));
+    });
 
-      // cegah klik berulang
-      $btn.prop("disabled", true);
-      $btn.data("old-text", $btn.text());
-      export_file("xlsx", $btn)
-    })
     $("#btn_export_pdf").on('click', function(e) {
       if (!activeProyekId()) {
         return Swal.fire({
           icon: 'error',
           title: "Proyek belum dipilih",
           showConfirmButton: false
-        })
+        });
       }
       e.preventDefault();
+      if (isPoskonExportRunning || $(this).prop("disabled")) return;
 
-      const $btn = $(this);
-
-      // cegah klik berulang
-      $btn.prop("disabled", true);
-      $btn.data("old-text", $btn.text());
-      export_file("pdf", $btn)
-    })
+      export_file("pdf", $(this));
+    });
 
     registerPoskonMobileBottomNav();
 
     function export_file(type, $btn) {
+      if (isPoskonExportRunning) return;
+      isPoskonExportRunning = true;
+
+      var exportToken = 'poskon_' + Date.now() + '_' + Math.random().toString(36).slice(2, 8);
+      var statusLabel = $.trim($("#filter_status_kavling option:selected").text()) || "Kavling Aktif";
+      var currentPercent = 5;
+      var exportFinished = false;
+      var isPollingInFlight = false;
+      var pollTimer = null;
+
+      function stopPolling() {
+        if (pollTimer) {
+          clearInterval(pollTimer);
+          pollTimer = null;
+        }
+      }
+
+      function handleExportFailure(errorMessage) {
+        if (exportFinished) return;
+        exportFinished = true;
+        isPoskonExportRunning = false;
+        stopPolling();
+        setPoskonExportButtonsDisabled(false);
+        closeExportProgressModal(function() {
+          Swal.fire({
+            icon: 'error',
+            title: 'Export Gagal',
+            text: errorMessage || 'Terjadi kesalahan saat memproses export data.',
+            confirmButtonColor: '#2057a3'
+          });
+        });
+      }
+
+      setPoskonExportButtonsDisabled(true, $btn);
+      openExportProgressModal(type);
+
+      pollTimer = setInterval(function() {
+        if (exportFinished || isPollingInFlight) return;
+        isPollingInFlight = true;
+        $.ajax({
+          type: "get",
+          url: "<?= base_url('api/mkdt/posisi-konsumen/export/progress') ?>/" + encodeURIComponent(exportToken),
+          dataType: "json",
+          success: function(res) {
+            if (exportFinished) return;
+            var progressData = res && res.data ? res.data : null;
+            if (!progressData) return;
+
+            var serverPercent = parseInt(progressData.percent, 10);
+            if (!isNaN(serverPercent) && serverPercent > 0) {
+              currentPercent = Math.max(currentPercent, Math.min(99, serverPercent));
+            }
+            updateExportProgressModal(currentPercent, progressData.message || "Memproses data export...");
+            if (progressData.done === true) {
+              stopPolling();
+            }
+          },
+          complete: function() {
+            isPollingInFlight = false;
+          }
+        });
+      }, 350);
+
       $.ajax({
         type: "post",
-        url: base_url + "export/poskon/" + type + "/aktif",
+        url: "<?= base_url('export/poskon') ?>/" + type + "/aktif",
         data: {
           [csrfName]: csrfHash,
           id_proyek: activeProyekId(),
-          id_cluster: $("#id_cluster").val(),
-          id_jalan: $("#id_jalan").val(),
+          id_cluster: $("#id_cluster").val() || '',
+          id_jalan: $("#id_jalan").val() || '',
+          status_kavling: $("#filter_status_kavling").val() || 'aktif',
+          bulan_field: $("#filter_bulan_field").val() || '',
+          bulan: $("#filter_bulan").val() || '',
+          tahun: $("#filter_tahun").val() || '',
+          sp3k: $("#poskon_filter_sp3k").val() || '',
+          wawancara: $("#poskon_filter_wawancara").val() || '',
+          search: table ? (table.search() || '') : '',
+          export_token: exportToken
         },
         dataType: "json",
-        beforeSend: function() {
-          $btn.html("<i class='fa fa-spinner fa-spin'></i> Sedang Mengeksport")
-          $btn.prop("disabled", true)
-        },
         success: function(data) {
-          var d = new Date()
-          d = format_date(d.getFullYear() + "-" + (parseInt(d.getMonth()) + 1) + "-" + d.getDate());
+          if (data && data.token) {
+            csrfHash = data.token;
+          }
+          if (!data || data.status === false || !data.file) {
+            handleExportFailure((data && data.message) ? data.message : "File hasil export tidak tersedia.");
+            return;
+          }
 
-          var $a = $("<a>");
-          $a.attr("href", data.file);
-          $("body").append($a);
-          $a.attr("download", "Konsumen Aktif  Per " + d + ": " + (window.SIGAPP.activeProyekName || "Proyek") + "." + type);
-          $a[0].click();
-          $a.remove();
-          $btn.html($btn.data("old-text"))
-          $btn.prop("disabled", false)
+          exportFinished = true;
+          stopPolling();
+          updateExportProgressModal(100, "Export selesai! Memulai unduhan file...");
+
+          setTimeout(function() {
+            isPoskonExportRunning = false;
+            setPoskonExportButtonsDisabled(false);
+
+            closeExportProgressModal(function() {
+              var now = new Date();
+              var rawDate = now.getFullYear() + "-" + (now.getMonth() + 1) + "-" + now.getDate();
+              var formattedDate = (typeof format_date === 'function') ? format_date(rawDate) : rawDate;
+              var proyekName = (window.SIGAPP && window.SIGAPP.activeProyekName) ? window.SIGAPP.activeProyekName : "Proyek";
+              var downloadName = statusLabel + " Per " + formattedDate + " - " + proyekName + "." + type;
+
+              var $a = $("<a>");
+              $a.attr("href", data.file);
+              $a.attr("download", downloadName);
+              $("body").append($a);
+              $a[0].click();
+              $a.remove();
+
+              if (typeof load_riwayat === 'function') {
+                load_riwayat();
+              }
+
+              Swal.fire({
+                icon: 'success',
+                title: 'Export berhasil',
+                text: 'File ' + (type === 'xlsx' ? 'Excel' : 'PDF') + ' siap diunduh.',
+                timer: 2500,
+                showConfirmButton: false,
+                toast: true,
+                position: 'top-end'
+              });
+            });
+          }, 350);
         },
-        error: function() {
-          $btn.html($btn.data("old-text"))
-          $btn.prop("disabled", false)
+        error: function(xhr, statusText) {
+          var errMsg = "Gagal mengekspor data.";
+          if (statusText === "abort") {
+            errMsg = "Proses export dibatalkan.";
+          } else if (xhr && xhr.responseJSON) {
+            errMsg = xhr.responseJSON.message || xhr.responseJSON.messages || errMsg;
+          }
+          handleExportFailure(errMsg);
         }
       });
     }

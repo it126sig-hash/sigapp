@@ -134,10 +134,10 @@ class PosisiKonsumenService
                 ],
                 'status_kavling_options' => [
                     ['value' => 'semua', 'label' => 'Semua Status'],
-                    ['value' => 'aktif', 'label' => 'Konsumen Aktif'],
-                    ['value' => 'booking', 'label' => 'Konsumen Booking'],
-                    ['value' => 'indent', 'label' => 'Konsumen Akad Indent'],
-                    ['value' => 'akad', 'label' => 'Konsumen Akad'],
+                    ['value' => 'aktif', 'label' => 'Kavling Aktif'],
+                    ['value' => 'indent', 'label' => 'Akad Indent'],
+                    ['value' => 'akad', 'label' => 'Akad AJB'],
+                    ['value' => 'ajb_indent', 'label' => 'Akad AJB & Indent'],
                 ],
                 'bulan_field_options' => [
                     ['value' => 'booking', 'label' => 'Tanggal Booking'],
@@ -491,7 +491,12 @@ class PosisiKonsumenService
         $idCluster = $filters['id_cluster'] ?? null;
         $idJalan   = $filters['id_jalan'] ?? null;
 
+        $safeToken     = $this->sanitizeExportToken((string) ($filters['export_token'] ?? ''));
+        $progressToken = $safeToken !== '' ? $safeToken : null;
+
         if ($idProyek === null || $idProyek === '' || (int) $idProyek <= 0) {
+            self::writeExportProgress($progressToken, 100, 'error', 'Tidak ada proyek yang dipilih', true);
+
             return [
                 'status'  => 'error',
                 'message' => 'Tidak ada proyek yang dipilih',
@@ -501,16 +506,31 @@ class PosisiKonsumenService
         $idCluster = ($idCluster !== null && $idCluster !== '') ? $idCluster : null;
         $idJalan   = ($idJalan !== null && $idJalan !== '') ? $idJalan : null;
 
+        $exportFilters               = $filters;
+        $exportFilters['id_proyek']  = $idProyek;
+        $exportFilters['id_cluster'] = $idCluster;
+        $exportFilters['id_jalan']   = $idJalan;
+        unset($exportFilters['export_token']);
+
         $normalizedTipe = strtolower(trim($tipe)) === 'pdf' ? 'pdf' : 'xlsx';
         $printService   = $this->getPrintService();
 
-        if ($normalizedTipe === 'pdf') {
-            $response = $printService->exportPoskonPdf($idProyek, $idCluster, $idJalan, $status);
-        } else {
-            $response = $printService->exportPoskonXlsx($idProyek, $idCluster, $idJalan, $status);
+        self::writeExportProgress($progressToken, 5, 'init', 'Menyiapkan data export...', false);
+
+        try {
+            if ($normalizedTipe === 'pdf') {
+                $response = $printService->exportPoskonPdf($idProyek, $idCluster, $idJalan, $status, $exportFilters, $progressToken);
+            } else {
+                $response = $printService->exportPoskonXlsx($idProyek, $idCluster, $idJalan, $status, $exportFilters, $progressToken);
+            }
+        } catch (\Throwable $e) {
+            self::writeExportProgress($progressToken, 100, 'error', 'Gagal memproses export.', true);
+            throw $e;
         }
 
         if (!empty($response['status']) && $response['status'] == true) {
+            self::writeExportProgress($progressToken, 95, 'saving_history', 'Menyimpan riwayat export...', false);
+
             $data = [
                 'id_proyek'  => $idProyek,
                 'status'     => $status,
@@ -522,19 +542,147 @@ class PosisiKonsumenService
                 'export_by'  => $userId,
             ];
             $this->insertRiwayatExport($data);
+
+            self::writeExportProgress($progressToken, 100, 'done', 'Export selesai.', true);
+        } else {
+            self::writeExportProgress(
+                $progressToken,
+                100,
+                'error',
+                (string) ($response['message'] ?? 'Export posisi konsumen gagal'),
+                true
+            );
         }
 
         return $response;
     }
 
+    public function sanitizeExportToken(string $token): string
+    {
+        return self::sanitizeTokenValue($token);
+    }
+
+    /**
+     * Ambil progress export non-blocking dari file cache (tanpa PHP Session lock).
+     *
+     * @return array{token: string, percent: int, stage: string, message: string, done: bool}
+     */
+    public function getExportProgress(string $token): array
+    {
+        $safeToken = self::sanitizeTokenValue($token);
+        $default   = [
+            'token'   => $safeToken,
+            'percent' => 5,
+            'stage'   => 'init',
+            'message' => 'Menyiapkan data export...',
+            'done'    => false,
+        ];
+
+        if ($safeToken === '') {
+            return $default;
+        }
+
+        $path = self::getExportProgressFilePath($safeToken);
+        if (!is_file($path)) {
+            return $default;
+        }
+
+        $raw = @file_get_contents($path);
+        if ($raw === false || trim($raw) === '') {
+            return $default;
+        }
+
+        $decoded = json_decode($raw, true);
+        if (!is_array($decoded)) {
+            return $default;
+        }
+
+        return [
+            'token'   => $safeToken,
+            'percent' => max(0, min(100, (int) ($decoded['percent'] ?? 5))),
+            'stage'   => (string) ($decoded['stage'] ?? 'init'),
+            'message' => (string) ($decoded['message'] ?? 'Menyiapkan data export...'),
+            'done'    => (bool) ($decoded['done'] ?? false),
+        ];
+    }
+
+    public static function writeExportProgress(
+        ?string $token,
+        int $percent,
+        string $stage,
+        string $message,
+        bool $done = false
+    ): void {
+        if ($token === null) {
+            return;
+        }
+
+        $safeToken = self::sanitizeTokenValue($token);
+        if ($safeToken === '') {
+            return;
+        }
+
+        $path = self::getExportProgressFilePath($safeToken);
+        $dir  = dirname($path);
+        if (!is_dir($dir)) {
+            @mkdir($dir, 0775, true);
+        }
+
+        $payload = json_encode([
+            'token'      => $safeToken,
+            'percent'    => max(0, min(100, $percent)),
+            'stage'      => $stage,
+            'message'    => $message,
+            'done'       => $done,
+            'updated_at' => time(),
+        ], JSON_UNESCAPED_UNICODE);
+
+        if ($payload === false) {
+            return;
+        }
+
+        $tmpPath = $path . '.tmp.' . str_replace('.', '', uniqid('', true));
+        if (@file_put_contents($tmpPath, $payload, LOCK_EX) !== false) {
+            if (@rename($tmpPath, $path)) {
+                return;
+            }
+            @unlink($tmpPath);
+        }
+
+        @file_put_contents($path, $payload, LOCK_EX);
+    }
+
+    private static function sanitizeTokenValue(string $token): string
+    {
+        $sanitized = (string) preg_replace('/[^a-zA-Z0-9_-]/', '', $token);
+
+        return substr($sanitized, 0, 128);
+    }
+
+    private static function getExportProgressFilePath(string $safeToken): string
+    {
+        return rtrim(WRITEPATH, '/\\') . DIRECTORY_SEPARATOR . 'cache' . DIRECTORY_SEPARATOR . 'export_progress_' . $safeToken . '.json';
+    }
+
     public function getDataTable($request, $status = null)
     {
-        $rawStatusKavling = $request->getVar('status_kavling');
-        $statusKavling    = $this->posisiKonsumenRepo->normalizeStatusKavling(
-            ($rawStatusKavling !== null && is_scalar($rawStatusKavling)) ? (string) $rawStatusKavling : null
-        );
+        $rawStatusKavling         = $request->getVar('status_kavling');
+        $hasExplicitStatusKavling = $rawStatusKavling !== null
+            && is_scalar($rawStatusKavling)
+            && trim((string) $rawStatusKavling) !== '';
+        $rawAkad                  = $request->getVar('akad');
+        $rawAkadIndent            = $request->getVar('akad_indent');
+        $hasLegacyAkadParams      = ($rawAkad !== null && $rawAkad !== '')
+            || ($rawAkadIndent !== null && $rawAkadIndent !== '');
+        $isLegacyAkadRoute        = !$hasExplicitStatusKavling
+            && $status !== null
+            && strtolower(trim((string) $status)) === 'akad';
+        $useStatusKavlingFilter   = $hasExplicitStatusKavling || (!$isLegacyAkadRoute && !$hasLegacyAkadParams);
 
-        if ($statusKavling !== null) {
+        if ($useStatusKavlingFilter) {
+            $statusKavling = $this->posisiKonsumenRepo->normalizeStatusKavling(
+                $hasExplicitStatusKavling ? (string) $rawStatusKavling : null
+            );
             $builder = $this->posisiKonsumenRepo->getBaseQuery(null);
             $this->posisiKonsumenRepo->applyStatusKavlingFilter($builder, $statusKavling);
         } else {
@@ -561,12 +709,12 @@ class PosisiKonsumenService
         if ($request->getVar('wawancara') != "")
             $builder->where('mkdt.wawancara', $request->getVar('wawancara'));
 
-        if ($statusKavling === null) {
-            if ($request->getVar('akad') !== null && $request->getVar('akad') !== '')
-                $builder->where('mkdt.akad', $request->getVar('akad'));
-            if ($request->getVar('akad_indent') !== null && $request->getVar('akad_indent') !== '') {
-                $builder->where('mkdt.akad_indent', $request->getVar('akad_indent'));
-                if ((int) $request->getVar('akad_indent') === 1 && ($request->getVar('akad') === null || $request->getVar('akad') === '')) {
+        if (!$useStatusKavlingFilter) {
+            if ($rawAkad !== null && $rawAkad !== '')
+                $builder->where('mkdt.akad', $rawAkad);
+            if ($rawAkadIndent !== null && $rawAkadIndent !== '') {
+                $builder->where('mkdt.akad_indent', $rawAkadIndent);
+                if ((int) $rawAkadIndent === 1 && ($rawAkad === null || $rawAkad === '')) {
                     $builder->where('mkdt.akad', 0);
                 }
             }

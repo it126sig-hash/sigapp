@@ -18,6 +18,7 @@ use App\Repositories\Mkdt\PosisiKonsumenRepository;
 use App\Services\FileAccessService;
 use App\Services\Mkdt\MkdtHistoryService;
 use App\Services\Mkdt\MkdtFinancialBreakdownService;
+use App\Services\Mkdt\PosisiKonsumenService;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 use PhpOffice\PhpSpreadsheet\Style\Alignment;
@@ -294,8 +295,102 @@ class PrintService
 
         $this->mpdf->generate($html, $filename, $header, $mg);
     }
-    function exportPBataloskonPdf($id_proyek, $id_cluster, $id_jalan)
+    private function buildPoskonExportRows(
+        $id_proyek,
+        $id_cluster,
+        $id_jalan,
+        string $status,
+        array $filters = [],
+        ?string $progressToken = null
+    ): array {
+        PosisiKonsumenService::writeExportProgress(
+            $progressToken,
+            10,
+            'query',
+            'Mengambil data posisi konsumen...',
+            false
+        );
+
+        $statusLower              = strtolower(trim($status));
+        $hasExplicitStatusKavling = isset($filters['status_kavling'])
+            && is_scalar($filters['status_kavling'])
+            && trim((string) $filters['status_kavling']) !== '';
+
+        $effectiveFilters = $filters;
+        if (!isset($effectiveFilters['id_proyek']) || $effectiveFilters['id_proyek'] === '' || $effectiveFilters['id_proyek'] === null) {
+            $effectiveFilters['id_proyek'] = $id_proyek;
+        }
+        if (!isset($effectiveFilters['id_cluster']) || $effectiveFilters['id_cluster'] === '' || $effectiveFilters['id_cluster'] === null) {
+            $effectiveFilters['id_cluster'] = $id_cluster;
+        }
+        if (!isset($effectiveFilters['id_jalan']) || $effectiveFilters['id_jalan'] === '' || $effectiveFilters['id_jalan'] === null) {
+            $effectiveFilters['id_jalan'] = $id_jalan;
+        }
+
+        if ($hasExplicitStatusKavling || $statusLower === 'aktif' || $statusLower === '') {
+            $dataRumah = $this->posisiKonsumen->getBaseQuery(null);
+            $this->posisiKonsumen->applyBaseFilters($dataRumah, $effectiveFilters, true);
+        } else {
+            $st = ucfirst($statusLower) === 'Aktif' ? 'Booking' : ucfirst($statusLower);
+            $dataRumah = $this->posisiKonsumen->getBaseQuery($st);
+            $this->posisiKonsumen->applyBaseFilters($dataRumah, $effectiveFilters, false);
+        }
+
+        $search = trim((string) ($effectiveFilters['search'] ?? ''));
+        if ($search !== '') {
+            $this->posisiKonsumen->applyBaseSearch($dataRumah, $search);
+        }
+
+        return $dataRumah->get()->getResult();
+    }
+
+    private function resolvePoskonProjectName(array $rows, mixed $idProyek): string
     {
+        if (!empty($rows) && !empty($rows[0]->nama_proyek)) {
+            return (string) $rows[0]->nama_proyek;
+        }
+
+        if ($idProyek !== null && $idProyek !== '' && (int) $idProyek > 0) {
+            $proyek = $this->proyek->find((int) $idProyek);
+            if ($proyek && !empty($proyek->nama_proyek)) {
+                return (string) $proyek->nama_proyek;
+            }
+        }
+
+        return 'Semua Proyek';
+    }
+
+    private function reportRowIterationProgress(?string $progressToken, int $processed, int $totalRows): void
+    {
+        if ($progressToken === null) {
+            return;
+        }
+
+        if ($totalRows <= 0) {
+            PosisiKonsumenService::writeExportProgress(
+                $progressToken,
+                75,
+                'processing',
+                'Memproses 0 / 0 data...',
+                false
+            );
+            return;
+        }
+
+        $percent = (int) round(20 + (($processed / $totalRows) * 55));
+        PosisiKonsumenService::writeExportProgress(
+            $progressToken,
+            $percent,
+            'processing',
+            "Memproses {$processed} / {$totalRows} data...",
+            false
+        );
+    }
+
+    function exportPBataloskonPdf($id_proyek, $id_cluster, $id_jalan, ?string $progressToken = null)
+    {
+        PosisiKonsumenService::writeExportProgress($progressToken, 10, 'query', 'Mengambil data posisi konsumen batal...', false);
+
         $st = "Batal";
         $dataRumah = $this->posisiKonsumen->getQueryBatal();
         if ($id_proyek != null) {
@@ -308,8 +403,13 @@ class PrintService
             $dataRumah->where('jalan.id_jalan', $id_jalan);
         }
 
-        $data['poskon'] = $dataRumah->get()->getResult();
+        $rows           = $dataRumah->get()->getResult();
+        $totalRows      = count($rows);
+        $data['poskon'] = $rows;
         $data['status'] = $st;
+
+        $this->reportRowIterationProgress($progressToken, $totalRows, $totalRows);
+        PosisiKonsumenService::writeExportProgress($progressToken, 85, 'building', 'Menyusun file PDF...', false);
 
 
         // Persiapan Folder Penyimpanan
@@ -346,28 +446,23 @@ class PrintService
 
         return $response;
     }
-    public function exportPoskonPdf($id_proyek, $id_cluster, $id_jalan, $status)
+    public function exportPoskonPdf($id_proyek, $id_cluster, $id_jalan, $status, array $filters = [], ?string $progressToken = null)
     {
-        if ($status == "batal") {
-            $response = $this->exportPBataloskonPdf($id_proyek, $id_cluster, $id_jalan);
+        if (strtolower(trim((string) $status)) === "batal") {
+            $response = $this->exportPBataloskonPdf($id_proyek, $id_cluster, $id_jalan, $progressToken);
             return $response;
         }
-        // var_dump($status);
-        // die;
-        $st = ucfirst($status) == "Aktif" ? "Booking" : ucfirst($status);
-        $dataRumah = $this->posisiKonsumen->getBaseQuery($st);
-        if ($id_proyek != null) {
-            $dataRumah->where('proyek.id_proyek', $id_proyek);
-        }
-        if ($id_cluster != null) {
-            $dataRumah->where('cluster.id_cluster', $id_cluster);
-        }
-        if ($id_jalan != null) {
-            $dataRumah->where('jalan.id_jalan', $id_jalan);
-        }
+        $rows                = $this->buildPoskonExportRows($id_proyek, $id_cluster, $id_jalan, (string) $status, $filters, $progressToken);
+        $totalRows           = count($rows);
+        $data['poskon']      = $rows;
+        $data['status']      = $status;
+        $data['nama_proyek'] = $this->resolvePoskonProjectName($rows, $id_proyek);
 
-        $data['poskon'] = $dataRumah->get()->getResult();
-        $data['status'] = $status;
+        if ($totalRows > 0) {
+            PosisiKonsumenService::writeExportProgress($progressToken, 20, 'processing', "Memproses 0 / {$totalRows} data...", false);
+        }
+        $this->reportRowIterationProgress($progressToken, $totalRows, $totalRows);
+        PosisiKonsumenService::writeExportProgress($progressToken, 85, 'building', 'Menyusun file PDF...', false);
 
         // Persiapan Folder Penyimpanan
         $subFolder = date('Ym'); // Folder berdasarkan tanggal agar rapi
@@ -404,8 +499,10 @@ class PrintService
         return $response;
     }
 
-    private function exportBatalPoskonXlsx($id_proyek, $id_cluster, $id_jalan)
+    private function exportBatalPoskonXlsx($id_proyek, $id_cluster, $id_jalan, ?string $progressToken = null)
     {
+        PosisiKonsumenService::writeExportProgress($progressToken, 10, 'query', 'Mengambil data posisi konsumen batal...', false);
+
         $spreadsheet = new Spreadsheet();
         $sheet = $spreadsheet->getActiveSheet();
 
@@ -457,10 +554,18 @@ class PrintService
         }
 
         $dataRumah = $dataRumah->get()->getResult();
+        $totalRows = count($dataRumah);
         $column = 2;
         $no = 1;
 
-        foreach ($dataRumah as $row) {
+        if ($totalRows === 0) {
+            $this->reportRowIterationProgress($progressToken, 0, 0);
+        } else {
+            PosisiKonsumenService::writeExportProgress($progressToken, 20, 'processing', "Memproses 0 / {$totalRows} data...", false);
+        }
+
+        $step = max(1, (int) ceil($totalRows / 15));
+        foreach ($dataRumah as $index => $row) {
             $total = $row->um + $row->adm + $row->bb;
             $bayar = $row->total_um + $row->total_adm + $row->total_bb;
             $sisa = $total - $bayar;
@@ -481,13 +586,20 @@ class PrintService
             $sheet->setCellValue('L' . $column, $sisa);
             $sheet->getStyle('A' . $column . ':L' . $column)->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
             $column++;
+
+            $processed = $index + 1;
+            if ($processed === 1 || $processed === $totalRows || ($processed % $step === 0)) {
+                $this->reportRowIterationProgress($progressToken, $processed, $totalRows);
+            }
         }
 
         foreach (range('A', 'L') as $col) {
             $sheet->getColumnDimension($col)->setAutoSize(true);
         }
 
-        $projectName = $dataRumah[0]->nama_proyek ?? 'Semua Proyek';
+        PosisiKonsumenService::writeExportProgress($progressToken, 85, 'building', 'Menyusun file Excel...', false);
+
+        $projectName = $this->resolvePoskonProjectName($dataRumah, $id_proyek);
         $filename = "Poskon Batal Per " . date('d-m-Y') . " " . $projectName . ".xlsx";
         $subFolder = date('Ym');
         $directory = dirname($this->fileAccessService->privatePath('upload/poskon/' . $subFolder . '/dummy.xlsx'));
@@ -515,13 +627,12 @@ class PrintService
         ];
     }
 
-    public function exportPoskonXlsx($id_proyek, $id_cluster, $id_jalan, $status)
+    public function exportPoskonXlsx($id_proyek, $id_cluster, $id_jalan, $status, array $filters = [], ?string $progressToken = null)
     {
-        if ($status == "batal") {
-            return $this->exportBatalPoskonXlsx($id_proyek, $id_cluster, $id_jalan);
+        if (strtolower(trim((string) $status)) === "batal") {
+            return $this->exportBatalPoskonXlsx($id_proyek, $id_cluster, $id_jalan, $progressToken);
         }
 
-        $st = ucfirst($status) == "Aktif" ? "Booking" : ucfirst($status);
         $spreadsheet = new Spreadsheet();
         $sheet = $spreadsheet->getActiveSheet();
 
@@ -594,22 +705,19 @@ class PrintService
         $sheet->getStyle('A1:AB3')->applyFromArray($headerStyle);
 
         //query data
-        $dataRumah = $this->posisiKonsumen->getBaseQuery($st);
-        if ($id_proyek != null) {
-            $dataRumah->where('proyek.id_proyek', $id_proyek);
-        }
-        if ($id_cluster != null) {
-            $dataRumah->where('cluster.id_cluster', $id_cluster);
-        }
-        if ($id_jalan != null) {
-            $dataRumah->where('jalan.id_jalan', $id_jalan);
-        }
-
-        $dataRumah = $dataRumah->get()->getResult();
+        $dataRumah = $this->buildPoskonExportRows($id_proyek, $id_cluster, $id_jalan, (string) $status, $filters, $progressToken);
+        $totalRows = count($dataRumah);
         $column = 4; // Data dimulai dari baris ke-4
         $no = 1;
 
-        foreach ($dataRumah as $row) {
+        if ($totalRows === 0) {
+            $this->reportRowIterationProgress($progressToken, 0, 0);
+        } else {
+            PosisiKonsumenService::writeExportProgress($progressToken, 20, 'processing', "Memproses 0 / {$totalRows} data...", false);
+        }
+
+        $step = max(1, (int) ceil($totalRows / 15));
+        foreach ($dataRumah as $index => $row) {
             $total = $row->um + $row->adm + $row->bb;
             $bayar = $row->total_um + $row->total_adm + $row->total_bb;
             $persen_tunai = "-";
@@ -663,6 +771,11 @@ class PrintService
             // Beri border untuk baris data
             $sheet->getStyle('A' . $column . ':AB' . $column)->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
             $column++;
+
+            $processed = $index + 1;
+            if ($processed === 1 || $processed === $totalRows || ($processed % $step === 0)) {
+                $this->reportRowIterationProgress($progressToken, $processed, $totalRows);
+            }
         }
 
         // Auto size kolom agar rapi
@@ -675,12 +788,10 @@ class PrintService
             $sheet->getColumnDimension($col)->setAutoSize(true);
         }
 
+        PosisiKonsumenService::writeExportProgress($progressToken, 85, 'building', 'Menyusun file Excel...', false);
 
-
-        $filename = "Poskon " . $status . " Per " . date('d-m-Y') . " " . $dataRumah[0]->nama_proyek . ".xlsx";
-        header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
-        header('Content-Disposition: attachment;filename="' . $filename . '"');
-        header('Cache-Control: max-age=0');
+        $projectName = $this->resolvePoskonProjectName($dataRumah, $id_proyek);
+        $filename = "Poskon " . $status . " Per " . date('d-m-Y') . " " . $projectName . ".xlsx";
         // 1. Tentukan folder tujuan (Public path biasanya digunakan agar bisa diakses via URL)
         $subFolder = date('Ym'); // Hasil: 202512
         $directory = dirname($this->fileAccessService->privatePath('upload/poskon/' . $subFolder . '/dummy.xlsx'));

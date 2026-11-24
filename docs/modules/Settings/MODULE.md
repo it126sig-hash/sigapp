@@ -2,7 +2,7 @@
 
 **Status:** `REFACTORED`  
 **Readiness Score:** `100/100`  
-**Last Synced:** `2026-11-14 18:09:48` @ `7b1acf6`  
+**Last Synced:** `2026-11-24 05:31:50` @ `7609063`  
 
 ## Purpose
 Konfigurasi global sistem, manajemen menu dinamis, akses role menu, dan pewarnaan siteplan.
@@ -133,7 +133,7 @@ Konfigurasi global sistem, manajemen menu dinamis, akses role menu, dan pewarnaa
 
 ### Services (5)
 - `app/Services/Settings/MenuAccessService.php` (266 baris, 9 public methods)
-- `app/Services/Settings/SiteplanMenuService.php` (453 baris, 11 public methods)
+- `app/Services/Settings/SiteplanMenuService.php` (455 baris, 11 public methods)
 - `app/Services/Settings/SettingDataService.php` (349 baris, 7 public methods)
 - `app/Services/Settings/PengaturanWarnaService.php` (374 baris, 6 public methods)
 - `app/Services/Settings/MenuSettingService.php` (533 baris, 10 public methods)
@@ -210,6 +210,7 @@ _Jalankan `php spark module:deadcode Settings` untuk mengaudit dead code kandida
   4. Seksi `## Database Tables` belum mencantumkan `siteplan_menu_items` dan `siteplan_menu_roles` pada `Owner Table(s)` (sehingga pre-scan menandai `owners: ["UNKNOWN"]`) maupun `auth_groups` dan `auth_groups_users` pada `Shared Tables`.
 
 ## Change Log
+- `2026-11-24` [`API-BRIDGE`] — Penambahan group `5 => 'Legal'` pada `GROUP_LABELS` dan `5 => 'legal_menu'` pada `GROUP_CONTAINER_IDS` di `app/Services/Settings/SiteplanMenuService.php` agar `GET /api/siteplan/meta` mengembalikan menu aksi Legal (`open_legal()`) untuk user Legal & Admin secara Zero-Downtime, disertai sinkronisasi `php spark module:sync Settings`.
 - `2026-11-22` [`AUDIT`] — Audit verifikasi migrasi modular: status ledger `COMPLETED (Catatan Minor)` (Score 100%); temuan query `$this->db->table()` di `MenuAccessService` & `SiteplanMenuService`, akses langsung `MenuRepository` di `Api\Settings\MenuSettingController`, serta tabel `siteplan_menu_items`/`siteplan_menu_roles` belum tercatat di `MODULE.md` (shim `MenuSetting.php` terverifikasi thin delegator).
 - `2026-11-14` [`API-BRIDGE`] — Penambahan `SiteplanMenuService::getMenusForSpa(int $roleId)` dan helper privat `formatSpaMenuItem()` untuk menyusun daftar menu aksi departemen `siteplan_menus` (`role_id`, `default_group_id`, `groups`, `context_items`) dalam format JSON murni yang dikonsumsi oleh `SiteplanService::getMeta()` (`GET /api/siteplan/meta`) tanpa memengaruhi `renderForRole()` pada view legacy.
 - `2026-11-13` [`BUGFIX`] — Perbaikan CRUD primary key non-auto-increment `config_name` pada tabel `config_shape`: `PengaturanWarnaModel` menambahkan `protected $useAutoIncrement = false;` dan `'config_name'` ke `$allowedFields`; `PengaturanWarnaRepository::insert(array $fields)` memakai `$this->model->insert($fields, false)`; `PengaturanWarnaService::edit()` mengecualikan `config_name` dari `$updateFields` agar primary key tidak ikut di-update. Verifikasi SPA & non-regresi web legacy `/configcolor` PASS.

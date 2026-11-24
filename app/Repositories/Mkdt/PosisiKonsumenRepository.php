@@ -327,30 +327,29 @@ class PosisiKonsumenRepository
         return $builder->get()->getResult();
     }
 
-    public function normalizeStatusKavling(?string $statusKavling): ?string
+    public function normalizeStatusKavling(?string $statusKavling): string
     {
         $value = strtolower(trim((string) $statusKavling));
-        return in_array($value, ['semua', 'aktif', 'booking', 'indent', 'akad'], true) ? $value : null;
+        if ($value === 'booking') {
+            return 'aktif';
+        }
+
+        return in_array($value, ['semua', 'aktif', 'indent', 'akad', 'ajb_indent'], true)
+            ? $value
+            : 'aktif';
     }
 
     public function applyStatusKavlingFilter(BaseBuilder $builder, string $statusKavling): void
     {
-        switch ($statusKavling) {
+        $normalized = $this->normalizeStatusKavling($statusKavling);
+
+        switch ($normalized) {
             case 'semua':
                 $builder->whereIn('mkdt.status_mkdt', ['Booking', 'Akad']);
                 break;
 
             case 'aktif':
                 $builder->whereIn('mkdt.status_mkdt', ['Booking', 'Akad'])
-                    ->where('COALESCE(mkdt.akad, 0) =', 0, false)
-                    ->groupStart()
-                        ->where('mkdt.status_mkdt', 'Booking')
-                        ->orWhere('COALESCE(mkdt.akad_indent, 0) =', 1, false)
-                    ->groupEnd();
-                break;
-
-            case 'booking':
-                $builder->where('mkdt.status_mkdt', 'Booking')
                     ->where('COALESCE(mkdt.akad, 0) =', 0, false)
                     ->where('COALESCE(mkdt.akad_indent, 0) =', 0, false);
                 break;
@@ -365,6 +364,11 @@ class PosisiKonsumenRepository
                 $builder->whereIn('mkdt.status_mkdt', ['Booking', 'Akad'])
                     ->where('COALESCE(mkdt.akad, 0) =', 1, false);
                 break;
+
+            case 'ajb_indent':
+                $builder->whereIn('mkdt.status_mkdt', ['Booking', 'Akad'])
+                    ->where('COALESCE(mkdt.akad_indent, 0) =', 1, false);
+                break;
         }
     }
 
@@ -376,27 +380,32 @@ class PosisiKonsumenRepository
      */
     public function getRawDataTables(array $params, ?string $status = null): array
     {
-        $statusKavling = $this->normalizeStatusKavling(
-            (isset($params['status_kavling']) && is_scalar($params['status_kavling']))
-                ? (string) $params['status_kavling']
-                : null
-        );
-        $baseStatus = $statusKavling !== null ? null : $this->resolveBaseStatus($status);
-        $search     = $this->extractSearchValue($params);
-        $start      = max(0, (int) ($params['start'] ?? 0));
-        $length     = isset($params['length']) ? (int) $params['length'] : 10;
+        $hasExplicitStatusKavling = isset($params['status_kavling'])
+            && is_scalar($params['status_kavling'])
+            && trim((string) $params['status_kavling']) !== '';
+        $hasLegacyAkadParams = (isset($params['akad']) && $params['akad'] !== '' && $params['akad'] !== null)
+            || (isset($params['akad_indent']) && $params['akad_indent'] !== '' && $params['akad_indent'] !== null);
+        $isLegacyAkadRoute = !$hasExplicitStatusKavling
+            && $status !== null
+            && strtolower(trim($status)) === 'akad';
+
+        $useStatusKavlingFilter = $hasExplicitStatusKavling || (!$isLegacyAkadRoute && !$hasLegacyAkadParams);
+        $baseStatus             = $useStatusKavlingFilter ? null : $this->resolveBaseStatus($status);
+        $search                 = $this->extractSearchValue($params);
+        $start                  = max(0, (int) ($params['start'] ?? 0));
+        $length                 = isset($params['length']) ? (int) $params['length'] : 10;
 
         $totalBuilder = $this->getBaseQuery($baseStatus);
-        $this->applyBaseFilters($totalBuilder, $params);
+        $this->applyBaseFilters($totalBuilder, $params, $useStatusKavlingFilter);
         $recordsTotal = (int) $totalBuilder->countAllResults();
 
         $filteredBuilder = $this->getBaseQuery($baseStatus);
-        $this->applyBaseFilters($filteredBuilder, $params);
+        $this->applyBaseFilters($filteredBuilder, $params, $useStatusKavlingFilter);
         $this->applyBaseSearch($filteredBuilder, $search);
         $recordsFiltered = (int) $filteredBuilder->countAllResults();
 
         $dataBuilder = $this->getBaseQuery($baseStatus);
-        $this->applyBaseFilters($dataBuilder, $params);
+        $this->applyBaseFilters($dataBuilder, $params, $useStatusKavlingFilter);
         $this->applyBaseSearch($dataBuilder, $search);
 
         if ($length > 0) {
@@ -480,7 +489,7 @@ class PosisiKonsumenRepository
     /**
      * @param array<string, mixed> $params
      */
-    private function applyBaseFilters(BaseBuilder $builder, array $params): void
+    public function applyBaseFilters(BaseBuilder $builder, array $params, bool $applyDefaultStatusKavling = true): void
     {
         if (!empty($params['id_proyek'])) {
             $builder->where('proyek.id_proyek', $params['id_proyek']);
@@ -499,13 +508,16 @@ class PosisiKonsumenRepository
             $builder->where('mkdt.wawancara', $params['wawancara']);
         }
 
-        $statusKavling = $this->normalizeStatusKavling(
-            (isset($params['status_kavling']) && is_scalar($params['status_kavling']))
-                ? (string) $params['status_kavling']
-                : null
-        );
+        $hasExplicitStatusKavling = isset($params['status_kavling'])
+            && is_scalar($params['status_kavling'])
+            && trim((string) $params['status_kavling']) !== '';
+        $hasLegacyAkadParams = (isset($params['akad']) && $params['akad'] !== '' && $params['akad'] !== null)
+            || (isset($params['akad_indent']) && $params['akad_indent'] !== '' && $params['akad_indent'] !== null);
 
-        if ($statusKavling !== null) {
+        if ($hasExplicitStatusKavling || ($applyDefaultStatusKavling && !$hasLegacyAkadParams)) {
+            $statusKavling = $this->normalizeStatusKavling(
+                $hasExplicitStatusKavling ? (string) $params['status_kavling'] : null
+            );
             $this->applyStatusKavlingFilter($builder, $statusKavling);
         } else {
             if (isset($params['akad']) && $params['akad'] !== '' && $params['akad'] !== null) {
@@ -540,7 +552,7 @@ class PosisiKonsumenRepository
         }
     }
 
-    private function applyBaseSearch(BaseBuilder $builder, string $search): void
+    public function applyBaseSearch(BaseBuilder $builder, string $search): void
     {
         if ($search === '') {
             return;

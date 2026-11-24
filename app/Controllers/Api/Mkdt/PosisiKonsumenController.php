@@ -89,10 +89,29 @@ class PosisiKonsumenController extends BaseApiController
 
         $isRaw   = $this->isRawRequest();
         $payload = $this->readRequestData();
+
+        $rawSearch = $payload['search'] ?? $this->request->getVar('search');
+        if (is_array($rawSearch)) {
+            $search = trim((string) ($rawSearch['value'] ?? ''));
+        } else {
+            $search = trim((string) ($rawSearch ?? ''));
+        }
+
+        $rawExportToken = $payload['export_token'] ?? $this->request->getVar('export_token');
+        $exportToken    = $rawExportToken !== null ? trim((string) $rawExportToken) : null;
+
         $filters = [
-            'id_proyek'  => $payload['id_proyek'] ?? $this->request->getVar('id_proyek'),
-            'id_cluster' => $payload['id_cluster'] ?? $this->request->getVar('id_cluster'),
-            'id_jalan'   => $payload['id_jalan'] ?? $this->request->getVar('id_jalan'),
+            'id_proyek'      => $payload['id_proyek'] ?? $this->request->getVar('id_proyek'),
+            'id_cluster'     => $payload['id_cluster'] ?? $this->request->getVar('id_cluster'),
+            'id_jalan'       => $payload['id_jalan'] ?? $this->request->getVar('id_jalan'),
+            'status_kavling' => $payload['status_kavling'] ?? $this->request->getVar('status_kavling'),
+            'bulan_field'    => $payload['bulan_field'] ?? $this->request->getVar('bulan_field'),
+            'bulan'          => $payload['bulan'] ?? $this->request->getVar('bulan'),
+            'tahun'          => $payload['tahun'] ?? $this->request->getVar('tahun'),
+            'sp3k'           => $payload['sp3k'] ?? $this->request->getVar('sp3k'),
+            'wawancara'      => $payload['wawancara'] ?? $this->request->getVar('wawancara'),
+            'search'         => $search,
+            'export_token'   => $exportToken,
         ];
 
         $userId = (int) (function_exists('user_id') ? (user_id() ?? 0) : 0);
@@ -120,6 +139,18 @@ class PosisiKonsumenController extends BaseApiController
         }
 
         return $this->response->setJSON($result);
+    }
+
+    public function exportProgress(string $token = ''): ResponseInterface
+    {
+        $safeToken = $this->posisiKonsumenService->sanitizeExportToken($token);
+        if ($safeToken === '') {
+            return $this->error('Token export tidak valid', 422, ['token' => 'Token export tidak valid']);
+        }
+
+        $progress = $this->posisiKonsumenService->getExportProgress($safeToken);
+
+        return $this->success($progress, 'Progress export posisi konsumen berhasil diambil');
     }
 
     public function getRiwayatExport($status = 'Aktif'): ResponseInterface

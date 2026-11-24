@@ -203,6 +203,7 @@ class ModuleCatalog
                 ],
                 'views' => ['kavling', 'promo', 'laporan'],
                 'assets_js' => ['siteplan/mkdt.js', 'laporan-booking-akad.js'],
+                'assets_css' => ['laporan-booking-akad.css', 'poskon-list-kavling.css'],
                 'owner_tables' => ['mkdt', 'konsumen', 'mkdt_kavling_history', 'promo', 'riwayat_export_poskon', 'si', 'list_si'],
                 'shared_tables' => ['kavling', 'keuangan', 'legal'],
             ],
