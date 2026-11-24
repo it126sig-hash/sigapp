@@ -2,7 +2,7 @@
 
 Dokumen ini adalah acuan teknis modul notifikasi SIGAPP. Update file ini setiap ada perubahan alur notifikasi, endpoint, tabel, service, command, konfigurasi delivery, atau side effect.
 
-Terakhir dicek: 2026-11-21 (Penambahan alur notifikasi balik Request Kavling `NotificationEvent::REQUEST_KAVLING` dari Planning ke pengaju / MKDT)
+Terakhir dicek: 2026-11-24 (Konversi Notification Center `#list-notif` menjadi right-side full-height modal & perbaikan popup profil `.dropdown-user`)
 
 ## Ringkasan
 
@@ -43,6 +43,8 @@ Modul notifikasi sekarang memakai pola modular berlapis (*Thin Controller → Se
 | Command Push | `app/Commands/DispatchNotifications.php` | - | CLI command: `php spark notif:dispatch --channel=web_push --limit=100` |
 | Frontend Push | `public/assets/js/push-subscription.js` | - | Script browser Web Push opt-in, CSRF handling, dan unregister saat logout |
 | Service Worker | `public/sw.js` | - | Background service worker penampil push notification & handler klik |
+| Navbar & Side Modal UI | `app/Views/template/generate_menu.php`, `public/assets/css/style.css` | - | Trigger `#header-notif`, right-side full-height modal `#list-notif` (`.notification-center-modal`) di luar `<nav>`, dan popup profil `.dropdown-user` |
+| Notification Center JS | `public/assets/js/scripts.js`, `public/assets/js/dashboard.js` | - | `window.openNotificationCenter()`, `closeNotificationCenterModal()`, `shown.bs.modal`, infinite scroll (`scrollHeight - 24`), dan trigger dashboard `#dashboard-view-all-activity` |
 
 ## Routes
 
@@ -240,15 +242,19 @@ Frontend:
 
 ## Navbar Notification Center
 
-Dropdown lonceng memakai `/notif/summary` untuk badge dan `/notif/center` untuk isi lengkap. Saat dropdown dibuka, frontend me-refresh isi notifikasi agar user tidak melihat cache lama.
+Trigger lonceng `#header-notif` (`data-toggle="modal" data-target="#list-notif"`) membuka **right-side full-height modal** `#list-notif` (`.modal.fade.notification-center-modal`) yang dirender di luar `<nav class="header-navbar">` (`app/Views/template/generate_menu.php`) agar bebas dari stacking context `backdrop-filter`/`z-index: 999` dan terintegrasi penuh dengan `initSigappModalStacking` (`z-index: 1050+`, backdrop, tombol `ESC`, dan tombol close `.notification-close-btn`).
 
-Behavior UI:
+Backend feed tetap memakai `/notif/summary` untuk badge dan `/notif/center` untuk isi lengkap. Saat modal dibuka (`shown.bs.modal`), `ensureNotificationCenterLoaded()` menyegarkan isi notifikasi agar user tidak melihat cache lama.
 
+Behavior & Layout UI:
+
+- **Drawer Kanan Full-Height (`public/assets/css/style.css`):** Lebar `min(440px, 100vw)` di desktop dan `100vw` di mobile (`<= 767.98px`), tinggi `100vh`/`100dvh`, header/tabs/filter proyek (`.notif-project-scroll`) sticky di atas, dan `#notification-center-body` (`flex: 1 1 auto`, `#f5f7fa` / `.dark-layout`, `safe-area-inset-bottom`) memakai native scroll tanpa `.scrollable-container` (`PerfectScrollbar`) maupun `.media-list` (`max-height: 25rem`).
+- **Pembukaan & Penutupan Terprogram (`public/assets/js/scripts.js`, `dashboard.js`):** `window.openNotificationCenter()` membuka `#list-notif` (dipakai juga oleh `#dashboard-view-all-activity` di dashboard), sedangkan `closeNotificationCenterModal()` otomatis menutup drawer ketika klik item urgent/activity memicu aksi atau modal in-page (`openCOSubkon`, `openSiteplanKeuanganFromUrgent`, `openSiteplanKeuanganFromNotification`, `modal_tagihan`, `openSiteplanKavlingFromNotification`, `window.openTiketMasalah`, `view_detail`).
 - Tab `Jatuh Tempo` tetap diprioritaskan saat ada urgent item.
-- Jika urgent kosong dan activity tersedia, dropdown otomatis membuka tab `Aktivitas` selama user belum memilih tab secara manual.
-- Tombol footer `Aktivitas Lagi` dihapus; activity tambahan dimuat lewat infinite scroll saat tab `Aktivitas` aktif.
-- Tombol `Perbarui` menjadi icon button kecil di header dropdown.
-- Isi activity memakai field `notif_text` dari backend. Field ini dibuat oleh `NotificationTextFormatter` supaya notif yang berisi tag HTML tidak tampil raw di dropdown, menampilkan `nama_jalan` + `no_kavling` jika tersedia, dan formatnya sama dengan email/Web Push.
+- Jika urgent kosong dan activity tersedia, modal otomatis membuka tab `Aktivitas` selama user belum memilih tab secara manual.
+- Tombol footer `Aktivitas Lagi` dihapus; activity tambahan dimuat lewat infinite scroll pada `#notification-center-body` dengan toleransi `scrollTop + innerHeight >= scrollHeight - 24` saat tab `Aktivitas` aktif (`/loadnotif`).
+- Tombol `Perbarui` dan `Tandai semua dibaca` tampil sebagai icon button di header modal.
+- Isi activity memakai field `notif_text` dari backend. Field ini dibuat oleh `NotificationTextFormatter` supaya notif yang berisi tag HTML tidak tampil raw di notification center, menampilkan `nama_jalan` + `no_kavling` jika tersedia, dan formatnya sama dengan email/Web Push.
 - Frontend tetap punya fallback plain-text sanitizer untuk response lama yang belum memiliki `notif_text`.
 
 ## Endpoint Push

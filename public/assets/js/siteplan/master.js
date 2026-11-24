@@ -2814,9 +2814,7 @@ Date.prototype.toDateInputValue = (function() {
         else
             role = roleid
 
-        if (role == 7) { //produksi
-            open_produksi(sh, role, id_kavling)
-        }  else if (role == 3) { //keunagan
+      if (role == 3) { //keunagan
             if (!sh.data.id_mkdt) {
                 return swal('error', 'Terjad Kesalahan', `Belum ada data konsumen di kavling ${sh.data.nama_jalan}, No. ${sh.data.no_kavling}`)
             }

@@ -2,7 +2,7 @@
 
 **Status:** `REFACTORED`  
 **Readiness Score:** `100/100`  
-**Last Synced:** `2026-11-12 15:34:49` @ `a68829a`  
+**Last Synced:** `2026-11-24 15:12:42` @ `d5c1091`  
 
 ## Purpose
 Pemberitahuan terpusat: navbar in-app alerts, queue email digest, browser Web Push, dan pengaturan preferensi user.
@@ -131,6 +131,12 @@ Pemberitahuan terpusat: navbar in-app alerts, queue email digest, browser Web Pu
 ### Views (1 folder)
 - `app/Views/emails` (1 file: `email_digest.php`)
 
+### Views & Global Frontend Assets (UI Shell & Notification Center)
+- `app/Views/template/generate_menu.php` — Global navbar & shell view: trigger `#header-notif` (`data-toggle="modal" data-target="#list-notif"`), side modal `#list-notif` (`.modal.fade.notification-center-modal`) di luar `<nav class="header-navbar">`, serta markup `.dropdown-user`.
+- `public/assets/css/style.css` — Global Tier 1 styling untuk `.notification-center-modal` (drawer kanan full-height `100vh`/`100dvh`, `min(440px, 100vw)` desktop, `100vw` mobile, `.notif-project-scroll`, `.dark-layout`) dan `.dropdown-user .dropdown-menu`.
+- `public/assets/js/scripts.js` — Global Notification Center controller (`window.openNotificationCenter()`, `closeNotificationCenterModal()`, `shown.bs.modal`, auto-close aksi in-page, infinite scroll `scrollHeight - 24`).
+- `public/assets/js/dashboard.js` — Caller eksternal `#dashboard-view-all-activity` yang memanggil `window.openNotificationCenter()` (fallback `$('#list-notif').modal('show')`).
+
 ### JavaScript (1 file)
 - `public/assets/js/push-subscription.js` (249 baris)
 
@@ -181,6 +187,10 @@ Pemberitahuan terpusat: navbar in-app alerts, queue email digest, browser Web Pu
   - `getUserGroupId(int $userId)`: Helper query aman untuk mendapatkan group ID pengguna tanpa melanggar layer di controller.
   - `getProyekName(int $idProyek)`: Query nama proyek untuk pembentukan payload teks notifikasi.
   - `getActorDepartmentContext(int $userId)`: Query agregasi aman (`MIN(auth_groups.name)`) untuk format notifikasi push yang patuh terhadap MySQL `ONLY_FULL_GROUP_BY`.
+- **Frontend & UI Shell (`public/assets/js/scripts.js`, `public/assets/js/dashboard.js`, `app/Views/template/generate_menu.php`, `public/assets/css/style.css`):**
+  - `window.openNotificationCenter()` (`scripts.js`): Helper global untuk membuka right-side full-height modal `#list-notif` (`$('#list-notif').modal('show')`), digunakan juga oleh `#dashboard-view-all-activity` di `dashboard.js`.
+  - `closeNotificationCenterModal()` (`scripts.js`): Menutup modal `#list-notif` secara terprogram saat klik item urgent/activity memicu aksi atau modal in-page (`openCOSubkon`, `openSiteplanKeuanganFromUrgent`, `openSiteplanKeuanganFromNotification`, `modal_tagihan`, `openSiteplanKavlingFromNotification`, `window.openTiketMasalah`, `view_detail`).
+  - `#list-notif` `shown.bs.modal` & infinite scroll `#notification-center-body` (`scrollTop + innerHeight >= scrollHeight - 24`): Memuat/menyegarkan notification center saat drawer dibuka serta memuat halaman aktivitas berikutnya lewat `/loadnotif` saat tab `Aktivitas` aktif.
 
 ## Deprecated & Legacy Shims
 Seluruh komponen di bawah ini dipertahankan secara sengaja demi **Zero-Downtime Migration** (kompatibilitas mundur total):
@@ -211,6 +221,12 @@ Seluruh komponen di bawah ini dipertahankan secara sengaja demi **Zero-Downtime 
 - `app/Services/GoogleCalendarService.php` -> **DEPRECATED**, diteruskan ke `App\Services\Notifikasi\GoogleCalendarService`.
 - `app/Repositories/NotificationRepository.php` -> **DEPRECATED**, diteruskan ke `App\Repositories\Notifikasi\NotificationRepository`.
 - `app/Repositories/NotifRepository.php` -> **DEPRECATED**, diteruskan ke `App\Repositories\Notifikasi\NotifRepository`.
+
+### 3. Deprecated / Removed Frontend Selectors & Patterns (`2026-11-24`)
+- CSS `.notification-center-menu` (`public/assets/css/style.css`) -> **REMOVED**, digantikan `.notification-center-modal` (right-side full-height modal drawer di luar `<nav class="header-navbar">`).
+- Inline `<style>` `.notif-project-scroll` (`app/Views/template/generate_menu.php`) -> **REMOVED**, dipindahkan ke `public/assets/css/style.css` (`.notification-center-modal .notif-project-scroll`).
+- Class `.scrollable-container` & `.media-list` pada `#notification-center-body` (`app/Views/template/generate_menu.php`) -> **REMOVED**, mencegah binding `PerfectScrollbar` (`app.js`) dan `max-height: 25rem` (`bootstrap-extended.css`) agar native flex scroll berjalan penuh.
+- Pemanggilan `$('#header-notif').dropdown('toggle')` (`public/assets/js/dashboard.js`) & listener `shown.bs.dropdown` (`public/assets/js/scripts.js`) -> **REMOVED**, digantikan `window.openNotificationCenter()` / `$('#list-notif').modal('show')` dan listener `shown.bs.modal`.
 
 ## Readiness Checklist
 - [x] Has Service Layer
@@ -245,6 +261,15 @@ _Jalankan `php spark module:deadcode Notifikasi` untuk mengaudit dead code kandi
     - `GoogleCalendarService`: `db_connect()` tanpa transaksi (L36) dan `$this->db->table()` (L85, L156, L183, L188, L198, L316, L473, L495, L508, L518, L540, L547).
 
 ## Change Log
+- `2026-11-24` [`UI_REPORT`] — **Perbaikan Popup User Profile & Konversi Popup Notifikasi ke Side Modal Kanan Full-Height (`#list-notif`) (PASS QA)**:
+  - **Routes & Public Contracts:** Tidak ada perubahan rute/API backend; tetap memakai kontrak `/notif/summary`, `/notif/center`, `/loadnotif`, `/notif/snooze`, `/notif/mark-as-read/{id}`, `/notif/mark-all-as-read`, dan `/notif/open/{id}`.
+  - **Controller / Service / Repo / Model:** Tidak ada perubahan file backend (`N/A`).
+  - **View / CSS / JS:**
+    - `app/Views/template/generate_menu.php`: perbaikan markup `.dropdown-user` (span label & pertahankan `[data-push-label]`), perubahan `#header-notif` menjadi modal trigger (`data-toggle="modal" data-target="#list-notif"`), pemindahan `#list-notif` ke luar `<nav class="header-navbar">` menjadi `.modal.fade.notification-center-modal`, penambahan `.notification-close-btn`, penghapusan inline `<style>` `.notif-project-scroll`, serta penghapusan `.scrollable-container` dan `.media-list` dari `#notification-center-body`.
+    - `public/assets/css/style.css`: perbaikan lebar/wrapping/mobile/dark-layout `.dropdown-user .dropdown-menu` (override `12rem` & `display-scale.css`), serta konversi styling `.notification-center-modal` menjadi drawer kanan full-height (`100vh`/`100dvh`, `min(440px, 100vw)` desktop, `100vw` mobile, flex header/tabs/filter, scrollable `#notification-center-body` `#f5f7fa` + `safe-area-inset-bottom`, `.notif-project-scroll`, dan `.dark-layout`).
+    - `public/assets/js/scripts.js`: penambahan `window.openNotificationCenter()` dan `closeNotificationCenterModal()`, event `shown.bs.modal` pada `#list-notif`, auto-hide drawer saat aksi in-page, dan toleransi infinite scroll `scrollHeight - 24`.
+    - `public/assets/js/dashboard.js`: pembaruan `#dashboard-view-all-activity` memanggil `window.openNotificationCenter()` (fallback `$('#list-notif').modal('show')`).
+  - **Deprecations / Removed:** Dihapusnya selector `.notification-center-menu`, inline `<style>` `.notif-project-scroll`, class `.scrollable-container` & `.media-list` pada `#notification-center-body`, serta pemanggilan `$('#header-notif').dropdown('toggle')` dan listener `shown.bs.dropdown`.
 - `2026-11-12` [`REFACTOR`] — **Refactoring Penuh Modul Notifikasi Menjadi Arsitektur Modular CI4 Web/Api & Services (Score 100/100, PASS QA)**:
   - **Routes & Public Contracts:**
     - Mendaftarkan rute Web eksplisit: `notif/open/(:num)` (redirect deep-link), `notif/icon/(:num)` (binary stream PNG), `google-calendar/*` (OAuth2 flow).

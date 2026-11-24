@@ -976,12 +976,22 @@ function renderActivityItem(v) {
   `;
 }
 
-$("#list-notif").closest(".dropdown-notification").on("shown.bs.dropdown", function () {
-  ensureNotificationCenterLoaded();
-});
+window.openNotificationCenter = function () {
+  const $modal = $("#list-notif");
+  if ($modal.length) {
+    $modal.modal("show");
+  }
+};
 
-$("#header-notif").on("click", function () {
-  window.setTimeout(ensureNotificationCenterLoaded, 0);
+function closeNotificationCenterModal() {
+  const $modal = $("#list-notif");
+  if ($modal.length && $modal.hasClass("show")) {
+    $modal.modal("hide");
+  }
+}
+
+$("#list-notif").on("shown.bs.modal", function () {
+  ensureNotificationCenterLoaded();
 });
 
 $("#refresh-notif-center").click(function (event) {
@@ -1171,6 +1181,7 @@ function openNotificationUrgentItem(key) {
   }
 
   if (item.type === "cashout_subkon" && typeof openCOSubkon === "function") {
+    closeNotificationCenterModal();
     return openCOSubkon({
       id_proyek: item.id_proyek || notificationProjectId(),
       id_cashout_subkon: item.id_cashout_subkon,
@@ -1188,17 +1199,21 @@ function openNotificationUrgentItem(key) {
 
   if (item.type === "tagihan") {
     if (typeof openSiteplanKeuanganFromUrgent === "function") {
+      closeNotificationCenterModal();
       return openSiteplanKeuanganFromUrgent(item);
     }
     if (typeof openSiteplanKeuanganFromNotification === "function") {
+      closeNotificationCenterModal();
       return openSiteplanKeuanganFromNotification(item.id_kavling);
     }
     if (typeof modal_tagihan === "function") {
+      closeNotificationCenterModal();
       return modal_tagihan(item.id_kavling);
     }
   }
 
   if (typeof openSiteplanKavlingFromNotification === "function") {
+    closeNotificationCenterModal();
     return openSiteplanKavlingFromNotification(item.id_kavling);
   }
 
@@ -1207,6 +1222,7 @@ function openNotificationUrgentItem(key) {
   }
 
   if (typeof view_detail === "function") {
+    closeNotificationCenterModal();
     return view_detail(item.id_kavling);
   }
 }
@@ -1237,6 +1253,7 @@ function handleNotificationClick(id_notif, id_kavling, type, el) {
 
       if (type === "cashout_subkon") {
         if (typeof openCOSubkon === "function") {
+          closeNotificationCenterModal();
           openCOSubkon({
             id_kavlings: [String(id_kavling)],
           });
@@ -1245,8 +1262,10 @@ function handleNotificationClick(id_notif, id_kavling, type, el) {
         }
       } else if (type === "tagihan") {
         if (typeof openSiteplanKeuanganFromNotification === "function") {
+          closeNotificationCenterModal();
           openSiteplanKeuanganFromNotification(id_kavling);
         } else if (typeof modal_tagihan === "function") {
+          closeNotificationCenterModal();
           modal_tagihan(id_kavling);
         }
       } else if (type && type.startsWith("tiket_masalah")) {
@@ -1264,18 +1283,23 @@ function handleNotificationClick(id_notif, id_kavling, type, el) {
         }
         
         if (tmRefType && tmRefId && typeof window.openTiketMasalah === 'function') {
+            closeNotificationCenterModal();
             window.openTiketMasalah(tmRefType, tmRefId);
         } else if (id_kavling && id_kavling !== 'null' && typeof window.openTiketMasalah === 'function') {
+            closeNotificationCenterModal();
             window.openTiketMasalah('kavling', id_kavling);
         }
       } else if (type && type.startsWith("fee_sales")) {
         window.location.href = base_url + "/notif/open/" + id_notif;
       } else if (type === "progress" && typeof openSiteplanKavlingFromNotification === "function") {
+        closeNotificationCenterModal();
         openSiteplanKavlingFromNotification(id_kavling);
       } else {
         if (typeof openSiteplanKavlingFromNotification === "function") {
+          closeNotificationCenterModal();
           openSiteplanKavlingFromNotification(id_kavling);
         } else if (typeof view_detail === "function") {
+          closeNotificationCenterModal();
           view_detail(id_kavling);
         }
       }
@@ -1286,7 +1310,7 @@ function handleNotificationClick(id_notif, id_kavling, type, el) {
 // Deteksi scroll pada div
 $("#notification-center-body").scroll(function () {
   if (
-    $(this).scrollTop() + $(this).innerHeight() >= $(this)[0].scrollHeight &&
+    $(this).scrollTop() + $(this).innerHeight() >= $(this)[0].scrollHeight - 24 &&
     !isLoading &&
     notificationActivityHasMore &&
     $("#notif-activity-pane").hasClass("is-active")

@@ -1157,8 +1157,10 @@
 
         // View all activity trigger
         $('#dashboard-view-all-activity').on('click', function() {
-            if ($('#header-notif').length) {
-                $('#header-notif').dropdown('toggle');
+            if (typeof window.openNotificationCenter === 'function') {
+                window.openNotificationCenter();
+            } else if ($('#list-notif').length) {
+                $('#list-notif').modal('show');
             }
         });
 
