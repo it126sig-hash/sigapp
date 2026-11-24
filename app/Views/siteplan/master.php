@@ -38,7 +38,7 @@ $canProcessRequestKavling = in_array((int) $k, [1, 6], true);
 <style>
     @media screen and (max-width: 1366px) {
         html {
-            font-size: 70%;
+            font-size: calc(70% * var(--sigapp-font-scale, 1));
             /* Mengurangi ukuran font global menjadi 90% */
         }
     }

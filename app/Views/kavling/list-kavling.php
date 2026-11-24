@@ -19,8 +19,8 @@
     display: flex;
     flex-wrap: wrap;
     align-items: center;
-    gap: .5rem .65rem;
-    padding: .6rem .85rem;
+    gap: calc(.5rem * var(--sigapp-space-ratio, 1)) calc(.65rem * var(--sigapp-space-ratio, 1));
+    padding: calc(.6rem * var(--sigapp-space-ratio, 1)) calc(.85rem * var(--sigapp-space-ratio, 1));
     border-bottom: 1px solid #edf0f4;
     background: #fff;
   }
@@ -37,7 +37,7 @@
   #modal-filter-lanjutan .poskon-filter-grid {
     display: flex;
     flex-direction: column;
-    gap: .85rem;
+    gap: calc(.85rem * var(--sigapp-space-ratio, 1));
   }
 
   #modal-filter-lanjutan .poskon-filter-field {
@@ -50,27 +50,27 @@
     font-size: .78rem;
     font-weight: 600;
     color: #4b5563;
-    margin-bottom: .3rem;
+    margin-bottom: calc(.3rem * var(--sigapp-space-ratio, 1));
   }
 
   #poskon-filter .form-control,
   #modal-filter-lanjutan .form-control,
   #poskon-filter .select2-container--default .select2-selection--single,
   #modal-filter-lanjutan .select2-container--default .select2-selection--single {
-    min-height: 30px;
+    min-height: calc(30px * var(--sigapp-ui-scale, 1));
     border-color: #d8dee8;
     border-radius: 6px;
   }
 
   #poskon-filter .select2-container--default .select2-selection--single .select2-selection__rendered,
   #modal-filter-lanjutan .select2-container--default .select2-selection--single .select2-selection__rendered {
-    line-height: 28px;
+    line-height: calc(28px * var(--sigapp-ui-scale, 1));
     font-size: .78rem;
   }
 
   #poskon-filter .select2-container--default .select2-selection--single .select2-selection__arrow,
   #modal-filter-lanjutan .select2-container--default .select2-selection--single .select2-selection__arrow {
-    height: 28px;
+    height: calc(28px * var(--sigapp-ui-scale, 1));
   }
 
   .poskon-tabs-bar {
@@ -78,7 +78,7 @@
     align-items: center;
     justify-content: space-between;
     flex-wrap: wrap;
-    gap: .5rem;
+    gap: calc(.5rem * var(--sigapp-space-ratio, 1));
   }
 
   .poskon-tabs-bar .poskon-tabs {
@@ -90,24 +90,24 @@
   .poskon-filter-actions {
     display: flex;
     flex-wrap: wrap;
-    gap: .4rem;
+    gap: calc(.4rem * var(--sigapp-space-ratio, 1));
     align-items: center;
     justify-content: flex-end;
     margin-left: auto;
   }
 
-  .poskon-filter-actions .btn,
-  .poskon-filter-actions .btn-group .btn {
-    min-height: 30px;
-    padding: .3rem .6rem;
+  .poskon-page .poskon-filter-actions .btn,
+  .poskon-page .poskon-filter-actions .btn-group .btn {
+    min-height: calc(30px * var(--sigapp-ui-scale, 1));
+    padding: calc(.3rem * var(--sigapp-space-ratio, 1)) calc(.6rem * var(--sigapp-space-ratio, 1));
     border-radius: 6px;
     font-size: .78rem;
     font-weight: 600;
     line-height: 1.2;
   }
 
-  .poskon-filter-actions .btn i {
-    margin-right: .25rem;
+  .poskon-page .poskon-filter-actions .btn i {
+    margin-right: calc(.25rem * var(--sigapp-space-ratio, 1));
   }
 
   #poskon-filter .btn-primary,
@@ -140,9 +140,9 @@
     display: flex;
     flex-wrap: wrap;
     align-items: center;
-    gap: .5rem;
-    padding: .6rem .85rem;
-    margin-bottom: 1rem;
+    gap: calc(.5rem * var(--sigapp-space-ratio, 1));
+    padding: calc(.6rem * var(--sigapp-space-ratio, 1)) calc(.85rem * var(--sigapp-space-ratio, 1));
+    margin-bottom: calc(1rem * var(--sigapp-space-ratio, 1));
     background: #f8fafc;
     border: 1px solid #e5e7eb;
     border-radius: 8px;
@@ -158,14 +158,14 @@
   .poskon-active-filters-chips {
     display: flex;
     flex-wrap: wrap;
-    gap: .4rem;
+    gap: calc(.4rem * var(--sigapp-space-ratio, 1));
   }
 
   .poskon-filter-chip {
     display: inline-flex;
     align-items: center;
-    gap: .35rem;
-    padding: .3rem .6rem;
+    gap: calc(.35rem * var(--sigapp-space-ratio, 1));
+    padding: calc(.3rem * var(--sigapp-space-ratio, 1)) calc(.6rem * var(--sigapp-space-ratio, 1));
     border-radius: 999px;
     background: #eaf1fb;
     color: #2057a3;
@@ -187,29 +187,12 @@
     cursor: pointer;
   }
 
-  .poskon-table-card .card-body {
-    padding: 1rem;
+  .poskon-page .poskon-table-card .card-body {
+    padding: calc(1rem * var(--sigapp-space-ratio, 1));
   }
 
   .card.poskon-table-card {
     overflow: visible !important;
-  }
-
-  .poskon-datatable-card .card-body {
-    padding: .5rem;
-  }
-
-  #data_tables {
-    width: 100% !important;
-  }
-
-  #data_tables tbody td {
-    text-transform: uppercase;
-  }
-
-  #data_tables tbody td .poskon-action-cell,
-  #data_tables tbody td .poskon-action-cell * {
-    text-transform: none;
   }
 
   #poskon-filter .select2-container,
@@ -224,13 +207,13 @@
 
   @media (max-width: 767.98px) {
     .app-content.content {
-      padding-left: .75rem;
-      padding-right: .75rem;
+      padding-left: calc(.75rem * var(--sigapp-space-ratio, 1));
+      padding-right: calc(.75rem * var(--sigapp-space-ratio, 1));
     }
 
     #poskon-filter .poskon-toolbar {
       align-items: flex-start;
-      padding: .85rem;
+      padding: calc(.85rem * var(--sigapp-space-ratio, 1));
     }
 
     #poskon-filter .poskon-toolbar-title {
@@ -266,34 +249,22 @@
     .dataTables_wrapper .dataTables_filter {
       width: 100%;
       text-align: left;
-      margin-bottom: .75rem;
+      margin-bottom: calc(.75rem * var(--sigapp-space-ratio, 1));
     }
 
     .dataTables_wrapper .dataTables_filter input {
       width: 100%;
       margin-left: 0;
-      margin-top: .35rem;
+      margin-top: calc(.35rem * var(--sigapp-space-ratio, 1));
     }
 
     .dataTables_scrollBody {
       max-height: 62vh !important;
     }
 
-    #data_tables,
     #riwayat_export {
       font-size: .82rem;
     }
-  }
-  #data_tables .poskon-akad-indent { background-color: #2057a3; }
-  #data_tables .poskon-referral { font-size: .76rem; line-height: 1.25; }
-  #data_tables .poskon-progress-partial { color: #ff9f43 !important; }
-  #data_tables th.poskon-keterangan-status,
-  #data_tables td.poskon-keterangan-status {
-    min-width: 280px !important;
-    width: 280px !important;
-    white-space: normal !important;
-    overflow-wrap: anywhere;
-    vertical-align: top;
   }
 
   #poskon-tabs-bar .poskon-status-filter-desktop-slot {
@@ -315,8 +286,8 @@
   }
 
   #poskon-tabs-bar .select2-container--default .select2-selection--single {
-    min-height: 30px !important;
-    height: 30px !important;
+    min-height: calc(30px * var(--sigapp-ui-scale, 1)) !important;
+    height: calc(30px * var(--sigapp-ui-scale, 1)) !important;
     border-color: #d8dee8;
     border-radius: 6px !important;
   }
@@ -327,15 +298,15 @@
   }
 
   #poskon-tabs-bar .select2-container--default .select2-selection--single .select2-selection__rendered {
-    line-height: 28px !important;
+    line-height: calc(28px * var(--sigapp-ui-scale, 1)) !important;
     font-size: .78rem;
     font-weight: 600;
     color: #111827;
-    padding-right: 24px !important;
+    padding-right: calc(24px * var(--sigapp-ui-scale, 1)) !important;
   }
 
   #poskon-tabs-bar .select2-container--default .select2-selection--single .select2-selection__arrow {
-    height: 28px !important;
+    height: calc(28px * var(--sigapp-ui-scale, 1)) !important;
     pointer-events: none;
   }
 
@@ -394,11 +365,6 @@
       padding: .85rem;
     }
   }
-
-  .poskon-action-cell .dropdown-menu {
-    max-height: 280px;
-    overflow-y: auto;
-  }
 </style>
 <!--
 <link rel="stylesheet" href="<?= base_url() ?>app-assets/vendors/css/bootstrap/extensions/sticky-header/bootstrap-table-sticky-header.min.css">
@@ -429,7 +395,7 @@
 
 
 <!-- /.card-header -->
-<div class="app-content content ">
+<div class="app-content content poskon-page">
   <div class="content-overlay"></div>
   <div class="header-navbar-shadow"></div>
   <section id="basic-datatable">
@@ -1123,7 +1089,12 @@ if (!empty($roles)) {
     initPoskonTable(isMobileTable);
 
     function applyPoskonTableHeight() {
-      if (isMobileTable) return;
+      if (isMobileTable) {
+        if ($.fn.dataTable.isDataTable('#data_tables')) {
+          $('#data_tables').DataTable().columns.adjust();
+        }
+        return;
+      }
       var $wrapper = $('#data_tables_wrapper');
       var $scrollBody = $wrapper.find('.dataTables_scrollBody').first();
       if (!$scrollBody.length) return;
@@ -1147,8 +1118,33 @@ if (!empty($roles)) {
       });
       if ($.fn.dataTable.isDataTable('#data_tables')) {
         var api = $('#data_tables').DataTable();
+        api.columns.adjust();
         if (api.fixedColumns) api.fixedColumns().relayout();
+        syncPoskonFixedHeaderWidths();
       }
+    }
+
+    function syncPoskonFixedHeaderWidths() {
+      if (isMobileTable) return;
+      var $wrapper = $('#data_tables_wrapper');
+      var $scrollHead = $wrapper.find('.dataTables_scrollHead');
+      var $leftHead = $wrapper.find('.DTFC_LeftHeadWrapper');
+      if (!$scrollHead.length || !$leftHead.length) return;
+
+      var $scrollRows = $scrollHead.find('thead > tr');
+      $leftHead.find('thead > tr').each(function(rowIdx) {
+        var $srcCells = $scrollRows.eq(rowIdx).children('th');
+        $(this).children('th').each(function(colIdx) {
+          var $src = $srcCells.eq(colIdx);
+          if (!$src.length) return;
+          var w = $src.css('width');
+          $(this).css({
+            width: w,
+            minWidth: w,
+            maxWidth: w
+          });
+        });
+      });
     }
 
     $(window).on('resize', function() {
@@ -1156,6 +1152,9 @@ if (!empty($roles)) {
       window._poskonResizeTimer = setTimeout(applyPoskonTableHeight, 150);
     });
     $(window).on('load', applyPoskonTableHeight);
+    if (document.fonts && document.fonts.ready && typeof document.fonts.ready.then === 'function') {
+      document.fonts.ready.then(applyPoskonTableHeight);
+    }
 
     function initPoskonTable(isMobileTable) {
     try {
@@ -1184,12 +1183,12 @@ if (!empty($roles)) {
           [3, 'asc']
         ],
         columnDefs: [{
-            targets: '_all',
-            orderable: false
-          },
-          {
             targets: [7, 9],
             orderable: true
+          },
+          {
+            targets: '_all',
+            orderable: false
           },
           {
             targets: 9,
@@ -1202,7 +1201,7 @@ if (!empty($roles)) {
           {
             targets: 29,
             className: 'poskon-keterangan-status',
-            width: '280px'
+            width: '260px'
           }
         ],
         paging: true,
@@ -1920,8 +1919,8 @@ if (!empty($roles)) {
   });
 
   $('#tb-BLOK').css({
-    'min-width': '150px',
-    'max-width': '150px'
+    'min-width': '120px',
+    'max-width': '120px'
   });
   $('#tb_nama_konsumen').css({
     'min-width': '150px',

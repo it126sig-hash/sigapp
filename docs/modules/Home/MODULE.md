@@ -2,7 +2,7 @@
 
 **Status:** `MAPPED`  
 **Readiness Score:** `40/100`  
-**Last Synced:** `2026-11-04 19:04:33` @ `2d5d609`  
+**Last Synced:** `2026-11-24 13:40:19` @ `84f8fcb`  
 
 ## Purpose
 Dashboard eksekutif dan operasional multi-departemen yang menyajikan ringkasan metrik lintas divisi (MKDT/Sales, Produksi, Legal, Planning, Keuangan), antrean tindakan cepat (*Action Queue*), peringatan dini (*Alerts*) berbasis wewenang role, grafik perbandingan tren transaksi booking & akad, serta pemantauan log aktivitas sistem.
@@ -143,6 +143,8 @@ _Jalankan `php spark module:deadcode Home` untuk mengaudit dead code kandidat._
   - Mengonsumsi `App\Services\FileAccessService` untuk penanganan berkas dan lampiran.
   - Memanggil model `App\Models\ProyekModel` untuk verifikasi data proyek aktif.
   - Berinteraksi dengan `App\Controllers\Notif` untuk log aktivitas audit (`getActivity`).
+- **Frontend Styling & Global Display Scale:**
+  - `public/assets/css/dashboard.css` terintegrasi dengan variabel CSS skala global dari `public/assets/css/display-scale.css` (`--sigapp-ui-scale`, `--sigapp-space-ratio`, dan pewarisan `rem` dari `--sigapp-font-scale`) untuk pemisahan independen *UI Density* dan *Font Scale*. *(Catatan: `dashboard.css` saat ini belum terdaftar di kunci `assets_css` pada `ModuleCatalog['Home']` sehingga belum tercantum otomatis di `## File Inventory`).*
 
 ### Audit Verifikasi Migrasi (2026-11-22)
 - **Status Audit:** `INCOMPLETE` (Readiness Score `40/100`, Status `MAPPED`).
@@ -152,6 +154,12 @@ _Jalankan `php spark module:deadcode Home` untuk mengaudit dead code kandidat._
 - **Rute (`app/Config/Routes.php`):** 5 rute eksplisit masih mengarah ke flat `Home::*` (L40, L41, L79, L122, L123) dan `$routes->setAutoRoute(true)` (L9) masih menyisakan 7 AutoRoute pada `Home`.
 
 ## Change Log
+- **`2026-11-24` [`UI_REPORT`] — Integrasi Pengaturan Scale Layar Global (`--sigapp-ui-scale`, `--sigapp-space-ratio`, `--sigapp-font-scale`) pada Dashboard:**
+  - **Routes & Public Contracts:** Tidak ada perubahan rute HTTP maupun kontrak API/Service backend.
+  - **Controller / Service / Repo / Model:** Tidak ada perubahan backend.
+  - **View / CSS / JS:**
+    - `public/assets/css/dashboard.css`: Mengintegrasikan variabel skala global pada seluruh komponen `.dashboard-page` dan `#modal-chart-kavling` — spacing/gap/padding/margin `rem` dikalikan `var(--sigapp-space-ratio, 1)` (agar kepadatan UI bergerak independen dari ukuran huruf) dan dimensi `px` (`.prod-utility-icon`, `.activity-feed`, dll.) dikalikan `var(--sigapp-ui-scale, 1)`, sementara ukuran teks mengikuti basis `rem` (`--sigapp-font-scale`).
+  - **Deprecations:** Tidak ada.
 - `2026-11-22` [`AUDIT`] — Audit verifikasi migrasi modular: status `INCOMPLETE` (Score 40/100, `MAPPED`), ditemukan file flat `Home.php` & `DashboardService.php`, pelanggaran layer DB/Model di controller & service, serta rute eksplisit/AutoRoute masih ke `Home::*`.
 - **2026-11-04 [`FEATURE` / `UI_REPORT`] — Dashboard Cards, Action Alerts, & Problem Ticket Table Refinements:**
   - **Routes & Public Contracts:**

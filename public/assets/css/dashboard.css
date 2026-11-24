@@ -13,8 +13,8 @@
     align-items: center;
     justify-content: space-between;
     flex-wrap: wrap;
-    gap: 0.75rem;
-    margin-bottom: 1.25rem;
+    gap: calc(0.75rem * var(--sigapp-space-ratio, 1));
+    margin-bottom: calc(1.25rem * var(--sigapp-space-ratio, 1));
 }
 
 .dashboard-page .dashboard-header-row h2 {
@@ -27,7 +27,7 @@
 .dashboard-page .dashboard-header-row .dashboard-subtitle {
     color: #6b7280;
     font-size: 0.85rem;
-    margin-top: 0.15rem;
+    margin-top: calc(0.15rem * var(--sigapp-space-ratio, 1));
     margin-bottom: 0;
 }
 
@@ -35,14 +35,14 @@
     display: inline-flex;
     background: #edf0f4;
     border-radius: 10px;
-    padding: 0.3rem;
-    gap: 0.3rem;
+    padding: calc(0.3rem * var(--sigapp-space-ratio, 1));
+    gap: calc(0.3rem * var(--sigapp-space-ratio, 1));
 }
 
 .dashboard-page .dashboard-period-pills .btn {
     border: none;
     border-radius: 8px;
-    padding: 0.45rem 0.9rem;
+    padding: calc(0.45rem * var(--sigapp-space-ratio, 1)) calc(0.9rem * var(--sigapp-space-ratio, 1));
     font-size: 0.82rem;
     font-weight: 600;
     color: #4b5563;
@@ -79,8 +79,8 @@
     background: #ffffff;
     border: 1px solid #e5e7eb;
     border-radius: 12px;
-    padding: 1.15rem 1.25rem;
-    margin-bottom: 1.25rem;
+    padding: calc(1.15rem * var(--sigapp-space-ratio, 1)) calc(1.25rem * var(--sigapp-space-ratio, 1));
+    margin-bottom: calc(1.25rem * var(--sigapp-space-ratio, 1));
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
 }
 
@@ -89,9 +89,9 @@
     justify-content: space-between;
     align-items: center;
     flex-wrap: wrap;
-    gap: 0.5rem;
-    margin-bottom: 1rem;
-    padding-bottom: 0.65rem;
+    gap: calc(0.5rem * var(--sigapp-space-ratio, 1));
+    margin-bottom: calc(1rem * var(--sigapp-space-ratio, 1));
+    padding-bottom: calc(0.65rem * var(--sigapp-space-ratio, 1));
     border-bottom: 1px solid #f1f5f9;
 }
 
@@ -101,7 +101,7 @@
     color: #111827;
     display: flex;
     align-items: center;
-    gap: 0.5rem;
+    gap: calc(0.5rem * var(--sigapp-space-ratio, 1));
     margin: 0;
 }
 
@@ -115,14 +115,14 @@
 .dashboard-page .stock-grid {
     display: grid;
     grid-template-columns: repeat(6, minmax(0, 1fr));
-    gap: 0.75rem;
+    gap: calc(0.75rem * var(--sigapp-space-ratio, 1));
 }
 
 .dashboard-page .stock-item {
     background: #f8fafc;
     border: 1px solid #e5e7eb;
     border-radius: 10px;
-    padding: 0.75rem 0.85rem;
+    padding: calc(0.75rem * var(--sigapp-space-ratio, 1)) calc(0.85rem * var(--sigapp-space-ratio, 1));
     text-align: center;
     transition: all 0.2s ease;
 }
@@ -140,7 +140,7 @@
     text-transform: uppercase;
     letter-spacing: 0.04em;
     color: #64748b;
-    margin-bottom: 0.25rem;
+    margin-bottom: calc(0.25rem * var(--sigapp-space-ratio, 1));
 }
 
 .dashboard-page .stock-value {
@@ -158,21 +158,21 @@
 .dashboard-page .stock-item.stock-batal .stock-value { color: #dc2626; }
 
 .dashboard-page .target-bar-section {
-    margin-top: 1rem;
-    padding-top: 0.9rem;
+    margin-top: calc(1rem * var(--sigapp-space-ratio, 1));
+    padding-top: calc(0.9rem * var(--sigapp-space-ratio, 1));
     border-top: 1px dashed #e2e8f0;
 }
 
 .dashboard-page .target-bar-wrapper {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 1.25rem;
+    gap: calc(1.25rem * var(--sigapp-space-ratio, 1));
 }
 
 .dashboard-page .target-col-item {
     display: flex;
     flex-direction: column;
-    gap: 0.35rem;
+    gap: calc(0.35rem * var(--sigapp-space-ratio, 1));
 }
 
 .dashboard-page .target-col-header {
@@ -218,13 +218,13 @@
    3. Action Queue Strip (Tugas Saya & Menunggu Persetujuan)
    ========================================================================== */
 .dashboard-page .dashboard-action-queue {
-    margin-bottom: 1.25rem;
+    margin-bottom: calc(1.25rem * var(--sigapp-space-ratio, 1));
 }
 
 .dashboard-page .action-queue-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-    gap: 0.75rem;
+    gap: calc(0.75rem * var(--sigapp-space-ratio, 1));
 }
 
 .dashboard-page .action-queue-card {
@@ -232,7 +232,7 @@
     background: #ffffff;
     border: 1px solid #e5e7eb;
     border-radius: 10px;
-    padding: 0.85rem 1rem;
+    padding: calc(0.85rem * var(--sigapp-space-ratio, 1)) calc(1rem * var(--sigapp-space-ratio, 1));
     text-decoration: none !important;
     transition: all 0.2s ease;
     box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
@@ -262,8 +262,8 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    gap: 0.5rem;
-    margin-bottom: 0.35rem;
+    gap: calc(0.5rem * var(--sigapp-space-ratio, 1));
+    margin-bottom: calc(0.35rem * var(--sigapp-space-ratio, 1));
 }
 
 .dashboard-page .action-queue-title {
@@ -276,7 +276,7 @@
 .dashboard-page .action-queue-badge {
     font-size: 0.75rem;
     font-weight: 800;
-    padding: 0.2rem 0.55rem;
+    padding: calc(0.2rem * var(--sigapp-space-ratio, 1)) calc(0.55rem * var(--sigapp-space-ratio, 1));
     border-radius: 999px;
     white-space: nowrap;
 }
@@ -299,14 +299,14 @@
 .dashboard-page .action-queue-desc {
     font-size: 0.75rem;
     color: #64748b;
-    margin-bottom: 0.4rem;
+    margin-bottom: calc(0.4rem * var(--sigapp-space-ratio, 1));
     line-height: 1.35;
 }
 
 .dashboard-page .action-queue-foot {
     display: flex;
     align-items: center;
-    gap: 0.35rem;
+    gap: calc(0.35rem * var(--sigapp-space-ratio, 1));
     font-size: 0.72rem;
     font-weight: 700;
     color: #2057a3;
@@ -330,8 +330,8 @@
 .dashboard-page .dashboard-kpi-grid {
     display: grid;
     grid-template-columns: repeat(4, minmax(0, 1fr));
-    gap: 1rem;
-    margin-bottom: 1.25rem;
+    gap: calc(1rem * var(--sigapp-space-ratio, 1));
+    margin-bottom: calc(1.25rem * var(--sigapp-space-ratio, 1));
 }
 
 .dashboard-page .dashboard-kpi-card {
@@ -339,8 +339,8 @@
     border-radius: 12px;
     background: #ffffff;
     height: 100%;
-    padding: 1.15rem 1.25rem;
-    min-height: 160px;
+    padding: calc(1.15rem * var(--sigapp-space-ratio, 1)) calc(1.25rem * var(--sigapp-space-ratio, 1));
+    min-height: calc(160px * var(--sigapp-ui-scale, 1));
     display: flex;
     flex-direction: column;
     box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
@@ -358,7 +358,7 @@
     display: flex;
     align-items: flex-start;
     justify-content: space-between;
-    gap: 0.5rem;
+    gap: calc(0.5rem * var(--sigapp-space-ratio, 1));
 }
 
 .dashboard-page .kpi-label {
@@ -370,8 +370,8 @@
 }
 
 .dashboard-page .kpi-icon-badge {
-    width: 36px;
-    height: 36px;
+    width: calc(36px * var(--sigapp-ui-scale, 1));
+    height: calc(36px * var(--sigapp-ui-scale, 1));
     border-radius: 8px;
     display: flex;
     align-items: center;
@@ -396,8 +396,8 @@
 .dashboard-page .kpi-value-row {
     display: flex;
     align-items: baseline;
-    gap: 0.35rem;
-    margin: 0.65rem 0 0.5rem;
+    gap: calc(0.35rem * var(--sigapp-space-ratio, 1));
+    margin: calc(0.65rem * var(--sigapp-space-ratio, 1)) 0 calc(0.5rem * var(--sigapp-space-ratio, 1));
 }
 
 .dashboard-page .kpi-value {
@@ -419,7 +419,7 @@
     border-radius: 999px;
     background: #f1f5f9;
     overflow: hidden;
-    margin-bottom: 0.65rem;
+    margin-bottom: calc(0.65rem * var(--sigapp-space-ratio, 1));
 }
 
 .dashboard-page .kpi-progress-bar {
@@ -435,7 +435,7 @@
 
 .dashboard-page .kpi-stats-row {
     display: flex;
-    gap: 1rem;
+    gap: calc(1rem * var(--sigapp-space-ratio, 1));
     font-size: 0.76rem;
     color: #64748b;
 }
@@ -443,7 +443,7 @@
 .dashboard-page .kpi-stats-row strong {
     color: #0f172a;
     font-weight: 700;
-    margin-right: 0.25rem;
+    margin-right: calc(0.25rem * var(--sigapp-space-ratio, 1));
 }
 
 .dashboard-page .kpi-dot {
@@ -451,7 +451,7 @@
     height: 7px;
     border-radius: 50%;
     display: inline-block;
-    margin-right: 0.35rem;
+    margin-right: calc(0.35rem * var(--sigapp-space-ratio, 1));
 }
 
 .dashboard-page .kpi-dot.green { background: #2a9d8f; }
@@ -462,12 +462,12 @@
 .dashboard-page .kpi-alert-pill {
     display: inline-flex;
     align-items: center;
-    gap: 0.35rem;
+    gap: calc(0.35rem * var(--sigapp-space-ratio, 1));
     background: #fee2e2;
     color: #dc2626;
     font-weight: 700;
     font-size: 0.76rem;
-    padding: 0.25rem 0.65rem;
+    padding: calc(0.25rem * var(--sigapp-space-ratio, 1)) calc(0.65rem * var(--sigapp-space-ratio, 1));
     border-radius: 999px;
     width: fit-content;
 }
@@ -480,22 +480,22 @@
 .dashboard-page .kpi-card-caption {
     color: #64748b;
     font-size: 0.76rem;
-    margin-top: 0.45rem;
+    margin-top: calc(0.45rem * var(--sigapp-space-ratio, 1));
 }
 
 /* Card 2: Sales Periode (6 Metrics Grid) */
 .dashboard-page .sales-kpi-grid {
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 0.5rem;
-    margin-top: 0.65rem;
+    gap: calc(0.5rem * var(--sigapp-space-ratio, 1));
+    margin-top: calc(0.65rem * var(--sigapp-space-ratio, 1));
 }
 
 .dashboard-page .sales-kpi-item {
     background: #f8fafc;
     border: 1px solid #e5e7eb;
     border-radius: 8px;
-    padding: 0.45rem 0.5rem;
+    padding: calc(0.45rem * var(--sigapp-space-ratio, 1)) calc(0.5rem * var(--sigapp-space-ratio, 1));
     display: flex;
     flex-direction: column;
     justify-content: center;
@@ -514,7 +514,7 @@
     color: #64748b;
     text-transform: uppercase;
     letter-spacing: 0.03em;
-    margin-bottom: 0.15rem;
+    margin-bottom: calc(0.15rem * var(--sigapp-space-ratio, 1));
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -531,15 +531,15 @@
 .dashboard-page .prod-kpi-grid {
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 0.5rem;
-    margin-top: 0.75rem;
+    gap: calc(0.5rem * var(--sigapp-space-ratio, 1));
+    margin-top: calc(0.75rem * var(--sigapp-space-ratio, 1));
 }
 
 .dashboard-page .prod-kpi-item {
     background: #f8fafc;
     border: 1px solid #e5e7eb;
     border-radius: 8px;
-    padding: 0.65rem 0.5rem;
+    padding: calc(0.65rem * var(--sigapp-space-ratio, 1)) calc(0.5rem * var(--sigapp-space-ratio, 1));
     display: flex;
     flex-direction: column;
     justify-content: center;
@@ -560,11 +560,11 @@
     color: #64748b;
     text-transform: uppercase;
     letter-spacing: 0.03em;
-    margin-bottom: 0.25rem;
+    margin-bottom: calc(0.25rem * var(--sigapp-space-ratio, 1));
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 0.3rem;
+    gap: calc(0.3rem * var(--sigapp-space-ratio, 1));
     white-space: nowrap;
 }
 
@@ -579,13 +579,13 @@
    5. Chart & Actionable Alerts
    ========================================================================== */
 .dashboard-page .chart-card {
-    height: 420px;
+    height: calc(420px * var(--sigapp-ui-scale, 1));
     border: 1px solid #e5e7eb;
     border-radius: 12px;
 }
 
 .dashboard-page .alerts-card {
-    height: 420px;
+    height: calc(420px * var(--sigapp-ui-scale, 1));
     border: 1px solid #e5e7eb;
     border-radius: 12px;
     display: flex;
@@ -595,8 +595,8 @@
 .dashboard-page .dashboard-alert-item {
     border: 1px solid #e5e7eb;
     border-radius: 8px;
-    padding: 0.75rem 0.85rem;
-    margin-bottom: 0.65rem;
+    padding: calc(0.75rem * var(--sigapp-space-ratio, 1)) calc(0.85rem * var(--sigapp-space-ratio, 1));
+    margin-bottom: calc(0.65rem * var(--sigapp-space-ratio, 1));
     background: #ffffff;
     text-decoration: none !important;
     display: block;
@@ -630,7 +630,7 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 0.5rem;
+    gap: calc(0.5rem * var(--sigapp-space-ratio, 1));
 }
 
 .dashboard-page .dashboard-alert-label {
@@ -649,7 +649,7 @@
     color: #64748b;
     font-size: 0.74rem;
     font-weight: 500;
-    margin-top: 0.2rem;
+    margin-top: calc(0.2rem * var(--sigapp-space-ratio, 1));
     line-height: 1.35;
 }
 
@@ -657,7 +657,7 @@
     width: 14px;
     height: 14px;
     color: #94a3b8;
-    margin-left: 0.35rem;
+    margin-left: calc(0.35rem * var(--sigapp-space-ratio, 1));
     transition: transform 0.2s ease;
 }
 
@@ -670,7 +670,7 @@
    6. Department Workspace Tabs & Panels
    ========================================================================== */
 .dashboard-page .dashboard-dept-nav-wrapper {
-    margin-bottom: 1rem;
+    margin-bottom: calc(1rem * var(--sigapp-space-ratio, 1));
 }
 
 .dashboard-page .dashboard-dept-tabs {
@@ -678,21 +678,22 @@
     padding-bottom: 0;
     display: flex;
     flex-wrap: wrap;
-    gap: 0.35rem;
+    gap: calc(0.35rem * var(--sigapp-space-ratio, 1));
 }
 
+.dashboard-page .dashboard-dept-tabs.nav-tabs .nav-link,
 .dashboard-page .dashboard-dept-tabs .nav-link {
     border: none;
     background: transparent;
     color: #64748b;
     font-size: 0.85rem;
     font-weight: 600;
-    padding: 0.6rem 1rem;
+    padding: calc(0.6rem * var(--sigapp-space-ratio, 1)) calc(1rem * var(--sigapp-space-ratio, 1));
     border-radius: 8px 8px 0 0;
     position: relative;
     display: flex;
     align-items: center;
-    gap: 0.45rem;
+    gap: calc(0.45rem * var(--sigapp-space-ratio, 1));
     transition: all 0.2s ease;
 }
 
@@ -721,7 +722,7 @@
         flex-direction: row !important;
         flex-wrap: nowrap;
         overflow-x: auto;
-        padding-bottom: 0.25rem;
+        padding-bottom: calc(0.25rem * var(--sigapp-space-ratio, 1));
         -webkit-overflow-scrolling: touch;
     }
 
@@ -735,27 +736,27 @@
     background: #ffffff;
     border: 1px solid #e5e7eb;
     border-radius: 12px;
-    padding: 1.25rem;
-    margin-bottom: 1.25rem;
+    padding: calc(1.25rem * var(--sigapp-space-ratio, 1));
+    margin-bottom: calc(1.25rem * var(--sigapp-space-ratio, 1));
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
 }
 
 .dashboard-page .dept-panel-card .divider {
-    margin: 1rem 0;
+    margin: calc(1rem * var(--sigapp-space-ratio, 1)) 0;
 }
 
 /* Department Panels: MKDT Funnel & Composition */
 .dashboard-page .funnel-grid {
     display: grid;
     grid-template-columns: repeat(6, minmax(0, 1fr));
-    gap: 0.65rem;
+    gap: calc(0.65rem * var(--sigapp-space-ratio, 1));
 }
 
 .dashboard-page .funnel-step {
     background: #f8fafc;
     border: 1px solid #e5e7eb;
     border-radius: 10px;
-    padding: 0.75rem 0.65rem;
+    padding: calc(0.75rem * var(--sigapp-space-ratio, 1)) calc(0.65rem * var(--sigapp-space-ratio, 1));
     text-align: center;
     position: relative;
 }
@@ -765,7 +766,7 @@
     font-weight: 700;
     color: #64748b;
     text-transform: uppercase;
-    margin-bottom: 0.25rem;
+    margin-bottom: calc(0.25rem * var(--sigapp-space-ratio, 1));
 }
 
 .dashboard-page .funnel-step-val {
@@ -777,29 +778,29 @@
 .dashboard-page .composition-grid {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 1rem;
-    margin-top: 1rem;
+    gap: calc(1rem * var(--sigapp-space-ratio, 1));
+    margin-top: calc(1rem * var(--sigapp-space-ratio, 1));
 }
 
 .dashboard-page .composition-card {
     background: #f9fafb;
     border: 1px solid #e5e7eb;
     border-radius: 10px;
-    padding: 0.85rem 1rem;
+    padding: calc(0.85rem * var(--sigapp-space-ratio, 1)) calc(1rem * var(--sigapp-space-ratio, 1));
 }
 
 /* Department Panels: Produksi Progress & Utility Badges */
 .dashboard-page .prod-progress-grid {
     display: grid;
     grid-template-columns: repeat(5, minmax(0, 1fr));
-    gap: 0.65rem;
+    gap: calc(0.65rem * var(--sigapp-space-ratio, 1));
 }
 
 .dashboard-page .prod-stage-box {
     background: #f8fafc;
     border: 1px solid #e5e7eb;
     border-radius: 8px;
-    padding: 0.75rem;
+    padding: calc(0.75rem * var(--sigapp-space-ratio, 1));
     text-align: center;
 }
 
@@ -818,23 +819,23 @@
 .dashboard-page .prod-utility-grid {
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 0.85rem;
-    margin-top: 1rem;
+    gap: calc(0.85rem * var(--sigapp-space-ratio, 1));
+    margin-top: calc(1rem * var(--sigapp-space-ratio, 1));
 }
 
 .dashboard-page .prod-utility-card {
     background: #ffffff;
     border: 1px solid #e5e7eb;
     border-radius: 10px;
-    padding: 0.85rem;
+    padding: calc(0.85rem * var(--sigapp-space-ratio, 1));
     display: flex;
     align-items: center;
-    gap: 0.75rem;
+    gap: calc(0.75rem * var(--sigapp-space-ratio, 1));
 }
 
 .dashboard-page .prod-utility-icon {
-    width: 38px;
-    height: 38px;
+    width: calc(38px * var(--sigapp-ui-scale, 1));
+    height: calc(38px * var(--sigapp-ui-scale, 1));
     border-radius: 8px;
     display: flex;
     align-items: center;
@@ -863,14 +864,14 @@
 .dashboard-page .legal-docs-grid {
     display: grid;
     grid-template-columns: repeat(4, minmax(0, 1fr));
-    gap: 0.75rem;
+    gap: calc(0.75rem * var(--sigapp-space-ratio, 1));
 }
 
 .dashboard-page .legal-doc-item {
     background: #f8fafc;
     border: 1px solid #e5e7eb;
     border-radius: 8px;
-    padding: 0.85rem;
+    padding: calc(0.85rem * var(--sigapp-space-ratio, 1));
 }
 
 .dashboard-page .legal-doc-label {
@@ -878,7 +879,7 @@
     font-weight: 700;
     color: #64748b;
     text-transform: uppercase;
-    margin-bottom: 0.25rem;
+    margin-bottom: calc(0.25rem * var(--sigapp-space-ratio, 1));
 }
 
 .dashboard-page .legal-doc-value {
@@ -891,21 +892,21 @@
 .dashboard-page .planning-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 1rem;
+    gap: calc(1rem * var(--sigapp-space-ratio, 1));
 }
 
 .dashboard-page .planning-box {
     background: #f9fafb;
     border: 1px solid #e5e7eb;
     border-radius: 10px;
-    padding: 1rem;
+    padding: calc(1rem * var(--sigapp-space-ratio, 1));
 }
 
 .dashboard-page .planning-stat-row {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 0.5rem 0;
+    padding: calc(0.5rem * var(--sigapp-space-ratio, 1)) 0;
     border-bottom: 1px solid #edf0f2;
 }
 
@@ -917,14 +918,14 @@
 .dashboard-page .finance-grid {
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 0.85rem;
+    gap: calc(0.85rem * var(--sigapp-space-ratio, 1));
 }
 
 .dashboard-page .finance-box {
     background: #f8fafc;
     border: 1px solid #e5e7eb;
     border-radius: 8px;
-    padding: 0.85rem 1rem;
+    padding: calc(0.85rem * var(--sigapp-space-ratio, 1)) calc(1rem * var(--sigapp-space-ratio, 1));
 }
 
 .dashboard-page .finance-box-label {
@@ -938,7 +939,7 @@
     font-size: 1.25rem;
     font-weight: 800;
     color: #0f172a;
-    margin: 0.35rem 0 0.2rem;
+    margin: calc(0.35rem * var(--sigapp-space-ratio, 1)) 0 calc(0.2rem * var(--sigapp-space-ratio, 1));
 }
 
 /* ==========================================================================
@@ -969,7 +970,7 @@
 .dashboard-page .tiket-waktu-cell {
     display: flex;
     flex-direction: column;
-    gap: 0.2rem;
+    gap: calc(0.2rem * var(--sigapp-space-ratio, 1));
 }
 
 .dashboard-page .tiket-waktu-title {
@@ -984,7 +985,7 @@
     color: #64748b;
     display: inline-flex;
     align-items: center;
-    gap: 0.3rem;
+    gap: calc(0.3rem * var(--sigapp-space-ratio, 1));
     white-space: nowrap;
 }
 
@@ -1001,12 +1002,12 @@
 }
 
 .dashboard-page .activity-feed {
-    max-height: 420px;
+    max-height: calc(420px * var(--sigapp-ui-scale, 1));
     overflow-y: auto;
 }
 
 .dashboard-page .activity-empty {
-    padding: 2rem 1rem;
+    padding: calc(2rem * var(--sigapp-space-ratio, 1)) calc(1rem * var(--sigapp-space-ratio, 1));
     text-align: center;
     color: #94a3b8;
     font-size: 0.85rem;
@@ -1024,7 +1025,7 @@
 #modal-chart-kavling .modal-header {
     background: #ffffff;
     border-bottom: 1px solid #e5e7eb;
-    padding: 0.9rem 1.25rem;
+    padding: calc(0.9rem * var(--sigapp-space-ratio, 1)) calc(1.25rem * var(--sigapp-space-ratio, 1));
 }
 
 #modal-chart-kavling .modal-title {
@@ -1035,7 +1036,7 @@
 
 #modal-chart-kavling .modal-body {
     background: #f5f7fa;
-    padding: 1rem 1.25rem;
+    padding: calc(1rem * var(--sigapp-space-ratio, 1)) calc(1.25rem * var(--sigapp-space-ratio, 1));
     max-height: 480px;
     overflow-y: auto;
 }
@@ -1043,7 +1044,7 @@
 #modal-chart-kavling .kavling-pill-list {
     display: flex;
     flex-wrap: wrap;
-    gap: 0.5rem;
+    gap: calc(0.5rem * var(--sigapp-space-ratio, 1));
     padding: 0;
     margin: 0;
     list-style: none;
@@ -1053,7 +1054,7 @@
     background: #ffffff;
     border: 1px solid #d8dde3;
     border-radius: 6px;
-    padding: 0.45rem 0.75rem;
+    padding: calc(0.45rem * var(--sigapp-space-ratio, 1)) calc(0.75rem * var(--sigapp-space-ratio, 1));
     font-size: 0.82rem;
     font-weight: 600;
     color: #1f2937;

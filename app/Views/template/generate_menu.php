@@ -207,6 +207,7 @@ $activeProyekLogoUrl = ($activeProyek && ! empty($activeProyek->logo_thumbnail_u
                     <a class="dropdown-item d-none" href="javascript:void(0);" id="sigapp-pwa-install-action"><i class="mr-50" data-feather="download"></i> Install SIGAPP</a>
                     <a class="dropdown-item d-none" href="javascript:void(0);" id="sigapp-push-action"><i class="mr-50" data-feather="bell"></i> <span data-push-label>Aktifkan Notifikasi</span></a>
                     <a class="dropdown-item" href="<?= base_url('profil') ?>"><i class="mr-50" data-feather="user"></i> Ubah Profil</a>
+                    <a class="dropdown-item" href="javascript:void(0);" id="sigapp-display-scale-trigger" data-toggle="modal" data-target="#sigapp-display-scale-modal"><i class="mr-50" data-feather="sliders"></i> Pengaturan Tampilan</a>
                     <!-- <div class="dropdown-divider"></div><a class="dropdown-item" href="javascript:void(0);"><i class="mr-50" data-feather="settings"></i> Settings</a><a class="dropdown-item" href="javascript:void(0);"><i class="mr-50" data-feather="credit-card"></i> Pricing</a><a class="dropdown-item" href="javascript:void(0);"><i class="mr-50" data-feather="help-circle"></i> FAQ</a> -->
                     <div class="dropdown-divider"></div>
                     <a class="dropdown-item" href="<?= base_url('logout') ?>" data-sigapp-logout><i class="mr-50" data-feather="power"></i> Logout</a>
