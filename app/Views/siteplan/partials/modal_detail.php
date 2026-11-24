@@ -237,6 +237,10 @@
                                             aria-controls="pajak" role="tab" aria-selected="false">Bukti Bayar
                                             PPH/PPN</a>
                                     </li>
+                                    <li class="nav-item">
+                                        <a class="nav-link" id="dt-riwayat-tab" data-toggle="tab" href="#dt-riwayat"
+                                            aria-controls="dt-riwayat" role="tab" aria-selected="false">Riwayat Perubahan</a>
+                                    </li>
                                 </ul>
                             </div>
                         </div>
@@ -246,241 +250,264 @@
                                 <div class="tab-content">
                                     <div class="tab-pane active" id="dtt-summary" aria-labelledby="dtt-summary-tab"
                                         role="tabpanel">
-                                        <div class="detail-dashboard-grid detail-summary-dashboard">
-                                            <div class="detail-summary-card detail-status-card detail-summary-status-card">
-                                                <div class="detail-status-card-header detail-summary-card-header">
-                                                    <div class="detail-card-icon detail-summary-card-icon detail-summary-card-icon-status"><i class="far fa-file-alt"></i></div>
-                                                    <div class="detail-status-card-title">Status &amp; Akad</div>
+                                        <!-- Warning Banner (Perlu Perhatian) -->
+                                        <div id="detail-summary-warning-container" class="detail-warning-banner d-none mb-1">
+                                            <div class="detail-warning-header d-flex align-items-center mb-1">
+                                                <i class="fas fa-exclamation-triangle text-warning mr-50"></i>
+                                                <span class="detail-warning-title font-weight-bolder mr-75">PERLU PERHATIAN</span>
+                                                <span class="badge badge-pill badge-light-warning" id="detail-warning-count">0 ITEM</span>
+                                            </div>
+                                            <div class="detail-warning-grid" id="detail-warning-items">
+                                                <!-- Card Warning SP3K H-21 -->
+                                                <div class="detail-warning-card d-none" id="warn-sp3k" role="button" title="Klik untuk lihat detail Status SP3K">
+                                                    <div class="detail-warning-icon">
+                                                        <i class="far fa-file-alt text-warning"></i>
+                                                    </div>
+                                                    <div class="detail-warning-body">
+                                                        <div class="detail-warning-item-title font-weight-bold">SP3K mendekati kedaluwarsa</div>
+                                                        <div class="detail-warning-item-sub text-muted" id="warn-sp3k-desc">Berlaku hingga -</div>
+                                                    </div>
+                                                    <i class="fas fa-chevron-right detail-warning-arrow ml-auto text-muted"></i>
                                                 </div>
+                                                <!-- Card Warning Tagihan Jatuh Tempo -->
+                                                <div class="detail-warning-card d-none" id="warn-tagihan" role="button" title="Klik untuk lihat detail Tagihan">
+                                                    <div class="detail-warning-icon">
+                                                        <i class="far fa-clock text-warning"></i>
+                                                    </div>
+                                                    <div class="detail-warning-body">
+                                                        <div class="detail-warning-item-title font-weight-bold">Tagihan jatuh tempo</div>
+                                                        <div class="detail-warning-item-sub text-muted" id="warn-tagihan-desc">Terdapat tagihan yang telah jatuh tempo</div>
+                                                    </div>
+                                                    <i class="fas fa-chevron-right detail-warning-arrow ml-auto text-muted"></i>
+                                                </div>
+                                            </div>
+                                        </div>
 
-                                                <div class="detail-info-row detail-summary-highlight-row">
-                                                    <div class="detail-info-col">
-                                                        <span class="detail-info-label">Status Kavling</span>
-                                                        <span class="detail-status-badge badge-secondary" id="s-status_mkdt">-</span>
+                                        <!-- Top Card: Status Konsumen -->
+                                        <div class="card detail-summary-status-bar mb-1">
+                                            <div class="card-body p-1">
+                                                <div class="d-flex align-items-center flex-wrap flex-md-nowrap">
+                                                    <div class="detail-summary-bar-icon mr-1">
+                                                        <i class="far fa-file-alt"></i>
                                                     </div>
-                                                    <div class="detail-info-col text-right">
-                                                        <span class="detail-info-label">Tanggal Akad</span>
-                                                        <span class="detail-info-value" id="s-akad_tgl">-</span>
+                                                    <div class="detail-summary-bar-cols d-flex flex-grow-1 justify-content-between align-items-center flex-wrap">
+                                                        <div class="detail-summary-bar-col">
+                                                            <span class="detail-info-label">Status Konsumen</span>
+                                                            <div class="mt-25">
+                                                                <span class="detail-status-badge badge-primary font-weight-bolder" id="s-status_konsumen_badge">-</span>
+                                                                <div class="text-muted small mt-25 font-weight-normal" id="s-status_konsumen_tgl">-</div>
+                                                            </div>
+                                                        </div>
+                                                        <div class="detail-summary-bar-col">
+                                                            <span class="detail-info-label">Bank</span>
+                                                            <span class="detail-info-value font-weight-bold mt-25" id="s-st_bank">-</span>
+                                                        </div>
+                                                        <div class="detail-summary-bar-col">
+                                                            <span class="detail-info-label">Notaris</span>
+                                                            <span class="detail-info-value font-weight-bold mt-25" id="s-notaris">-</span>
+                                                        </div>
+                                                        <div class="detail-summary-bar-col">
+                                                            <span class="detail-info-label">SP3K Terbit</span>
+                                                            <span class="detail-info-value font-weight-bold mt-25" id="s-st_sp3k_tgl">-</span>
+                                                        </div>
+                                                        <div class="detail-summary-bar-col">
+                                                            <span class="detail-info-label">SP3K Kadaluarsa</span>
+                                                            <span class="detail-info-value font-weight-bold mt-25" id="s-st_sp3k_tgl_exp">-</span>
+                                                        </div>
                                                     </div>
                                                 </div>
+                                            </div>
+                                        </div>
 
-                                                <div class="detail-info-row detail-summary-meta-row">
-                                                    <div class="detail-info-col">
-                                                        <span class="detail-info-label">Bank Pelaksana</span>
-                                                        <span class="detail-info-value" id="s-st_bank">-</span>
-                                                    </div>
-                                                    <div class="detail-info-col">
-                                                        <span class="detail-info-label">Notaris</span>
-                                                        <span class="detail-info-value" id="s-notaris">-</span>
-                                                    </div>
-                                                </div>
+                                        <!-- Row Tengah: Ringkasan Keuangan & Progres Pembangunan -->
+                                        <div class="row mb-1">
+                                            <!-- Card Kiri: Ringkasan Keuangan -->
+                                            <div class="col-md-6 mb-1 mb-md-0">
+                                                <div class="card h-100 detail-summary-section-card">
+                                                    <div class="card-body p-1 d-flex flex-column justify-content-between">
+                                                        <div>
+                                                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                                                <div class="d-flex align-items-center">
+                                                                    <div class="detail-card-icon-pill mr-50 bg-light-primary text-primary">
+                                                                        <i class="fas fa-wallet"></i>
+                                                                    </div>
+                                                                    <h5 class="mb-0 font-weight-bold">Ringkasan Keuangan</h5>
+                                                                </div>
+                                                                <a href="#" class="detail-see-more text-primary small font-weight-bold" onclick="$('#dt-tagihan-tab').tab('show'); return false;">
+                                                                    Lihat Detail <i class="fas fa-chevron-right ml-25"></i>
+                                                                </a>
+                                                            </div>
 
-                                                <div class="detail-info-row detail-summary-referral-row" id="s-referred_by_container" style="display:none;">
-                                                    <div class="detail-info-col">
-                                                        <span class="detail-info-label">Pemberi Referal (Kode)</span>
-                                                        <span class="detail-info-value" id="s-referred_by_kode" onclick="copyReferralCode(this)" title="Klik untuk menyalin" data-bs-toggle="tooltip">-</span>
-                                                    </div>
-                                                    <div class="detail-info-col">
-                                                        <span class="detail-info-label">Nama Pemberi Referal</span>
-                                                        <span class="detail-info-value" id="s-referred_by_nama">-</span>
-                                                    </div>
-                                                </div>
+                                                            <!-- Total Tagihan & Sudah Bayar -->
+                                                            <div class="mb-1">
+                                                                <div class="d-flex justify-content-between mb-25">
+                                                                    <span class="detail-info-label">Total Tagihan</span>
+                                                                    <span class="detail-info-label">Sudah Bayar</span>
+                                                                </div>
+                                                                <div class="d-flex justify-content-between align-items-baseline mb-50">
+                                                                    <h4 class="mb-0 font-weight-bolder" id="s-keu_total_tagihan">Rp 0</h4>
+                                                                    <h4 class="mb-0 font-weight-bolder text-success" id="s-keu_sudah_bayar">Rp 0</h4>
+                                                                </div>
+                                                                <div class="d-flex align-items-center">
+                                                                    <div class="progress flex-grow-1 mr-1" style="height: 6px; border-radius: 4px;">
+                                                                        <div class="progress-bar bg-success" id="s-keu_tagihan_bar" role="progressbar" style="width: 0%;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+                                                                    </div>
+                                                                    <span class="font-weight-bold small text-muted" id="s-keu_tagihan_pct">0%</span>
+                                                                </div>
+                                                            </div>
 
-                                                <div class="detail-section-divider">
-                                                    <span class="detail-section-title detail-section-title-dot">Surat Penegasan Persetujuan Kredit (SP3K)</span>
-                                                </div>
-                                                <div class="detail-info-pair detail-sp3k-grid">
-                                                    <div class="detail-mini-card">
-                                                        <div class="detail-mini-label">Terbit</div>
-                                                        <div class="detail-mini-value" id="s-st_sp3k_tgl">-</div>
-                                                    </div>
-                                                    <div class="detail-mini-card detail-mini-card-warning">
-                                                        <div class="detail-mini-label">Kadaluarsa</div>
-                                                        <div class="detail-mini-value" id="s-st_sp3k_tgl_exp">-</div>
+                                                            <!-- Total Hasil Akad -->
+                                                            <div class="pt-50">
+                                                                <span class="detail-info-label">Total Hasil Akad</span>
+                                                                <h4 class="mb-50 font-weight-bolder" id="s-pa_total_hasil_akad_display">Rp 0</h4>
+                                                                <div class="d-flex justify-content-between mb-50">
+                                                                    <div>
+                                                                        <span class="detail-dot bg-primary mr-50"></span>
+                                                                        <span class="small text-muted">Sudah Cair</span>
+                                                                        <div class="font-weight-bold" id="s-pa_sudah_cair_display">Rp 0</div>
+                                                                    </div>
+                                                                    <div class="text-right">
+                                                                        <span class="detail-dot bg-secondary mr-50"></span>
+                                                                        <span class="small text-muted">Belum Cair</span>
+                                                                        <div class="font-weight-bold" id="s-pa_belum_cair_display">Rp 0</div>
+                                                                    </div>
+                                                                </div>
+                                                                <div class="d-flex align-items-center">
+                                                                    <div class="progress flex-grow-1" style="height: 6px; border-radius: 4px; display: flex;">
+                                                                        <div class="progress-bar bg-primary" id="s-pa_cair_bar" style="width: 0%;"></div>
+                                                                        <div class="progress-bar bg-transparent" id="s-pa_sisa_bar" style="width: 0%;"></div>
+                                                                    </div>
+                                                                </div>
+                                                                <div class="d-flex justify-content-between small text-muted mt-25">
+                                                                    <span id="s-pa_cair_pct">0%</span>
+                                                                    <span class="text-secondary" id="s-pa_sisa_pct">0%</span>
+                                                                </div>
+                                                            </div>
+                                                        </div>
                                                     </div>
                                                 </div>
                                             </div>
 
-                                            <div class="detail-summary-card detail-status-card detail-summary-building-card">
-                                                <div class="detail-status-card-header detail-summary-card-header">
-                                                    <div class="detail-card-icon detail-summary-card-icon detail-summary-card-icon-building"><i class="far fa-building"></i></div>
-                                                    <div class="detail-status-card-title">Bangunan</div>
-                                                </div>
+                                            <!-- Card Kanan: Progres Pembangunan -->
+                                            <div class="col-md-6">
+                                                <div class="card h-100 detail-summary-section-card">
+                                                    <div class="card-body p-1 d-flex flex-column justify-content-between">
+                                                        <div>
+                                                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                                                <div class="d-flex align-items-center">
+                                                                    <div class="detail-card-icon-pill mr-50 bg-light-primary text-primary">
+                                                                        <i class="fas fa-home"></i>
+                                                                    </div>
+                                                                    <h5 class="mb-0 font-weight-bold">Progres Pembangunan</h5>
+                                                                </div>
+                                                                <a href="#" class="detail-see-more text-primary small font-weight-bold" onclick="$('#dt-produksi-tab').tab('show'); return false;">
+                                                                    Lihat Detail <i class="fas fa-chevron-right ml-25"></i>
+                                                                </a>
+                                                            </div>
 
-                                                <div class="detail-summary-progress-block">
-                                                    <div class="d-flex justify-content-between mb-50">
-                                                        <span class="detail-info-label">Progres Fisik</span>
-                                                        <span class="detail-info-value detail-progress-value" id="s-progress_bangunan_text">0%</span>
-                                                    </div>
-                                                    <div class="detail-progress-track">
-                                                        <div id="s-progress_bangunan_bar" class="detail-progress-fill is-empty" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
-                                                    </div>
-                                                </div>
+                                                            <!-- Progress Bangunan -->
+                                                            <div class="mb-1">
+                                                                <div class="d-flex justify-content-between mb-25">
+                                                                    <span class="detail-info-label">Progress Bangunan</span>
+                                                                    <h4 class="mb-0 font-weight-bolder text-primary" id="s-progress_bangunan_pct">0%</h4>
+                                                                </div>
+                                                                <div class="progress" style="height: 6px; border-radius: 4px;">
+                                                                    <div class="progress-bar bg-primary" id="s-progress_bangunan_fill" role="progressbar" style="width: 0%;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+                                                                </div>
+                                                            </div>
 
-                                                <div class="detail-building-dates">
-                                                    <div class="detail-building-dates-grid">
-                                                        <div class="detail-info-col">
-                                                            <span class="detail-info-label">Tgl Turun Perintah Bangun</span>
-                                                            <span class="detail-info-value" id="s-perintah_bangun_tgl">-</span>
+                                                            <!-- Baris Tanggal: Turun, Mulai, Selesai -->
+                                                            <div class="row text-center mb-1 py-50 bg-light rounded mx-0">
+                                                                <div class="col-4 px-50">
+                                                                    <div class="detail-info-label small">Turun</div>
+                                                                    <div class="font-weight-bold small text-truncate" id="s-perintah_bangun_tgl">-</div>
+                                                                </div>
+                                                                <div class="col-4 px-50 border-left border-right">
+                                                                    <div class="detail-info-label small">Mulai</div>
+                                                                    <div class="font-weight-bold small text-truncate" id="s-tanggal_pembangunan">-</div>
+                                                                </div>
+                                                                <div class="col-4 px-50">
+                                                                    <div class="detail-info-label small">Selesai</div>
+                                                                    <div class="font-weight-bold small text-truncate" id="s-tanggal_selesai_pembangunan">-</div>
+                                                                </div>
+                                                            </div>
+
+                                                            <!-- Site Amenities -->
+                                                            <div class="d-flex justify-content-around text-center pt-25">
+                                                                <div class="amenity-item">
+                                                                    <div class="small text-muted mb-25">Saluran</div>
+                                                                    <div id="amenity-saluran"><span class="text-muted font-weight-bold">-</span></div>
+                                                                </div>
+                                                                <div class="amenity-item">
+                                                                    <div class="small text-muted mb-25">Air</div>
+                                                                    <div id="amenity-air"><span class="text-muted font-weight-bold">-</span></div>
+                                                                </div>
+                                                                <div class="amenity-item">
+                                                                    <div class="small text-muted mb-25">Listrik</div>
+                                                                    <div id="amenity-listrik"><span class="text-muted font-weight-bold">-</span></div>
+                                                                </div>
+                                                                <div class="amenity-item">
+                                                                    <div class="small text-muted mb-25">SLO</div>
+                                                                    <div id="amenity-slo"><span class="text-muted font-weight-bold">-</span></div>
+                                                                </div>
+                                                                <div class="amenity-item">
+                                                                    <div class="small text-muted mb-25">LPA</div>
+                                                                    <div id="amenity-lpa"><span class="text-muted font-weight-bold">-</span></div>
+                                                                </div>
+                                                            </div>
                                                         </div>
-                                                        <div class="detail-info-col">
-                                                            <span class="detail-info-label">Mulai Bangun</span>
-                                                            <span class="detail-info-value" id="s-tanggal_pembangunan">-</span>
-                                                        </div>
-                                                    </div>
-                                                    <div class="detail-building-finish-row">
-                                                        <span class="detail-info-label"><i class="fas fa-check detail-building-check"></i> Selesai Pembangunan</span>
-                                                        <span class="detail-info-value" id="s-tanggal_selesai_pembangunan">-</span>
-                                                    </div>
-                                                </div>
-
-                                                <div class="detail-section-divider">
-                                                    <span class="detail-section-title detail-section-title-dot">Site Amenities</span>
-                                                </div>
-                                                <div class="detail-amenities-grid">
-                                                    <div class="detail-amenity-item">
-                                                        <span class="detail-info-label">Saluran</span>
-                                                        <span class="detail-status-badge badge-secondary" id="s-st_saluran">-</span>
-                                                    </div>
-                                                    <div class="detail-amenity-item">
-                                                        <span class="detail-info-label">Air</span>
-                                                        <span class="detail-status-badge badge-secondary" id="s-st_air">-</span>
-                                                    </div>
-                                                    <div class="detail-amenity-item">
-                                                        <span class="detail-info-label">Listrik</span>
-                                                        <span class="detail-status-badge badge-secondary" id="s-st_jalan">-</span>
-                                                    </div>
-                                                    <div class="detail-amenity-item">
-                                                        <span class="detail-info-label">SLO/NIDI</span>
-                                                        <span class="detail-status-badge badge-secondary" id="s-slo">-</span>
-                                                    </div>
-                                                    <div class="detail-amenity-item detail-amenity-item-wide">
-                                                        <span class="detail-info-label">LPA</span>
-                                                        <span class="detail-status-badge badge-secondary" id="s-lpa">-</span>
                                                     </div>
                                                 </div>
                                             </div>
+                                        </div>
 
-                                            <div class="detail-summary-card detail-status-card detail-summary-finance-card">
-                                                <div class="detail-status-card-header detail-summary-card-header">
-                                                    <div class="detail-card-icon detail-summary-card-icon detail-summary-card-icon-finance"><i class="fas fa-dollar-sign"></i></div>
-                                                    <div class="detail-status-card-title">Keuangan</div>
-                                                </div>
-
-                                                <div class="detail-section-divider detail-section-divider-compact">
-                                                    <span class="detail-section-title detail-section-title-dot">
-                                                        Piutang <span class="detail-status-badge badge-success">Cash In</span>
-                                                    </span>
-                                                </div>
-                                                <p class="text-muted small mb-1">
-                                                    Diagram membandingkan Cash In yang telah diterima dengan sisa piutang.
-                                                </p>
-
-                                                <div class="detail-chart-summary">
-                                                    <div class="detail-chart-wrap">
-                                                        <canvas id="keuanganChart"></canvas>
-                                                        <div class="detail-chart-empty" id="keuanganChart-empty">
-                                                            Belum ada<br>pembayaran
-                                                        </div>
+                                        <!-- Card Bawah: Timeline Aktivitas Kavling -->
+                                        <div class="card detail-summary-section-card mb-0">
+                                            <div class="card-body p-1">
+                                                <div class="d-flex align-items-center mb-1">
+                                                    <div class="detail-card-icon-pill mr-50 bg-light-primary text-primary">
+                                                        <i class="far fa-clock"></i>
                                                     </div>
-                                                    <div class="detail-chart-metrics">
-                                                        <div class="detail-chart-metric">
-                                                            <span class="detail-info-label"><span class="detail-dot detail-dot-success"></span>Cash In / Telah Dibayar</span>
-                                                            <span class="detail-info-value detail-text-success" id="s-total_dibayar">Rp 0</span>
-                                                        </div>
-                                                        <div class="detail-chart-metric">
-                                                            <span class="detail-info-label"><span class="detail-dot detail-dot-danger"></span>Sisa Piutang</span>
-                                                            <span class="detail-info-value detail-text-danger" id="s-sisa_tagihan">Rp 0</span>
-                                                        </div>
-                                                    </div>
+                                                    <h5 class="mb-0 font-weight-bold">Timeline Aktivitas Kavling</h5>
                                                 </div>
-
-                                                <div id="s-jatuh-tempo-wrap" class="d-none">
-                                                    <div class="detail-section-divider detail-section-divider-compact">
-                                                        <span class="detail-section-title detail-section-title-dot">Tagihan Jatuh Tempo</span>
+                                                
+                                                <div class="kavling-timeline-wrapper">
+                                                    <div class="kavling-timeline" id="s-kavling-timeline">
+                                                        <!-- Konten Timeline dirender via JavaScript -->
                                                     </div>
-                                                    <div id="s-jatuh-tempo"></div>
-                                                </div>
-
-                                                <div class="info-row row no-gutters hidden">
-                                                    <div class="col-6">
-                                                        <label class="info-label">Uang Muka</label>
-                                                    </div>
-                                                    <div class="col-6">
-                                                        : <span class="info-value"
-                                                            id="s-persentase_bayar_tagihan_um"></span>
-                                                    </div>
-                                                </div>
-                                                <div class="info-row row no-gutters hidden">
-                                                    <div class="col-6">
-                                                        <label class="info-label">Tagihan</label>
-                                                    </div>
-                                                    <div class="col-6">
-                                                        : <span class="info-value"
-                                                            id="s-persentase_bayar_tagihan_um_ll"></span>
-                                                    </div>
-                                                </div>
-                                                <div class="info-row row no-gutters hidden">
-                                                    <div class="col-6">
-                                                        <label class="info-label">Biaya-biaya</label>
-                                                    </div>
-                                                    <div class="col-6">
-                                                        : <span class="info-value"
-                                                            id="s-persentase_bayar_tagihan_bb"></span>
-                                                    </div>
-                                                </div>
-
-                                                <div class="detail-section-divider detail-section-divider-compact">
-                                                    <span class="detail-section-title detail-section-title-dot">
-                                                        Pengeluaran <span class="detail-status-badge badge-danger">Cash Out</span>
-                                                    </span>
-                                                </div>
-                                                <div id="s-co"></div>
-
-                                                <div class="detail-section-divider detail-section-divider-compact">
-                                                    <span class="detail-section-title detail-section-title-dot">Hutang Subkon</span>
-                                                </div>
-                                                <div id="s-hutang-subkon"></div>
-                                            </div>
-
-                                            <div class="detail-summary-card detail-status-card detail-summary-retention-card">
-                                                <div class="detail-status-card-header detail-summary-card-header">
-                                                    <div class="detail-card-icon detail-summary-card-icon detail-summary-card-icon-retention"><i class="fas fa-shield-alt"></i></div>
-                                                    <div class="detail-status-card-title">Retensi &amp; Hasil Akad</div>
-                                                </div>
-
-                                                <div class="detail-chart-summary">
-                                                    <div class="detail-chart-wrap">
-                                                        <canvas id="hasilAkadChart"></canvas>
-                                                        <div class="detail-chart-empty" id="hasilAkadChart-empty">
-                                                            Belum ada<br>data pencairan
-                                                        </div>
-                                                    </div>
-                                                    <div class="detail-chart-metrics">
-                                                        <div class="detail-chart-metric">
-                                                            <span class="detail-info-label">Total Hasil Akad</span>
-                                                            <span class="detail-info-value" id="s-pa_total_hasil_akad">-</span>
-                                                        </div>
-                                                        <div class="detail-chart-metric">
-                                                            <span class="detail-info-label"><span class="detail-dot detail-dot-success"></span>Sudah Cair</span>
-                                                            <span class="detail-info-value detail-text-success" id="s-pa_total_cair">-</span>
-                                                        </div>
-                                                    </div>
-                                                </div>
-
-                                                <div class="detail-section-divider detail-section-divider-compact">
-                                                    <span class="detail-section-title detail-section-title-dot">Item Retensi</span>
-                                                </div>
-                                                <div id="s-pa-retensi"></div>
-
-                                                <div id="s-pa-pengajuan-section" class="d-none">
-                                                    <div class="detail-section-divider detail-section-divider-compact">
-                                                        <span class="detail-section-title detail-section-title-dot">Pengajuan Hasil Akad</span>
-                                                    </div>
-                                                    <div id="s-pa-pengajuan"></div>
                                                 </div>
                                             </div>
+                                        </div>
 
+                                        <!-- Hidden Shims untuk kompatibilitas script legacy -->
+                                        <div class="d-none" id="detail-legacy-shims">
+                                            <span id="s-status_mkdt">-</span>
+                                            <span id="s-akad_indent_tgl">-</span>
+                                            <span id="s-akad_tgl">-</span>
+                                            <div id="s-referred_by_container">
+                                                <span id="s-referred_by_kode">-</span>
+                                                <span id="s-referred_by_nama">-</span>
+                                            </div>
+                                            <span id="s-progress_bangunan_text">-</span>
+                                            <div id="s-progress_bangunan_bar"></div>
+                                            <span id="s-st_saluran">-</span>
+                                            <span id="s-st_air">-</span>
+                                            <span id="s-st_jalan">-</span>
+                                            <span id="s-slo">-</span>
+                                            <span id="s-lpa">-</span>
+                                            <canvas id="keuanganChart"></canvas>
+                                            <div id="keuanganChart-empty"></div>
+                                            <span id="s-total_dibayar">Rp 0</span>
+                                            <span id="s-sisa_tagihan">Rp 0</span>
+                                            <div id="s-jatuh-tempo-wrap"><div id="s-jatuh-tempo"></div></div>
+                                            <div id="s-co"></div>
+                                            <div id="s-hutang-subkon"></div>
+                                            <canvas id="hasilAkadChart"></canvas>
+                                            <div id="hasilAkadChart-empty"></div>
+                                            <span id="s-pa_total_hasil_akad">-</span>
+                                            <span id="s-pa_total_cair">-</span>
+                                            <div id="s-pa-retensi"></div>
+                                            <div id="s-pa-pengajuan-section"><div id="s-pa-pengajuan"></div></div>
                                         </div>
                                     </div>
 
@@ -837,7 +864,26 @@
                                                 </a>
 
                                                 <div class="detail-section-divider">
-                                                    <span class="detail-section-title detail-section-title-dot">Akad</span>
+                                                    <span class="detail-section-title detail-section-title-dot">Akad Indent</span>
+                                                    <div class="custom-control custom-switch">
+                                                        <input type="checkbox" class="custom-control-input"
+                                                            id="dt-st_akad_indent" name="dt-st_akad_indent" value="1" disabled />
+                                                        <label class="custom-control-label" for="dt-st_akad_indent"></label>
+                                                    </div>
+                                                </div>
+
+                                                <div class="detail-info-row">
+                                                    <div class="detail-info-col">
+                                                        <span class="detail-info-label">Tanggal Akad Indent</span>
+                                                        <input type="text" id="dt-st_akad_indent_tgl"
+                                                            name="dt-st_akad_indent_tgl"
+                                                            class="detail-info-value flatpickr-human-friendly"
+                                                            placeholder="-" disabled />
+                                                    </div>
+                                                </div>
+
+                                                <div class="detail-section-divider">
+                                                    <span class="detail-section-title detail-section-title-dot">Akad AJB</span>
                                                     <div class="custom-control custom-switch">
                                                         <input type="checkbox" class="custom-control-input"
                                                             id="dt-st_akad" name="dt-st_akad" value="1" disabled />
@@ -854,7 +900,7 @@
                                                             placeholder="-" disabled />
                                                     </div>
                                                     <div class="detail-info-col text-right">
-                                                        <span class="detail-info-label">Tanggal Akad</span>
+                                                        <span class="detail-info-label">Tanggal Akad (AJB)</span>
                                                         <input type="text" id="dt-st_akad_tgl" name="dt-st_akad_tgl"
                                                             class="detail-info-value flatpickr-human-friendly"
                                                             placeholder="-" disabled />
@@ -2125,6 +2171,36 @@
                                                     <div class="divider-text">Bukti Pembayaran PPn</div>
                                                 </div>
                                                 <div id="dt-file_ppn-here"></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="tab-pane" id="dt-riwayat" aria-labelledby="dt-riwayat-tab" role="tabpanel">
+                                        <div class="card detail-summary-card mb-0">
+                                            <div class="card-header pb-1 pt-1 d-flex flex-wrap align-items-center justify-content-between">
+                                                <div class="d-flex align-items-center">
+                                                    <div class="detail-card-icon mr-1"><i class="fas fa-history"></i></div>
+                                                    <div>
+                                                        <h5 class="mb-0 font-weight-bold">Riwayat Perubahan Kavling</h5>
+                                                        <small class="text-muted" id="dt-riwayat-total-info">Memuat riwayat...</small>
+                                                    </div>
+                                                </div>
+                                                <div class="d-flex align-items-center mt-50 mt-sm-0" style="gap: .5rem;">
+                                                    <select id="dt-riwayat-module-filter" class="form-control form-control-sm" style="min-width: 170px;">
+                                                        <option value="">Semua Modul</option>
+                                                        <option value="mkdt">MKDT / Kavling</option>
+                                                        <option value="produksi">Produksi</option>
+                                                        <option value="dana_jaminan">Dana Jaminan</option>
+                                                        <option value="cashout_subkon">Cashout Subkon</option>
+                                                    </select>
+                                                    <button type="button" class="btn btn-outline-primary btn-sm" id="dt-riwayat-refresh-btn" title="Muat Ulang">
+                                                        <i class="fas fa-sync-alt"></i>
+                                                    </button>
+                                                </div>
+                                            </div>
+                                            <div class="card-body pt-1">
+                                                <div id="dt-riwayat-timeline" class="detail-kavling-history-wrap">
+                                                    <div class="text-muted text-center py-2">Memuat riwayat...</div>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>

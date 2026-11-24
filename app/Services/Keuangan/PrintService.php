@@ -1,0 +1,830 @@
+<?php
+
+namespace App\Services\Keuangan;
+
+
+use CodeIgniter\HTTP\Response;
+use App\Models\ProfilePerusahaanModel;
+use App\Repositories\Transaksi\TransaksiRepository;
+use App\Models\ProyekModel;
+use App\Models\KeuanganModel;
+use App\Libraries\Mpdf_lib;
+use App\Repositories\Keuangan\LogPembayaranRepository;
+use App\Repositories\Mkdt\KonsumenRepository;
+use App\Repositories\Transaksi\KavlingRepository;
+use App\Repositories\Keuangan\KeuanganRepository;
+use CodeIgniter\HTTP\ResponseInterface;
+use App\Repositories\Mkdt\PosisiKonsumenRepository;
+use App\Services\FileAccessService;
+use App\Services\Mkdt\MkdtHistoryService;
+use App\Services\Mkdt\MkdtFinancialBreakdownService;
+use App\Services\Mkdt\PosisiKonsumenService;
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
+use PhpOffice\PhpSpreadsheet\Style\Alignment;
+use PhpOffice\PhpSpreadsheet\Style\Border;
+use PhpOffice\PhpSpreadsheet\Style\Fill;
+
+
+class PrintService
+{
+    protected $db;
+    protected $comproModel;
+    protected $mpdf;
+    protected $transaksi;
+    protected $proyek;
+    protected $keuanganModel;
+    protected $lpModel;
+    protected $konsumen;
+    protected $kavling;
+    protected $keuRepo;
+    protected $posisiKonsumen;
+    protected $fileAccessService;
+    protected $mkdtHistoryService;
+    protected MkdtFinancialBreakdownService $financialBreakdownService;
+    public function __construct()
+    {
+        $this->comproModel = new ProfilePerusahaanModel();
+        $this->db = db_connect();
+        $this->mpdf = new Mpdf_lib();
+        $this->proyek = new ProyekModel();
+        $this->transaksi = new TransaksiRepository();
+        $this->keuanganModel = new KeuanganModel();
+        $this->lpModel = new LogPembayaranRepository();
+        $this->konsumen = new KonsumenRepository();
+        $this->kavling = new KavlingRepository();
+        $this->keuRepo = new KeuanganRepository();
+        $this->posisiKonsumen = new PosisiKonsumenRepository();
+        $this->fileAccessService = new FileAccessService();
+        $this->mkdtHistoryService = new MkdtHistoryService();
+        $this->financialBreakdownService = new MkdtFinancialBreakdownService();
+    }
+
+    public function printSpptb(int $idKavling, int $idMkdt, int $idProyek): void
+    {
+        $data['proyek']       = $this->proyek->find($idProyek);
+        $data['data']         = $this->transaksi->getSpptbData($idKavling, $idMkdt);
+        if (!$data['proyek'] || !$data['data'] || (int) $data['data']->id_proyek !== $idProyek) {
+            throw new \DomainException('Data SPPTB tidak sesuai dengan MKDT, kavling, atau proyek yang diminta.');
+        }
+        $data['list_tagihan'] = $this->keuanganModel
+            ->where('id_mkdt', $idMkdt)
+            ->orderBy('jatuh_tempo_tgl')
+            ->find();
+
+        $sections = [[
+            'data' => $data['data'],
+            'list_tagihan' => $data['list_tagihan'],
+            'sort_at' => PHP_INT_MIN,
+        ]];
+
+        foreach ($this->mkdtHistoryService->getConsumerReplacementSnapshots($idMkdt) as $history) {
+            $snapshot = $history->old_data ?? [];
+            if (empty($snapshot['spptb_data'])) {
+                continue;
+            }
+            $sections[] = [
+                'data' => (object) $snapshot['spptb_data'],
+                'list_tagihan' => array_map(static fn ($row) => (object) $row, $snapshot['list_tagihan'] ?? []),
+                'sort_at' => strtotime((string) ($history->created_at ?? '')) ?: 0,
+            ];
+        }
+
+        foreach ($this->transaksi->getLegacyReplacementSpptbData($idKavling, $idMkdt) as $legacy) {
+            $legacyTagihan = $this->keuanganModel
+                ->where('id_mkdt', (int) $legacy->id_mkdt)
+                ->orderBy('jatuh_tempo_tgl')
+                ->find();
+            $sections[] = [
+                'data' => $legacy,
+                'list_tagihan' => $legacyTagihan ?: $data['list_tagihan'],
+                'sort_at' => strtotime((string) ($legacy->created_at ?? '')) ?: 0,
+            ];
+        }
+
+        $active = array_shift($sections);
+        usort($sections, static fn (array $a, array $b) => $a['sort_at'] <=> $b['sort_at']);
+        array_unshift($sections, $active);
+
+        $html = [];
+        $seenConsumers = [];
+        foreach ($sections as $section) {
+            $sectionData = $section['data'];
+            $consumerKey = (int) ($sectionData->id_konsumen ?? 0);
+            if ($consumerKey > 0 && isset($seenConsumers[$consumerKey])) {
+                continue;
+            }
+            if ($consumerKey > 0) {
+                $seenConsumers[$consumerKey] = true;
+            }
+
+            $viewData = [
+                'proyek' => $data['proyek'],
+                'data' => $sectionData,
+                'list_tagihan' => $section['list_tagihan'],
+            ];
+            $footer = $this->spptbConsumerFooter($sectionData);
+            $html[] = ['html' => view('pdf/spptb-new', $viewData), 'footer' => $footer];
+            $html[] = ['html' => view('pdf/spptb-new-page2', $viewData), 'footer' => ''];
+            $html[] = ['html' => view('pdf/spptb-new-page3', $viewData), 'footer' => ''];
+            if (!empty($sectionData->is_allin)) {
+                $html[] = ['html' => view('pdf/spptb-memo', $viewData), 'footer' => ''];
+            }
+        }
+
+        $filename = 'SPPTB - ' . $data['data']->nama_konsumen . ' - ' . date('Ymd') . '.pdf';
+        $this->mpdf->generate($html, $filename, '', [15, 15, 10, 25], 'F4', true);
+    }
+
+    private function spptbConsumerFooter(object $consumer): string
+    {
+        $ktpPath = !empty($consumer->file_ktp) ? $this->fileAccessService->existingPath($consumer->file_ktp) : null;
+        $npwpPath = !empty($consumer->file_npwp) ? $this->fileAccessService->existingPath($consumer->file_npwp) : null;
+        if (!$ktpPath && !$npwpPath) {
+            return "<div style='text-align:center;'><span style='font-size:12px;color:red;'>Belum melampirkan KTP atau NPWP</span></div>";
+        }
+
+        $ktpImg = $ktpPath ? "<img src='" . htmlspecialchars($ktpPath, ENT_QUOTES, 'UTF-8') . "' width='85mm' height='54mm'>" : '';
+        $npwpImg = $npwpPath ? "<img src='" . htmlspecialchars($npwpPath, ENT_QUOTES, 'UTF-8') . "' width='85mm' height='54mm'>" : '';
+        return "<div style='text-align:center;'>{$ktpImg}{$npwpImg}</div>";
+    }
+
+    public function printKuitansi($var)
+    {
+        $id = trim((string) $var->getVar('e'));
+        $id_mkdt = trim((string) $var->getVar('e2'));
+        $id_poryek = $this->kavling->getIdProyekByIdMkdt((int) $id_mkdt) ?: (int) $var->getVar('e3');
+
+        $data['pembayaran'] = $this->lpModel->getRiwayatBayarByIdPembayran($id);
+        $this->assertPaymentOwnership((int) $id, (int) $id_mkdt, $data['pembayaran']);
+        $data['detail'] = $this->lpModel->getDetailRiwayatBayarById($id);
+        $data['list'] = $this->keuRepo->getLIKeu();
+        $data['konsumen'] = $this->konsumen->getKonsumenTransaksi($id_mkdt);
+        $data['proyek'] = $this->proyek->find($id_poryek);
+        $data['kavling'] = $this->kavling->getKavlingByIdMkdt($id_mkdt);
+
+        $filename = $data['konsumen']->nama_konsumen . '-Kuitansi Pembayaran';
+
+        $html[] = view('pdf/kuitansi_pembayaran', $data);
+
+        $mg = [2, 2, 2, 2];
+
+        // $mg = [$kop->pml, $kop->pmr, $kop->pmt, $kop->pmb];
+
+        $this->mpdf->generate($html, $filename, $header = '', $mg, [210, 148]);
+
+        exit();
+    }
+    public function printKuitansiUm($var)
+    {
+        $id = trim((string) $var->getVar('e'));
+        $id_mkdt = trim((string) $var->getVar('e2'));
+        $id_poryek = $this->kavling->getIdProyekByIdMkdt((int) $id_mkdt) ?: (int) $var->getVar('e3');
+
+        $data['pembayaran'] = $this->lpModel->getRiwayatBayarByIdPembayran($id);
+        $this->assertPaymentOwnership((int) $id, (int) $id_mkdt, $data['pembayaran']);
+        $details = $this->lpModel->getDetailRiwayatBayarById((int) $id);
+        $installmentAmount = 0.0;
+        foreach ($details as $detail) {
+            $isSeparateBooking = ($detail['kategori'] ?? '') === 'BO'
+                && (int) ($detail['booking_is_installment'] ?? 0) === 0;
+            if (! $isSeparateBooking) $installmentAmount += (float) ($detail['nominal'] ?? 0);
+        }
+        if ($installmentAmount <= 0) {
+            throw new \DomainException('Pembayaran booking tersendiri tidak dapat dicetak sebagai kuitansi uang muka.');
+        }
+        $data['pembayaran']->nominal = $installmentAmount;
+        $data['list'] = $this->keuRepo->getLIKeu();
+        $data['konsumen'] = $this->konsumen->getKonsumenTransaksi($id_mkdt);
+        $data['proyek'] = $this->proyek->find($id_poryek);
+        $data['kavling'] = $this->kavling->getKavlingByIdMkdt($id_mkdt);
+
+        $filename = $data['konsumen']->nama_konsumen . '- Kuitansi Pembayaran';
+
+        $html[] = view('pdf/kuitansi_pembayaran-uangmuka', $data);
+
+        $mg = [2, 2, 2, 2];
+
+        // $mg = [$kop->pml, $kop->pmr, $kop->pmt, $kop->pmb];
+
+        $this->mpdf->generate($html, $filename, $header = '', $mg, [210, 148]);
+
+        exit();
+    }
+
+    private function assertPaymentOwnership(int $idPembayaran, int $idMkdt, mixed $payment): void
+    {
+        if (! $payment) throw new \DomainException('Pembayaran tidak ditemukan.');
+        if ((int) ($payment->is_deleted ?? 0) === 1) throw new \DomainException('Pembayaran sudah dihapus.');
+        if ((int) ($payment->id_mkdt ?? 0) === $idMkdt) return;
+        $linked = $this->db->table('mkdt_booking_payment')
+            ->where('id_mkdt', $idMkdt)->where('id_pembayaran', $idPembayaran)->countAllResults();
+        if ($linked === 0) throw new \DomainException('Pembayaran tidak terkait dengan transaksi MKDT ini.');
+    }
+
+    public function printTagihan(string $noInv, int $actorId): void
+    {
+        $inv = $this->db->table('invoice_log')
+            ->where('no_inv', $noInv)
+            ->get()
+            ->getRow();
+
+        if (! $inv) {
+            throw new \DomainException('Data invoice tidak ditemukan.');
+        }
+
+        $konsumen = $this->db->table('konsumen')
+            ->select('konsumen.nama_konsumen, konsumen.alamat_konsumen, konsumen.hp_konsumen')
+            ->join('mkdt', 'mkdt.id_konsumen = konsumen.id_konsumen')
+            ->where('mkdt.id_mkdt', $inv->id_mkdt)
+            ->get()
+            ->getRow();
+
+        $kop = $this->db->table('kopsurat')
+            ->where('id', $inv->id_kopsurat)
+            ->get()
+            ->getRow();
+
+        if (! $kop) {
+            throw new \DomainException('Data kop surat tidak ditemukan.');
+        }
+
+        $nama = $this->db->table('karyawan b')
+            ->select('nama_karyawan')
+            ->where('b.id_user', $actorId)
+            ->get()
+            ->getRow();
+
+        $kavling = $this->db->table('kavling')
+            ->select('proyek.nama_proyek, jalan.nama_jalan, no_kavling')
+            ->join('jalan', 'jalan.id_jalan = kavling.id_jalan')
+            ->join('cluster', 'cluster.id_cluster = jalan.id_cluster')
+            ->join('proyek', 'cluster.id_proyek = proyek.id_proyek')
+            ->where('id_kavling', $inv->id_kavling)
+            ->get()
+            ->getRow();
+
+        $koplok = $kop->lokasi;
+        $data = [
+            'inv'      => $inv,
+            'konsumen' => $konsumen,
+            'nama'     => $nama,
+            'kavling'  => $kavling,
+            'kop'      => $koplok,
+            'kop2'     => $kop,
+        ];
+
+        $html = view('pdf/invoice', $data);
+        $filename = date('y-m-d-H-i-s') . '- Tagihan';
+
+        $header = '
+        <div style="
+            background-image: url(' . base_url($koplok) . ');
+            background-size: cover;
+            width: ' . $kop->w . ';
+            height: ' . $kop->h . ';
+            position: fixed;
+            top: ' . $kop->mt . ';
+            bottom: ' . $kop->mb . ';
+            left: ' . $kop->ml . ';
+            z-index:0;
+            ">
+        </div>';
+
+        $mg = [$kop->pml, $kop->pmr, $kop->pmt, $kop->pmb];
+
+        $this->mpdf->generate($html, $filename, $header, $mg);
+    }
+    private function buildPoskonExportRows(
+        $id_proyek,
+        $id_cluster,
+        $id_jalan,
+        string $status,
+        array $filters = [],
+        ?string $progressToken = null
+    ): array {
+        PosisiKonsumenService::writeExportProgress(
+            $progressToken,
+            10,
+            'query',
+            'Mengambil data posisi konsumen...',
+            false
+        );
+
+        $statusLower              = strtolower(trim($status));
+        $hasExplicitStatusKavling = isset($filters['status_kavling'])
+            && is_scalar($filters['status_kavling'])
+            && trim((string) $filters['status_kavling']) !== '';
+
+        $effectiveFilters = $filters;
+        if (!isset($effectiveFilters['id_proyek']) || $effectiveFilters['id_proyek'] === '' || $effectiveFilters['id_proyek'] === null) {
+            $effectiveFilters['id_proyek'] = $id_proyek;
+        }
+        if (!isset($effectiveFilters['id_cluster']) || $effectiveFilters['id_cluster'] === '' || $effectiveFilters['id_cluster'] === null) {
+            $effectiveFilters['id_cluster'] = $id_cluster;
+        }
+        if (!isset($effectiveFilters['id_jalan']) || $effectiveFilters['id_jalan'] === '' || $effectiveFilters['id_jalan'] === null) {
+            $effectiveFilters['id_jalan'] = $id_jalan;
+        }
+
+        if ($hasExplicitStatusKavling || $statusLower === 'aktif' || $statusLower === '') {
+            $dataRumah = $this->posisiKonsumen->getBaseQuery(null);
+            $this->posisiKonsumen->applyBaseFilters($dataRumah, $effectiveFilters, true);
+        } else {
+            $st = ucfirst($statusLower) === 'Aktif' ? 'Booking' : ucfirst($statusLower);
+            $dataRumah = $this->posisiKonsumen->getBaseQuery($st);
+            $this->posisiKonsumen->applyBaseFilters($dataRumah, $effectiveFilters, false);
+        }
+
+        $search = trim((string) ($effectiveFilters['search'] ?? ''));
+        if ($search !== '') {
+            $this->posisiKonsumen->applyBaseSearch($dataRumah, $search);
+        }
+
+        return $dataRumah->get()->getResult();
+    }
+
+    private function resolvePoskonProjectName(array $rows, mixed $idProyek): string
+    {
+        if (!empty($rows) && !empty($rows[0]->nama_proyek)) {
+            return (string) $rows[0]->nama_proyek;
+        }
+
+        if ($idProyek !== null && $idProyek !== '' && (int) $idProyek > 0) {
+            $proyek = $this->proyek->find((int) $idProyek);
+            if ($proyek && !empty($proyek->nama_proyek)) {
+                return (string) $proyek->nama_proyek;
+            }
+        }
+
+        return 'Semua Proyek';
+    }
+
+    private function reportRowIterationProgress(?string $progressToken, int $processed, int $totalRows): void
+    {
+        if ($progressToken === null) {
+            return;
+        }
+
+        if ($totalRows <= 0) {
+            PosisiKonsumenService::writeExportProgress(
+                $progressToken,
+                75,
+                'processing',
+                'Memproses 0 / 0 data...',
+                false
+            );
+            return;
+        }
+
+        $percent = (int) round(20 + (($processed / $totalRows) * 55));
+        PosisiKonsumenService::writeExportProgress(
+            $progressToken,
+            $percent,
+            'processing',
+            "Memproses {$processed} / {$totalRows} data...",
+            false
+        );
+    }
+
+    function exportPBataloskonPdf($id_proyek, $id_cluster, $id_jalan, ?string $progressToken = null)
+    {
+        PosisiKonsumenService::writeExportProgress($progressToken, 10, 'query', 'Mengambil data posisi konsumen batal...', false);
+
+        $st = "Batal";
+        $dataRumah = $this->posisiKonsumen->getQueryBatal();
+        if ($id_proyek != null) {
+            $dataRumah->where('proyek.id_proyek', $id_proyek);
+        }
+        if ($id_cluster != null) {
+            $dataRumah->where('cluster.id_cluster', $id_cluster);
+        }
+        if ($id_jalan != null) {
+            $dataRumah->where('jalan.id_jalan', $id_jalan);
+        }
+
+        $rows           = $dataRumah->get()->getResult();
+        $totalRows      = count($rows);
+        $data['poskon'] = $rows;
+        $data['status'] = $st;
+
+        $this->reportRowIterationProgress($progressToken, $totalRows, $totalRows);
+        PosisiKonsumenService::writeExportProgress($progressToken, 85, 'building', 'Menyusun file PDF...', false);
+
+
+        // Persiapan Folder Penyimpanan
+        $subFolder = date('Ym'); // Folder berdasarkan tanggal agar rapi
+        $targetDir = 'upload/poskon/' . $subFolder . '/';
+
+        $absoluteTargetDir = dirname($this->fileAccessService->privatePath($targetDir . 'dummy.pdf'));
+        if (!is_dir($absoluteTargetDir)) {
+            mkdir($absoluteTargetDir, 0777, true);
+        }
+
+        // Penamaan File
+        $randomName = bin2hex(random_bytes(5)) . '.pdf';
+        $filename = 'Poskon_' . $st . '_' . date('His') . '.pdf';
+        $logicalPath = $targetDir . $randomName;
+        $fullPath = $this->fileAccessService->privatePath($logicalPath);
+
+        // Generate HTML View
+        $html[] = view('pdf/poskon-batal', $data);
+        $mg = [2, 2, 2, 2];
+
+        $this->mpdf->generate($html, $fullPath, $header = '', $mg, "A3-L", false);
+
+        // Response JSON
+        $response = array(
+            'status'     => TRUE,
+            'message'    => 'File berhasil disimpan di server',
+            'tipe'       => 'pdf',
+            'randomName' => $randomName,
+            'filename'   => $filename,
+            'path'       => $targetDir,
+            'file'       => 'data:application/pdf;base64,' . base64_encode(file_get_contents($fullPath))
+        );
+
+        return $response;
+    }
+    public function exportPoskonPdf($id_proyek, $id_cluster, $id_jalan, $status, array $filters = [], ?string $progressToken = null)
+    {
+        if (strtolower(trim((string) $status)) === "batal") {
+            $response = $this->exportPBataloskonPdf($id_proyek, $id_cluster, $id_jalan, $progressToken);
+            return $response;
+        }
+        $rows                = $this->buildPoskonExportRows($id_proyek, $id_cluster, $id_jalan, (string) $status, $filters, $progressToken);
+        $totalRows           = count($rows);
+        $data['poskon']      = $rows;
+        $data['status']      = $status;
+        $data['nama_proyek'] = $this->resolvePoskonProjectName($rows, $id_proyek);
+
+        if ($totalRows > 0) {
+            PosisiKonsumenService::writeExportProgress($progressToken, 20, 'processing', "Memproses 0 / {$totalRows} data...", false);
+        }
+        $this->reportRowIterationProgress($progressToken, $totalRows, $totalRows);
+        PosisiKonsumenService::writeExportProgress($progressToken, 85, 'building', 'Menyusun file PDF...', false);
+
+        // Persiapan Folder Penyimpanan
+        $subFolder = date('Ym'); // Folder berdasarkan tanggal agar rapi
+        $targetDir = 'upload/poskon/' . $subFolder . '/';
+
+        $absoluteTargetDir = dirname($this->fileAccessService->privatePath($targetDir . 'dummy.pdf'));
+        if (!is_dir($absoluteTargetDir)) {
+            mkdir($absoluteTargetDir, 0777, true);
+        }
+
+        // Penamaan File
+        $randomName = bin2hex(random_bytes(5)) . '.pdf';
+        $filename = 'Poskon_' . $status . '_' . date('His') . '.pdf';
+        $logicalPath = $targetDir . $randomName;
+        $fullPath = $this->fileAccessService->privatePath($logicalPath);
+
+        // Generate HTML View
+        $html[] = view('pdf/poskon', $data);
+        $mg = [2, 2, 2, 2];
+
+        $this->mpdf->generate($html, $fullPath, $header = '', $mg, "A3-L", false);
+
+        // Response JSON
+        $response = array(
+            'status'     => TRUE,
+            'message'    => 'File berhasil disimpan di server',
+            'tipe'       => 'pdf',
+            'randomName' => $randomName,
+            'filename'   => $filename,
+            'path'       => $targetDir,
+            'file'       => 'data:application/pdf;base64,' . base64_encode(file_get_contents($fullPath))
+        );
+
+        return $response;
+    }
+
+    private function exportBatalPoskonXlsx($id_proyek, $id_cluster, $id_jalan, ?string $progressToken = null)
+    {
+        PosisiKonsumenService::writeExportProgress($progressToken, 10, 'query', 'Mengambil data posisi konsumen batal...', false);
+
+        $spreadsheet = new Spreadsheet();
+        $sheet = $spreadsheet->getActiveSheet();
+
+        $headers = [
+            'A1' => 'NO',
+            'B1' => 'BLOK',
+            'C1' => 'NO KAVLING',
+            'D1' => 'TYPE',
+            'E1' => 'KETERANGAN BATAL',
+            'F1' => 'STATUS REFUND',
+            'G1' => 'NAMA KONSUMEN',
+            'H1' => 'TANGGAL BOOKING',
+            'I1' => 'TUNAI/KPR',
+            'J1' => 'TOTAL TAGIHAN',
+            'K1' => 'SUDAH BAYAR',
+            'L1' => 'SISA TAGIHAN',
+        ];
+
+        foreach ($headers as $cell => $label) {
+            $sheet->setCellValue($cell, $label);
+        }
+
+        $headerStyle = [
+            'font' => ['bold' => true],
+            'alignment' => [
+                'horizontal' => Alignment::HORIZONTAL_CENTER,
+                'vertical' => Alignment::VERTICAL_CENTER,
+                'wrapText' => true,
+            ],
+            'borders' => [
+                'allBorders' => ['borderStyle' => Border::BORDER_THIN],
+            ],
+            'fill' => [
+                'fillType' => Fill::FILL_SOLID,
+                'startColor' => ['rgb' => 'F2F2F2'],
+            ],
+        ];
+        $sheet->getStyle('A1:L1')->applyFromArray($headerStyle);
+
+        $dataRumah = $this->posisiKonsumen->getQueryBatal();
+        if ($id_proyek != null) {
+            $dataRumah->where('proyek.id_proyek', $id_proyek);
+        }
+        if ($id_cluster != null) {
+            $dataRumah->where('cluster.id_cluster', $id_cluster);
+        }
+        if ($id_jalan != null) {
+            $dataRumah->where('jalan.id_jalan', $id_jalan);
+        }
+
+        $dataRumah = $dataRumah->get()->getResult();
+        $totalRows = count($dataRumah);
+        $column = 2;
+        $no = 1;
+
+        if ($totalRows === 0) {
+            $this->reportRowIterationProgress($progressToken, 0, 0);
+        } else {
+            PosisiKonsumenService::writeExportProgress($progressToken, 20, 'processing', "Memproses 0 / {$totalRows} data...", false);
+        }
+
+        $step = max(1, (int) ceil($totalRows / 15));
+        foreach ($dataRumah as $index => $row) {
+            $total = $row->um + $row->adm + $row->bb;
+            $bayar = $row->total_um + $row->total_adm + $row->total_bb;
+            $sisa = $total - $bayar;
+            $statusRefund = ((int) ($row->perlu_refund ?? 0) === 1) ? 'Perlu Refund' : 'Tidak Perlu Refund';
+            $kpr = ((int) $row->is_kpr === 0) ? 'TUNAI' : 'KPR';
+
+            $sheet->setCellValue('A' . $column, $no++);
+            $sheet->setCellValue('B' . $column, $row->nama_jalan);
+            $sheet->setCellValue('C' . $column, $row->no_kavling);
+            $sheet->setCellValue('D' . $column, $row->id_tipe);
+            $sheet->setCellValue('E' . $column, $row->keterangan_batal);
+            $sheet->setCellValue('F' . $column, $statusRefund);
+            $sheet->setCellValue('G' . $column, $row->nama_konsumen);
+            $sheet->setCellValue('H' . $column, $row->booking_tgl == "0000-00-00" ? "" : $row->booking_tgl);
+            $sheet->setCellValue('I' . $column, $kpr);
+            $sheet->setCellValue('J' . $column, $total);
+            $sheet->setCellValue('K' . $column, $bayar);
+            $sheet->setCellValue('L' . $column, $sisa);
+            $sheet->getStyle('A' . $column . ':L' . $column)->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
+            $column++;
+
+            $processed = $index + 1;
+            if ($processed === 1 || $processed === $totalRows || ($processed % $step === 0)) {
+                $this->reportRowIterationProgress($progressToken, $processed, $totalRows);
+            }
+        }
+
+        foreach (range('A', 'L') as $col) {
+            $sheet->getColumnDimension($col)->setAutoSize(true);
+        }
+
+        PosisiKonsumenService::writeExportProgress($progressToken, 85, 'building', 'Menyusun file Excel...', false);
+
+        $projectName = $this->resolvePoskonProjectName($dataRumah, $id_proyek);
+        $filename = "Poskon Batal Per " . date('d-m-Y') . " " . $projectName . ".xlsx";
+        $subFolder = date('Ym');
+        $directory = dirname($this->fileAccessService->privatePath('upload/poskon/' . $subFolder . '/dummy.xlsx'));
+
+        if (!is_dir($directory)) {
+            mkdir($directory, 0777, true);
+        }
+
+        $randomName = bin2hex(random_bytes(10)) . '.xlsx';
+        $fullPath = $directory . DIRECTORY_SEPARATOR . $randomName;
+
+        $writer = new Xlsx($spreadsheet);
+        $writer->save($fullPath);
+
+        $xlsData = file_get_contents($fullPath);
+
+        return [
+            'status'     => true,
+            'message'    => 'File berhasil disimpan di server',
+            'tipe'       => 'xlsx',
+            'randomName' => $randomName,
+            'filename'   => $filename,
+            'path'       => 'upload/poskon/' . $subFolder . "/",
+            'file'       => "data:application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;base64," . base64_encode($xlsData),
+        ];
+    }
+
+    public function exportPoskonXlsx($id_proyek, $id_cluster, $id_jalan, $status, array $filters = [], ?string $progressToken = null)
+    {
+        if (strtolower(trim((string) $status)) === "batal") {
+            return $this->exportBatalPoskonXlsx($id_proyek, $id_cluster, $id_jalan, $progressToken);
+        }
+
+        $spreadsheet = new Spreadsheet();
+        $sheet = $spreadsheet->getActiveSheet();
+
+        // --- 1. SETTING HEADER (MERGING) ---
+        // Row 1 & 2 & 3 (Vertical Merges untuk yang single)
+        $sheet->mergeCells('A1:A3')->setCellValue('A1', 'NO');
+        $sheet->mergeCells('B1:C1')->setCellValue('B1', 'KAVLING');
+        $sheet->mergeCells('B2:B3')->setCellValue('B2', 'BLOK');
+        $sheet->mergeCells('C2:C3')->setCellValue('C2', 'NO');
+
+        $sheet->mergeCells('D1:D3')->setCellValue('D1', 'TYPE');
+        $sheet->mergeCells('E1:E3')->setCellValue('E1', 'NAMA KONSUMEN');
+        $sheet->mergeCells('F1:F3')->setCellValue('F1', 'SALES');
+        $sheet->mergeCells('G1:G3')->setCellValue('G1', 'TGL BOOKING');
+        $sheet->mergeCells('H1:H3')->setCellValue('H1', 'TGL WAWANCARA');
+        $sheet->mergeCells('I1:I3')->setCellValue('I1', 'TGL AKAD INDENT');
+        $sheet->mergeCells('J1:J3')->setCellValue('J1', 'TGL AKAD');
+
+        // Marketing Data
+        $sheet->mergeCells('K1:P1')->setCellValue('K1', 'MARKETING DATA');
+        $sheet->mergeCells('K2:L2')->setCellValue('K2', 'PENGAJUAN');
+        $sheet->setCellValue('K3', 'TUNAI/KPR');
+        $sheet->setCellValue('L3', 'BANK');
+        $sheet->mergeCells('M2:M3')->setCellValue('M2', 'STATUS');
+        $sheet->mergeCells('N2:O2')->setCellValue('N2', 'SP3K');
+        $sheet->setCellValue('N3', 'TERBIT');
+        $sheet->setCellValue('O3', 'EXPIRED');
+        $sheet->mergeCells('P2:P3')->setCellValue('P2', 'SIKASEP');
+
+        // Keuangan
+        $sheet->mergeCells('Q1:T1')->setCellValue('Q1', 'KEUANGAN');
+        $sheet->mergeCells('Q2:Q3')->setCellValue('Q2', 'TUNAI');
+        $sheet->mergeCells('R2:R3')->setCellValue('R2', 'UM');
+        $sheet->mergeCells('S2:S3')->setCellValue('S2', 'B. ADM');
+        $sheet->mergeCells('T2:T3')->setCellValue('T2', 'BIAYA-BIAYA');
+
+        // Produksi
+        $sheet->mergeCells('U1:W1')->setCellValue('U1', 'PRODUKSI');
+        $sheet->mergeCells('U2:V2')->setCellValue('U2', 'BANGUNAN');
+        $sheet->setCellValue('U3', '%');
+        $sheet->setCellValue('V3', 'LPA');
+        $sheet->mergeCells('W2:W3')->setCellValue('W2', 'LISTRIK');
+
+        // Legal & GA
+        $sheet->mergeCells('X1:AA1')->setCellValue('X1', 'LEGAL');
+        $sheet->mergeCells('X2:X3')->setCellValue('X2', 'HGB');
+        $sheet->mergeCells('Y2:Y3')->setCellValue('Y2', 'NIB ELEKTRONIK');
+        $sheet->mergeCells('Z2:Z3')->setCellValue('Z2', 'IMB');
+        $sheet->mergeCells('AA2:AA3')->setCellValue('AA2', 'PBB');
+
+        $sheet->mergeCells('AB1:AB1')->setCellValue('AB1', 'GA');
+        $sheet->mergeCells('AB2:AB3')->setCellValue('AB2', 'SIKUMBANG');
+
+        // --- 2. STYLING HEADER ---
+        $headerStyle = [
+            'font' => ['bold' => true],
+            'alignment' => [
+                'horizontal' => Alignment::HORIZONTAL_CENTER,
+                'vertical' => Alignment::VERTICAL_CENTER,
+                'wrapText' => true,
+            ],
+            'borders' => [
+                'allBorders' => ['borderStyle' => Border::BORDER_THIN],
+            ],
+            'fill' => [
+                'fillType' => Fill::FILL_SOLID,
+                'startColor' => ['rgb' => 'F2F2F2'],
+            ],
+        ];
+        $sheet->getStyle('A1:AB3')->applyFromArray($headerStyle);
+
+        //query data
+        $dataRumah = $this->buildPoskonExportRows($id_proyek, $id_cluster, $id_jalan, (string) $status, $filters, $progressToken);
+        $totalRows = count($dataRumah);
+        $column = 4; // Data dimulai dari baris ke-4
+        $no = 1;
+
+        if ($totalRows === 0) {
+            $this->reportRowIterationProgress($progressToken, 0, 0);
+        } else {
+            PosisiKonsumenService::writeExportProgress($progressToken, 20, 'processing', "Memproses 0 / {$totalRows} data...", false);
+        }
+
+        $step = max(1, (int) ceil($totalRows / 15));
+        foreach ($dataRumah as $index => $row) {
+            $total = $row->um + $row->adm + $row->bb;
+            $bayar = $row->total_um + $row->total_adm + $row->total_bb;
+            $persen_tunai = "-";
+
+            $um = $row->um;
+            $adm = $row->adm;
+            $bb = $row->bb;
+
+            $kpr = "KPR";
+            if ($row->is_kpr == 0) {
+                $kpr = 'TUNAI';
+                $um = "-";
+                $adm = "-";
+                $bb = "-";
+                $persen_tunai = $this->financialBreakdownService->progress((float) $total, (float) $bayar)['label'];
+            } else {
+                $um = $this->financialBreakdownService->progress((float) $row->um, (float) $row->total_um)['label'];
+                $adm = $this->financialBreakdownService->progress((float) $row->adm, (float) $row->total_adm)['label'];
+                $bb = $this->financialBreakdownService->progress((float) $row->bb, (float) $row->total_bb)['label'];
+            }
+
+            $sheet->setCellValue('A' . $column, $no++);
+            $sheet->setCellValue('B' . $column, $row->nama_jalan);
+            $sheet->setCellValue('C' . $column, $row->no_kavling);
+            $sheet->setCellValue('D' . $column, $row->tipe_rumah);
+            $sheet->setCellValue('E' . $column, $row->nama_konsumen);
+            $sheet->setCellValue('F' . $column, $row->sales);
+            $sheet->setCellValue('G' . $column, $row->booking_tgl == "0000-00-00" ? "" : $row->booking_tgl);
+            $sheet->setCellValue('H' . $column, $row->wawancara_tgl == "0000-00-00" ? "" : $row->wawancara_tgl);
+            $sheet->setCellValue('I' . $column, (!empty($row->akad_indent_tgl) && $row->akad_indent_tgl != "0000-00-00") ? $row->akad_indent_tgl : "");
+            $sheet->setCellValue('J' . $column, (!empty($row->akad_tgl) && $row->akad_tgl != "0000-00-00") ? $row->akad_tgl : "");
+            $sheet->setCellValue('K' . $column, $kpr);
+            $sheet->setCellValue('L' . $column, $row->bank);
+            $sheet->setCellValue('M' . $column, $row->keterangan);
+            $sheet->setCellValue('N' . $column, $row->sp3k_tgl == "0000-00-00" ? "" : $row->sp3k_tgl);
+            $sheet->setCellValue('O' . $column, $row->sp3k_tgl_exp == "0000-00-00" ? "" : $row->sp3k_tgl_exp);
+            $sheet->setCellValue('P' . $column, $row->sikasep);
+            $sheet->setCellValue('Q' . $column, $persen_tunai);
+            $sheet->setCellValue('R' . $column, $um);
+            $sheet->setCellValue('S' . $column, $adm);
+            $sheet->setCellValue('T' . $column, $bb);
+            $sheet->setCellValue('U' . $column, $row->progres_bangunan);
+            $sheet->setCellValue('V' . $column, $row->lpa ? 'âœ“' : '');
+            $sheet->setCellValue('W' . $column, $row->st_listrik ? 'âœ“' : '');
+            $sheet->setCellValue('X' . $column, $row->sertifikat_split_no_hgb);
+            $sheet->setCellValue('Y' . $column, $row->sertifikat_split_nib);
+            $sheet->setCellValue('Z' . $column, $row->pbg_no);
+            $sheet->setCellValue('AA' . $column, $row->pbb_pecah_nop);
+            $sheet->setCellValue('AB' . $column, $row->sikumbang);
+
+            // Beri border untuk baris data
+            $sheet->getStyle('A' . $column . ':AB' . $column)->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
+            $column++;
+
+            $processed = $index + 1;
+            if ($processed === 1 || $processed === $totalRows || ($processed % $step === 0)) {
+                $this->reportRowIterationProgress($progressToken, $processed, $totalRows);
+            }
+        }
+
+        // Auto size kolom agar rapi
+        $exportColumns = [
+            'A','B','C','D','E','F','G','H','I','J',
+            'K','L','M','N','O','P','Q','R','S','T',
+            'U','V','W','X','Y','Z','AA','AB'
+        ];
+        foreach ($exportColumns as $col) {
+            $sheet->getColumnDimension($col)->setAutoSize(true);
+        }
+
+        PosisiKonsumenService::writeExportProgress($progressToken, 85, 'building', 'Menyusun file Excel...', false);
+
+        $projectName = $this->resolvePoskonProjectName($dataRumah, $id_proyek);
+        $filename = "Poskon " . $status . " Per " . date('d-m-Y') . " " . $projectName . ".xlsx";
+        // 1. Tentukan folder tujuan (Public path biasanya digunakan agar bisa diakses via URL)
+        $subFolder = date('Ym'); // Hasil: 202512
+        $directory = dirname($this->fileAccessService->privatePath('upload/poskon/' . $subFolder . '/dummy.xlsx'));
+
+        // 2. Cek apakah folder ada, jika tidak, buat folder secara recursive
+        if (!is_dir($directory)) {
+            mkdir($directory, 0777, true);
+        }
+        // var_dump($directory);
+        // die();
+
+        // 3. Generate nama file random
+        $randomName = bin2hex(random_bytes(10)) . '.xlsx'; // Nama random seperti: a1b2c3d4e5...xlsx
+        $fullPath = $directory . DIRECTORY_SEPARATOR . $randomName;
+
+        // 4. Proses Simpan ke Server (Bukan ke browser)
+        $writer = new \PhpOffice\PhpSpreadsheet\Writer\Xlsx($spreadsheet);
+        $writer->save($fullPath);
+
+        // 5. Jika Anda masih butuh data base64 untuk response (opsional)
+        // Anda bisa membaca file yang baru saja disimpan
+        $xlsData = file_get_contents($fullPath);
+
+        $response = array(
+            'status'   => TRUE,
+            'message'  => 'File berhasil disimpan di server',
+            'tipe'  => 'xlsx',
+            'randomName' => $randomName,
+            'filename' => $filename,
+            'path'     => 'upload/poskon/' . $subFolder . "/", // Path untuk akses URL
+            'file'     => "data:application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;base64," . base64_encode($xlsData)
+        );
+
+        return $response;
+    }
+}

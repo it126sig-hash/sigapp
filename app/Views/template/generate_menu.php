@@ -114,87 +114,11 @@ $activeProyekLogoUrl = ($activeProyek && ! empty($activeProyek->logo_thumbnail_u
             </li>*/
             ?>
 
-            <li class="nav-item dropdown dropdown-notification mr-25">
-                <a id="header-notif" class="nav-link" href="javascript:void(0);" data-toggle="dropdown">
+            <li class="nav-item mr-25">
+                <a id="header-notif" class="nav-link" href="javascript:void(0);" data-toggle="modal" data-target="#list-notif" aria-controls="list-notif" aria-label="Buka notifikasi">
                     <i class="ficon" data-feather="bell"></i>
                     <span class="badge badge-pill badge-danger badge-up" id="notif-badge" style="display:none;">0</span>
                 </a>
-                <ul class="dropdown-menu dropdown-menu-media dropdown-menu-right notification-center-menu" id="list-notif">
-                    <li class="dropdown-menu-header">
-                        <div class="dropdown-header notification-center-header d-flex align-items-center">
-                            <div class="mr-auto">
-                                <h4 class="notification-title mb-0">Notifikasi</h4>
-                                <small class="text-muted">Aktivitas dan pengingat terbaru</small>
-                            </div>
-                            <span class="badge badge-pill badge-light-primary mr-50" id="notif-summary-badge" style="display:none;">0</span>
-                            <button type="button" class="btn btn-flat-success btn-icon btn-sm mr-25 notification-mark-read-btn" id="mark-all-read-notif-center" title="Tandai semua dibaca" aria-label="Tandai semua dibaca">
-                                <i data-feather="check-square"></i>
-                            </button>
-                            <button type="button" class="btn btn-flat-primary btn-icon btn-sm notification-refresh-btn" id="refresh-notif-center" title="Perbarui notifikasi" aria-label="Perbarui notifikasi">
-                                <i data-feather="refresh-cw"></i>
-                            </button>
-                        </div>
-                    </li>
-                    <li class="notification-center-tabs px-1 pt-50 pb-50 border-bottom">
-                        <ul class="nav nav-tabs nav-justified mb-0" role="tablist">
-                            <li class="nav-item">
-                                <a class="nav-link active" id="notif-urgent-tab" href="javascript:void(0)" data-notif-target="urgent" role="tab">
-                                    Jatuh Tempo <span class="badge badge-pill badge-light-danger ml-25" id="notif-urgent-count">0</span>
-                                </a>
-                            </li>
-                            <li class="nav-item border-left">
-                                <a class="nav-link" id="notif-activity-tab" href="javascript:void(0)" data-notif-target="activity" role="tab">
-                                    Aktivitas <span class="badge badge-pill badge-light-primary ml-25" id="notif-activity-count">0</span>
-                                </a>
-                            </li>
-                        </ul>
-                    </li>
-                    <li class="notification-project-filter px-1 py-50 border-bottom">
-                        <div class="d-flex align-items-center mb-50" style="gap: 6px;">
-                            <i data-feather="folder" class="text-primary" style="width: 16px; height: 16px;"></i>
-                            <span class="text-dark font-weight-bolder" id="notif-active-project-name" style="font-size: 0.9rem;"><?= $activeProyekId ? esc($activeProyekName) : 'Semua Proyek' ?></span>
-                            <i data-feather="chevron-down" class="text-muted" style="width: 14px; height: 14px;"></i>
-                        </div>
-                        <div class="notif-project-scroll" style="display: flex; overflow-x: auto; gap: 8px; padding-bottom: 4px;">
-                            <style>
-                                .notif-project-scroll { scrollbar-width: thin; scrollbar-color: #d0d2d6 transparent; overscroll-behavior: contain; }
-                                .notif-project-scroll::-webkit-scrollbar { height: 4px; }
-                                .notif-project-scroll::-webkit-scrollbar-track { background: transparent; }
-                                .notif-project-scroll::-webkit-scrollbar-thumb { background: #d0d2d6; border-radius: 10px; }
-                                .notif-project-scroll::-webkit-scrollbar-thumb:hover { background: #b4b7bd; }
-                            </style>
-                            <button type="button" class="btn btn-sm <?= !$activeProyekId ? 'btn-primary active text-white' : 'border bg-white text-secondary' ?> rounded-pill notif-project-btn flex-shrink-0" data-id-proyek="all" data-nama-proyek="Semua Proyek" style="display: flex; align-items: center; gap: 6px; padding: 4px 12px;">
-                                <i data-feather="folder" style="width: 14px; height: 14px;"></i>
-                                Semua Proyek
-                            </button>
-                            <?php foreach ($accessibleProyek as $proyek) :
-                                $logoUrl = ! empty($proyek->logo_thumbnail_url ?? $proyek->logo_access_url) ? ($proyek->logo_thumbnail_url ?? $proyek->logo_access_url) : $defaultProjectLogo;
-                                $shortName = strlen($proyek->nama_proyek) > 7 ? substr($proyek->nama_proyek, 0, 7) . '...' : $proyek->nama_proyek;
-                                $isActive = ($activeProyekId === (int) $proyek->id_proyek);
-                            ?>
-                                <button type="button" class="btn btn-sm <?= $isActive ? 'btn-primary active text-white' : 'border bg-white text-secondary' ?> rounded-pill notif-project-btn flex-shrink-0" data-id-proyek="<?= (int) $proyek->id_proyek ?>" data-nama-proyek="<?= esc($proyek->nama_proyek) ?>" style="display: flex; align-items: center; gap: 6px; padding: 4px 12px;">
-                                    <img src="<?= esc($logoUrl) ?>" alt="logo" style="width: 14px; height: 14px; border-radius: 50%; object-fit: cover;">
-                                    <?= esc($shortName) ?>
-                                </button>
-                            <?php endforeach; ?>
-                        </div>
-                    </li>
-
-                    <li class="scrollable-container media-list notification-center-body" id="notification-center-body" style="overscroll-behavior: contain;">
-                        <div class="notification-center-content">
-                            <div class="notification-center-pane is-active" id="notif-urgent-pane" role="tabpanel" aria-labelledby="notif-urgent-tab">
-                                <div id="notif-urgent-here">
-                                    <div class="notification-center-empty">Memuat jatuh tempo...</div>
-                                </div>
-                            </div>
-                            <div class="notification-center-pane" id="notif-activity-pane" role="tabpanel" aria-labelledby="notif-activity-tab">
-                                <div id="notif-here">
-                                    <div class="notification-center-empty">Memuat aktivitas...</div>
-                                </div>
-                            </div>
-                        </div>
-                    </li>
-                </ul>
             </li>
             <li class="nav-item dropdown dropdown-user">
                 <a class="nav-link dropdown-toggle dropdown-user-link" id="dropdown-user" href="javascript:void(0);" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
@@ -204,12 +128,13 @@ $activeProyekLogoUrl = ($activeProyek && ! empty($activeProyek->logo_thumbnail_u
                     </div><span class="avatar"><img class="round" src="<?= esc($profilePhotoUrl) ?>" alt="avatar" height="40" width="40"><span class="avatar-status-online"></span></span>
                 </a>
                 <div class="dropdown-menu dropdown-menu-right" aria-labelledby="dropdown-user">
-                    <a class="dropdown-item d-none" href="javascript:void(0);" id="sigapp-pwa-install-action"><i class="mr-50" data-feather="download"></i> Install SIGAPP</a>
+                    <a class="dropdown-item d-none" href="javascript:void(0);" id="sigapp-pwa-install-action"><i class="mr-50" data-feather="download"></i> <span>Install SIGAPP</span></a>
                     <a class="dropdown-item d-none" href="javascript:void(0);" id="sigapp-push-action"><i class="mr-50" data-feather="bell"></i> <span data-push-label>Aktifkan Notifikasi</span></a>
-                    <a class="dropdown-item" href="<?= base_url('profil') ?>"><i class="mr-50" data-feather="user"></i> Ubah Profil</a>
+                    <a class="dropdown-item" href="<?= base_url('profil') ?>"><i class="mr-50" data-feather="user"></i> <span>Ubah Profil</span></a>
+                    <a class="dropdown-item" href="javascript:void(0);" id="sigapp-display-scale-trigger" data-toggle="modal" data-target="#sigapp-display-scale-modal"><i class="mr-50" data-feather="sliders"></i> <span>Pengaturan Tampilan</span></a>
                     <!-- <div class="dropdown-divider"></div><a class="dropdown-item" href="javascript:void(0);"><i class="mr-50" data-feather="settings"></i> Settings</a><a class="dropdown-item" href="javascript:void(0);"><i class="mr-50" data-feather="credit-card"></i> Pricing</a><a class="dropdown-item" href="javascript:void(0);"><i class="mr-50" data-feather="help-circle"></i> FAQ</a> -->
                     <div class="dropdown-divider"></div>
-                    <a class="dropdown-item" href="<?= base_url('logout') ?>" data-sigapp-logout><i class="mr-50" data-feather="power"></i> Logout</a>
+                    <a class="dropdown-item" href="<?= base_url('logout') ?>" data-sigapp-logout><i class="mr-50" data-feather="power"></i> <span>Logout</span></a>
                 </div>
             </li>
         </ul>
@@ -236,3 +161,90 @@ $activeProyekLogoUrl = ($activeProyek && ! empty($activeProyek->logo_thumbnail_u
     </div>
 </div>
 <!-- END: Main Menu-->
+<!-- BEGIN: Notification Center Modal -->
+<div class="modal fade notification-center-modal" id="list-notif" tabindex="-1" role="dialog" aria-labelledby="notif-modal-title" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header notification-center-header">
+                <div class="mr-auto">
+                    <h4 class="notification-title mb-0" id="notif-modal-title">Notifikasi</h4>
+                    <small class="text-muted">Aktivitas dan pengingat terbaru</small>
+                </div>
+                <span class="badge badge-pill badge-light-primary mr-25" id="notif-summary-badge" style="display:none;">0</span>
+                <button type="button" class="btn btn-flat-success btn-icon btn-sm notification-mark-read-btn" id="mark-all-read-notif-center" title="Tandai semua dibaca" aria-label="Tandai semua dibaca">
+                    <i data-feather="check-square"></i>
+                </button>
+                <button type="button" class="btn btn-flat-primary btn-icon btn-sm notification-refresh-btn" id="refresh-notif-center" title="Perbarui notifikasi" aria-label="Perbarui notifikasi">
+                    <i data-feather="refresh-cw"></i>
+                </button>
+                <button type="button" class="close notification-close-btn" data-dismiss="modal" aria-label="Tutup notifikasi">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="notification-center-tabs px-1 pt-50 pb-50 border-bottom">
+                <ul class="nav nav-tabs nav-justified mb-0" role="tablist">
+                    <li class="nav-item">
+                        <a class="nav-link active" id="notif-urgent-tab" href="javascript:void(0)" data-notif-target="urgent" role="tab">
+                            Jatuh Tempo <span class="badge badge-pill badge-light-danger ml-25" id="notif-urgent-count">0</span>
+                        </a>
+                    </li>
+                    <li class="nav-item border-left">
+                        <a class="nav-link" id="notif-activity-tab" href="javascript:void(0)" data-notif-target="activity" role="tab">
+                            Aktivitas <span class="badge badge-pill badge-light-primary ml-25" id="notif-activity-count">0</span>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+            <div class="notification-project-filter px-1 py-50 border-bottom">
+                <div class="d-flex align-items-center justify-content-between mb-50" style="gap: 8px;">
+                    <div class="d-flex align-items-center min-w-0" style="gap: 6px;">
+                    <i data-feather="folder" class="text-primary" style="width: 16px; height: 16px;"></i>
+                        <span class="text-dark font-weight-bolder text-truncate" id="notif-active-project-name" style="font-size: 0.9rem;"><?= $activeProyekId ? esc($activeProyekName) : 'Semua Proyek' ?></span>
+                        <i data-feather="chevron-down" class="text-muted flex-shrink-0" style="width: 14px; height: 14px;"></i>
+                    </div>
+                    <a href="<?= site_url('permohonan') ?>" class="notification-permohonan-btn flex-shrink-0" id="notif-permohonan-link" title="Buka Pusat Permohonan" aria-label="Buka Pusat Permohonan">
+                        <i data-feather="check-square"></i>
+                        <span>Pusat Permohonan</span>
+                    </a>
+                </div>
+                <div class="notif-project-scroll">
+                    <button type="button" class="btn btn-sm <?= !$activeProyekId ? 'btn-primary active text-white' : 'border bg-white text-secondary' ?> rounded-pill notif-project-btn flex-shrink-0" data-id-proyek="all" data-nama-proyek="Semua Proyek">
+                        <i data-feather="folder" style="width: 14px; height: 14px;"></i>
+                        Semua Proyek
+                    </button>
+                    <?php foreach ($accessibleProyek as $proyek) :
+                        $logoUrl = ! empty($proyek->logo_thumbnail_url ?? $proyek->logo_access_url) ? ($proyek->logo_thumbnail_url ?? $proyek->logo_access_url) : $defaultProjectLogo;
+                        $shortName = strlen($proyek->nama_proyek) > 7 ? substr($proyek->nama_proyek, 0, 7) . '...' : $proyek->nama_proyek;
+                        $isActive = ($activeProyekId === (int) $proyek->id_proyek);
+                    ?>
+                        <button type="button" class="btn btn-sm <?= $isActive ? 'btn-primary active text-white' : 'border bg-white text-secondary' ?> rounded-pill notif-project-btn flex-shrink-0" data-id-proyek="<?= (int) $proyek->id_proyek ?>" data-nama-proyek="<?= esc($proyek->nama_proyek) ?>">
+                            <img src="<?= esc($logoUrl) ?>" alt="logo" class="notif-project-logo">
+                            <?= esc($shortName) ?>
+                        </button>
+                    <?php endforeach; ?>
+                </div>
+            </div>
+            <div class="modal-body notification-center-body" id="notification-center-body">
+                <div class="notification-center-content">
+                    <div class="notification-center-pane is-active" id="notif-urgent-pane" role="tabpanel" aria-labelledby="notif-urgent-tab">
+                        <div id="notif-urgent-here">
+                            <div class="notification-center-empty">Memuat jatuh tempo...</div>
+                        </div>
+                    </div>
+                    <div class="notification-center-pane" id="notif-activity-pane" role="tabpanel" aria-labelledby="notif-activity-tab">
+                        <div class="notif-intent-scroll" id="notif-intent-filter" role="group" aria-label="Filter jenis aktivitas">
+                            <button type="button" class="notif-intent-pill active" data-intent="" aria-pressed="true">Semua</button>
+                            <button type="button" class="notif-intent-pill" data-intent="action_required" aria-pressed="false">Perlu Tindakan</button>
+                            <button type="button" class="notif-intent-pill" data-intent="operational_info" aria-pressed="false">Operasional</button>
+                            <button type="button" class="notif-intent-pill" data-intent="system_master" aria-pressed="false">Sistem</button>
+                        </div>
+                        <div id="notif-here">
+                            <div class="notification-center-empty">Memuat aktivitas...</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- END: Notification Center Modal -->

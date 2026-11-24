@@ -3,134 +3,91 @@
 <link rel="stylesheet" type="text/css" href="<?= base_url() ?>/app-assets/vendors/css/tables/datatable/buttons.bootstrap4.min.css">
 <link rel="stylesheet" type="text/css" href="<?= base_url() ?>/app-assets/vendors/css/extensions/sweetalert2.min.css">
 <link rel="stylesheet" type="text/css" href="<?= base_url() ?>/app-assets/vendors/css/forms/select/select2.min.css">
-<!-- <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/fixedcolumns/3.2.1/css/fixedColumns.dataTables.min.css"/> -->
+<link rel="stylesheet" type="text/css" href="<?= base_url('assets/css/legal.css') ?>?v=<?= filemtime(FCPATH . 'assets/css/legal.css') ?>">
 
 <script>
+  window.LEGAL_CONFIG = {
+    baseUrl: '<?= rtrim(base_url(), '/') ?>',
+    csrfName: '<?= csrf_token() ?>',
+    csrfHash: '<?= csrf_hash() ?>'
+  };
   var csrfName = '<?= csrf_token() ?>';
   var csrfHash = '<?= csrf_hash() ?>';
 </script>
-<style>
-    table,
-  tr {
-    vertical-align: middle !important;
-    text-align: center !important;
-    font-size: 10px;
-  }
-</style>
-<!-- /.card-header -->
-<div class="app-content content ">
+
+<div class="app-content content legal-page">
   <div class="content-overlay"></div>
   <div class="header-navbar-shadow"></div>
-  <section id="basic-datatable">
-    <div class="row">
-      <div class="col-12">
-        <div class="card">
-          <h5 class="card-header">
-            <?= $data['title'] ?>
-          </h5>
-          <div class="card-header border-bottom">
-
-            <div class="col-md-4 mb-1">
-              <label>Cluster</label>
-              <select disabled id="id_cluster" name="id_cluster" class="select2  form-control"></select>
-            </div>
-            <div class="col-md-4 mb-1">
-              <label>Blok</label>
-              <select disabled id="id_jalan" name="id_jalan" class="select2 form-control"></select>
-            </div>
-            <hr class="col-12" />
-            <button type="button" id="btn_draw" class="btn btn-outline-primary waves-effect btn-sm">Filter Data</button>
-
-          </div>
-        </div>
-        <div class="card">
-          <div class="card-datatable">
-            <table id="data_table" class="datatables-basic table compact table-hover">
-              <thead>
-                <tr>
-                  <th id="no">No</th>
-                  <th id="blok">Blok</th>
-                  <th id="no_kavling">No</th>
-                  <th id="tipe_rumah">Tipe</th>
-             
-                  <th id="no_hgb_induk">No HGB Induk</th>
-                  <th id="no_hgb">No HGB</th>
-                  <th id="nib">NIB</th>
-                  <th id="balik_nama">Balik Nama</th>
-
-                  <th id="nop_pbb">NOP PBB</th>
-
-                  <th id="verifikasi_pbb">Verifikasi PBB</th>
-                  <th id="validasi_bphtb">Validasi BPHTB</th>
-
-                  <th id="no_imb_pbg">No IMB/PBG</th>
-
-                  <th id="tanggal_validasi_pph">Tanggal Validasi PPH</th>
-
-                  <th id="no_ajb">No AJB</th>
-                  <th id="no_ppjb">No PPJB</th>
-
-                  <th id="nama_konsumen">Nama Konsumen</th>
-
-
-                  <th class="created" id="created_at">Diinput Oleh</th>
-                  <th class="created" id="created_by">Diubah Oleh</th>
-                  <th></th>
-                </tr>
-              </thead>
-            </table>
-
-          </div>
-        </div>
+  <div class="content-wrapper">
+    <div class="content-header row mb-1">
+      <div class="content-header-left col-md-7 col-12">
+        <h2 class="content-header-title mb-0"><?= esc($data['title'] ?? 'Legalitas') ?></h2>
       </div>
     </div>
-    <!-- Add modal content -->
-    <div class="modal modal-slide-in fade" id="add-modal">
-      <div class="modal-dialog sidebar-sm">
-        <form id="add-form" class="add-new-record modal-content pt-0">
-          <button type="button" class="close" data-dismiss="modal" aria-label="Close">×</button>
-          <div class="modal-header mb-1">
-            <h5 class="modal-title" id="exampleModalLabel">Tambah Data</h5>
-          </div>
-          <div class="modal-body flex-grow-1">
-            <div class="row">
-              <input type="hidden" id="idGroup" name="idGroup" class="form-control" placeholder="Id group" maxlength="11" required>
-            </div>
-            <div class="form-group">
-              <label for="namaGroup"> Nama group: <span class="text-danger">*</span> </label>
-              <input type="text" id="namaGroup" name="namaGroup" class="form-control" placeholder="Nama group" maxlength="50" required>
-            </div>
-            <button type="submit" class="btn btn-primary data-submit mr-1" id="add-form-btn">Simpan</button>
-            <button type="reset" class="btn btn-outline-secondary" data-dismiss="modal">Batal</button>
-          </div>
-        </form>
-      </div>
-    </div>
-    <!-- Add modal content -->
-    <div class="modal modal-slide-in fade" id="edit-modal">
-      <div class="modal-dialog sidebar-sm">
-        <form id="edit-form" class="add-new-record modal-content pt-0">
-          <button type="button" class="close" data-dismiss="modal" aria-label="Close">×</button>
-          <div class="modal-header mb-1">
-            <h5 class="modal-title" id="exampleModalLabel">Tambah Data</h5>
-          </div>
-          <div class="modal-body flex-grow-1">
-            <div class="row">
-              <input type="hidden" id="idGroup" name="idGroup" class="form-control" placeholder="Id group" maxlength="11" required>
-            </div>
-            <div>
-              <div class="form-group">
-                <label for="namaGroup"> Nama group: <span class="text-danger">*</span> </label>
-                <input type="text" id="namaGroup" name="namaGroup" class="form-control" placeholder="Nama group" maxlength="50" required>
+    <div class="content-body">
+      <section id="basic-datatable">
+        <div class="row">
+          <div class="col-12">
+            <div class="card">
+              <div class="card-header border-bottom">
+                <h4 class="card-title"><?= esc($data['title'] ?? 'Legalitas') ?></h4>
+              </div>
+              <div class="card-body pt-2">
+                <div class="row">
+                  <div class="col-md-4 col-12 mb-1">
+                    <label for="id_cluster" class="font-weight-bold">Cluster</label>
+                    <select disabled id="id_cluster" name="id_cluster" class="select2 form-control"></select>
+                  </div>
+                  <div class="col-md-4 col-12 mb-1">
+                    <label for="id_jalan" class="font-weight-bold">Blok</label>
+                    <select disabled id="id_jalan" name="id_jalan" class="select2 form-control"></select>
+                  </div>
+                  <div class="col-md-4 col-12 mb-1 d-flex align-items-end" style="gap: .5rem;">
+                    <button type="button" id="btn_draw" class="btn btn-primary waves-effect">
+                      <i class="fa fa-filter mr-50"></i>Filter Data
+                    </button>
+                    <button type="button" id="btn_reset_filter" class="btn btn-outline-secondary waves-effect">
+                      <i class="fa fa-refresh mr-50"></i>Reset
+                    </button>
+                  </div>
+                </div>
               </div>
             </div>
-            <button type="submit" class="btn btn-primary data-submit mr-1" id="add-form-btn">Simpan</button>
-            <button type="reset" class="btn btn-outline-secondary" data-dismiss="modal">Batal</button>
+            <div class="card">
+              <div class="card-datatable table-responsive">
+                <table id="data_table" class="datatables-basic table compact table-hover w-100">
+                  <thead>
+                    <tr>
+                      <th id="no">No</th>
+                      <th id="blok">Blok</th>
+                      <th id="no_kavling">No</th>
+                      <th id="tipe_rumah">Tipe</th>
+                      <th id="no_hgb_induk">No HGB Induk</th>
+                      <th id="no_hgb">No HGB</th>
+                      <th id="nib">NIB</th>
+                      <th id="balik_nama">Balik Nama</th>
+                      <th id="nop_pbb">NOP PBB</th>
+                      <th id="verifikasi_pbb">Verifikasi PBB</th>
+                      <th id="validasi_bphtb">Validasi BPHTB</th>
+                      <th id="no_imb_pbg">No IMB/PBG</th>
+                      <th id="tanggal_validasi_pph">Tanggal Validasi PPH</th>
+                      <th id="no_ajb">No AJB</th>
+                      <th id="no_ppjb">No PPJB</th>
+                      <th id="nama_konsumen">Nama Konsumen</th>
+                      <th class="created" id="created_at">Diinput Oleh</th>
+                      <th class="created" id="created_by">Diubah Oleh</th>
+                      <th class="text-center" id="aksi">Aksi</th>
+                    </tr>
+                  </thead>
+                  <tbody></tbody>
+                </table>
+              </div>
+            </div>
           </div>
-        </form>
-      </div>
+        </div>
+      </section>
     </div>
-  </section>
+  </div>
 </div>
 
 <!-- BEGIN: Page Vendor JS-->
@@ -146,260 +103,4 @@
 <script src="<?= base_url() ?>/app-assets/vendors/js/extensions/sweetalert2.all.min.js"></script>
 <script src="<?= base_url() ?>/app-assets/vendors/js/extensions/polyfill.min.js"></script>
 <script src="<?= base_url() ?>/app-assets/vendors/js/forms/select/select2.full.min.js"></script>
-<!-- <script type="text/javascript" src="https://cdn.datatables.net/fixedcolumns/3.2.1/js/dataTables.fixedColumns.min.js"></script> -->
-<!-- <script src="https://adminlte.io/themes/v3/plugins/jquery-validation/additional-methods.min.js"></script> -->
-<script>
-  // const base_url = "<?= base_url() ?>"
-
-  $(function() {
-    var table = $('#data_table').DataTable({
-      scrollY: "70vh",
-      scrollX: true,
-      scrollCollapse: true,
-      fixedColumns: true,
-      processing: true,
-      serverSide: true,
-      lengthChange: true,
-      searching: true,
-      ordering: false,
-      paging: true,
-      // "info": true,
-      // "autoWidth": false,
-      // "responsive": true,
-      ajax: {
-        url: base_url + '/api/legal/getListLegalitas',
-        type: "POST",
-        dataType: "json",
-        data: {
-          [csrfName]: csrfHash
-        },
-        data: function(data) {
-          data[csrfName] = csrfHash
-          data.id_proyek = activeProyekId()
-          data.id_cluster = $("#id_cluster").val()
-          data.id_jalan = $("#id_jalan").val()
-
-        },
-        dataSrc: function(r) {
-          csrfHash = r.token
-          return r.data;
-        },
-        async: "true"
-      }
-    });
-
-    //on chnage search
-    $(".dataTables_filter input")
-      .off()
-      .on('change', function(e) {
-        table.search(this.value).draw();
-      });
-
-    if (activeProyekId()) {
-      $("#id_cluster").prop("disabled", false);
-      table.draw();
-    }
-
-    //select2 cluster
-    $("#id_cluster").select2({
-      placeholder: "Pilih Cluster",
-      allowClear: true,
-      ajax: {
-        url: base_url + "/cluster/getAll",
-        dataType: 'json',
-        delay: 250,
-        method: 'post',
-        data: function(params) {
-          return {
-            [csrfName]: csrfHash,
-            search: params.term,
-            id_proyek: activeProyekId()
-          };
-        },
-        processResults: function(r) {
-          csrfHash = r.token
-
-          let results = [];
-          $.each(r.data, function(index, item) {
-            results.push({
-              id: item[0],
-              text: item[3]
-            });
-          });
-
-          return {
-            results: results
-          };
-        },
-        cache: true
-      },
-    })
-    // on select cluster
-    $("#id_cluster").on("change", function(e) {
-      $('#id_jalan').val(null).trigger('change');
-      if (this.value)
-        $("#id_jalan").prop("disabled", false)
-      else
-        $("#id_jalan").prop("disabled", true)
-    });
-
-    //select jalan
-    $("#id_jalan").select2({
-      placeholder: "Pilih Blok",
-      allowClear: true,
-      ajax: {
-        url: base_url + "/jalan/getAll",
-        dataType: 'json',
-        delay: 250,
-        method: 'post',
-        data: function(params) {
-          return {
-            [csrfName]: csrfHash,
-            search: params.term,
-            id_cluster: $("#id_cluster").val(),
-            id_proyek: activeProyekId()
-          };
-        },
-        processResults: function(r) {
-          csrfHash = r.token
-
-          let results = [];
-          $.each(r.data, function(index, item) {
-            results.push({
-              id: item[0],
-              text: item[3]
-            });
-          });
-
-          return {
-            results: results
-          };
-        },
-        cache: true
-      },
-    })
-
-    //on click btn filter
-    $("#btn_draw").on("click", function(e) {
-      table.draw();
-    })
-
-    //remove bug arrow select2
-    $(".select2-selection__arrow").css("pointer-events", "none")
-
-  });
-
-  $('#blok').css({
-    'min-width': '150px',
-    'max-width': '150px'
-  });
-  $('#nop_pbb, #no_imb_pbg, .created').css({
-    'min-width': '150px',
-    'max-width': '150px'
-  });
-  $('#tb_tgl_booking, #tb_tgl_wwc, #tb_terbit, #tb_expired, #tb_pricelist').css({
-    'min-width': '100px',
-    'max-width': '100px'
-  });
-  
-  // $('thead > tr> th:nth-child(1)').css({
-  //   'min-width': '50px',
-  //   'max-width': '50px'
-  // });
-  // $('thead > tr> th:nth-child(2)').css({
-  //   'min-width': '250px',
-  //   'max-width': '250px'
-  // });
-  // $('thead > tr> th:nth-child(3)').css({
-  //   'min-width': '50px',
-  //   'max-width': '50px'
-  // });
-  // $('thead > tr> th:nth-child(4)').css({
-  //   'min-width': '70px',
-  //   'max-width': '70px'
-  // });
-  // $('thead > tr> th:nth-child(5)').css({
-  //   'min-width': '250px',
-  //   'max-width': '2500px'
-  // });
-  // $('thead > tr> th:nth-child(6)').css({
-  //   'min-width': '250px',
-  //   'max-width': '250px'
-  // });
-  // $('thead > tr> th:nth-child(7)').css({
-  //   'min-width': '250px',
-  //   'max-width': '250px'
-  // });
-  // $('thead > tr> th:nth-child(8)').css({
-  //   'min-width': '250px',
-  //   'max-width': '250px'
-  // });
-  // $('thead > tr> th:nth-child(9)').css({
-  //   'min-width': '250px',
-  //   'max-width': '2500px'
-  // });
-  // $('thead > tr> th:nth-child(10)').css({
-  //   'min-width': '150px',
-  //   'max-width': '150px'
-  // });
-  // $('thead > tr> th:nth-child(11)').css({
-  //   'min-width': '80px',
-  //   'max-width': '80px'
-  // });
-  // $('thead > tr> th:nth-child(12)').css({
-  //   'min-width': '150px',
-  //   'max-width': '150px'
-  // });
-  // $('thead > tr> th:nth-child(13)').css({
-  //   'min-width': '150px',
-  //   'max-width': '150px'
-  // });
-  // $('thead > tr> th:nth-child(14)').css({
-  //   'min-width': '150px',
-  //   'max-width': '150px'
-  // });
-  // $('thead > tr> th:nth-child(15)').css({
-  //   'min-width': '150px',
-  //   'max-width': '150px'
-  // });
-  // $('thead > tr> th:nth-child(16)').css({
-  //   'min-width': '150px',
-  //   'max-width': '150px'
-  // });
-  // $('thead > tr> th:nth-child(17)').css({
-  //   'min-width': '150px',
-  //   'max-width': '150px'
-  // });
-  // $('thead > tr> th:nth-child(18)').css({
-  //   'min-width': '150px',
-  //   'max-width': '150px'
-  // });
-  // $('thead > tr> th:nth-child(19)').css({
-  //   'min-width': '150px',
-  //   'max-width': '150px'
-  // });
-  // $('thead > tr> th:nth-child(20)').css({
-  //   'min-width': '150px',
-  //   'max-width': '150px'
-  // });
-  // $('thead > tr> th:nth-child(21)').css({
-  //   'min-width': '150px',
-  //   'max-width': '150px'
-  // });
-  // $('thead > tr> th:nth-child(22)').css({
-  //   'min-width': '150px',
-  //   'max-width': '150px'
-  // });
-  // $('thead > tr> th:nth-child(23)').css({
-  //   'min-width': '150px',
-  //   'max-width': '150px'
-  // });
-  // $('thead > tr> th:nth-child(24)').css({
-  //   'min-width': '150px',
-  //   'max-width': '150px'
-  // });
-  // $('thead > tr> th:nth-child(25)').css({
-  //   'min-width': '150px',
-  //   'max-width': '150px'
-  // });
-</script>
+<script src="<?= base_url('assets/js/legal.js') ?>?v=<?= filemtime(FCPATH . 'assets/js/legal.js') ?>"></script>

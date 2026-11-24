@@ -22,6 +22,23 @@ class ActiveProyekService
 
     public function getActiveId(): ?int
     {
+        $request = service('request');
+        if ($request) {
+            $headerVal = $request->header('X-Project-Id')?->getValue();
+            if (!empty($headerVal) && is_numeric($headerVal)) {
+                $headerId = (int) $headerVal;
+                if ($headerId > 0) {
+                    if (function_exists('logged_in') && logged_in()) {
+                        if ($this->userCanAccess($headerId, (int) user_id())) {
+                            return $headerId;
+                        }
+                    } else {
+                        return $headerId;
+                    }
+                }
+            }
+        }
+
         $id = session(self::SESSION_KEY);
 
         return $id ? (int) $id : null;

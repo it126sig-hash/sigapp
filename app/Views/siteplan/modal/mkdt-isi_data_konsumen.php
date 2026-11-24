@@ -107,6 +107,19 @@
         cursor: not-allowed !important;
         pointer-events: none !important;
     }
+
+    #modal-isi_data_konsumen .idk-pasangan-field:disabled,
+    #modal-isi_data_konsumen .idk-pasangan-field[readonly] {
+        background-color: #eef2f6;
+        color: #6b7280;
+        cursor: not-allowed;
+    }
+
+    .dark-layout #modal-isi_data_konsumen .idk-pasangan-field:disabled,
+    .dark-layout #modal-isi_data_konsumen .idk-pasangan-field[readonly] {
+        background-color: #232a3d;
+        color: #82868b;
+    }
 </style>
 <section class="isi_konsumen">
     <div class="modal fade" id="modal-isi_data_konsumen">
@@ -557,19 +570,19 @@
                                                                     Pernikahan</label>
                                                             </div>
                                                             <div class="form-group floating-label">
-                                                                <input type="text" class="form-control gn tab1"
+                                                                <input type="text" class="form-control gn tab1 idk-pasangan-field"
                                                                     id="idk-nama_pasangan" name="nama_pasangan"
                                                                     placeholder=" ">
                                                                 <label for="idk-nama_pasangan">Nama</label>
                                                             </div>
                                                             <div class="form-group floating-label">
-                                                                <input type="text" class="form-control gn tab1"
+                                                                <input type="text" class="form-control gn tab1 idk-pasangan-field"
                                                                     id="idk-nik_pasangan" name="nik_pasangan"
                                                                     placeholder=" ">
                                                                 <label for="idk-nik_pasangan">No. KTP</label>
                                                             </div>
                                                             <div class="form-group floating-label">
-                                                                <input type="text" class="form-control gn tab1"
+                                                                <input type="text" class="form-control gn tab1 idk-pasangan-field"
                                                                     id="idk-hp_pasangan" name="hp_pasangan"
                                                                     placeholder=" ">
                                                                 <label for="idk-hp_pasangan">No. HP/Telp</label>
@@ -578,7 +591,7 @@
                                                                 class="form-group floating-label floating-label-select">
                                                                 <label for="idk-status_pekerjaan_pasangan">Status
                                                                     Pekerjaan</label>
-                                                                <select required class="form-control"
+                                                                <select required class="form-control idk-pasangan-field"
                                                                     id="idk-status_pekerjaan_pasangan"
                                                                     name="status_pekerjaan_pasangan">
                                                                     <option value="">Pilih Status</option>
@@ -589,7 +602,7 @@
                                                                 </select>
                                                             </div>
                                                             <div class="form-group floating-label">
-                                                                <input type="text" class="form-control gn tab1"
+                                                                <input type="text" class="form-control gn tab1 idk-pasangan-field"
                                                                     id="idk-instansi_pasangan" name="instansi_pasangan"
                                                                     placeholder=" ">
                                                                 <label for="idk-instansi_pasangan">Instansi</label>
@@ -608,10 +621,18 @@
                                                                 </select>
                                                                 <label for="idk-kode_referal">Kode Referal (Opsional)</label>
                                                             </div>
+                                                            <div class="form-group floating-label floating-label-select">
+                                                                <select class="form-control" id="idk-sales_select" name="idk-sales_select">
+                                                                    <option value=""></option>
+                                                                </select>
+                                                                <input type="hidden" id="idk-sales" name="sales">
+                                                                <input type="hidden" id="idk-id_sales" name="id_sales">
+                                                                <label for="idk-sales_select">Sales External</label>
+                                                            </div>
                                                             <div class="form-group floating-label">
-                                                                <input type="text" class="form-control" id="idk-sales"
-                                                                    name="sales" placeholder=" ">
-                                                                <label for="idk-sales">Sales</label>
+                                                                <input type="text" class="form-control" id="idk-keterangan_sales"
+                                                                    name="keterangan_sales" placeholder=" ">
+                                                                <label for="idk-keterangan_sales">Keterangan Sales (cth: DEVOY)</label>
                                                             </div>
                                                             <div class="form-group floating-label">
                                                                 <input type="text" class="form-control" id="idk-promo"
@@ -726,6 +747,14 @@
                                                                 <label class="form-label" for="mk-hargajual_net">Harga
                                                                     Jual
                                                                     Net</label>
+                                                            </div>
+                                                            <div class="form-group floating-label">
+                                                                <input type="text" class="form-control num mk-fm "
+                                                                    id="mk-harga_net_ajb" name="mk-harga_net_ajb"
+                                                                    value="" placeholder=" " />
+                                                                <label class="form-label" for="mk-harga_net_ajb">Harga
+                                                                    Net Sesuai
+                                                                    AJB</label>
                                                             </div>
                                                             <div class="form-group floating-label">
                                                                 <input type="text" class="form-control num mk-fm"
@@ -1296,20 +1325,22 @@
                                         <div class="col-sm-12 col-md-6 col-lg-6">
                                             <div class="card file-container">
                                                 <div class="card-body">
-                                                    <button class="btn btn-outline-primary" id="btn-ganti_kavling"
-                                                        onclick="ganti_kavling()">Klik Untuk Ganti Kavling</button>
-                                                    <button class="btn btn-outline-warning"
+                                                    <button type="button" class="btn btn-outline-primary mb-25" id="btn-ganti_kavling"
+                                                        onclick="openPindahKavlingModal()"><i class="fas fa-exchange-alt mr-25"></i> Pindah Kavling</button>
+                                                    <button type="button" class="btn btn-outline-danger mb-25" id="btn-tarik_ke_nup"
+                                                        onclick="openTarikKeNupModal()"><i class="fas fa-undo-alt mr-25"></i> Tarik ke NUP</button>
+                                                    <button type="button" class="btn btn-outline-warning mb-25"
                                                         id="btn-refresh-ganti_kavling"
                                                         onclick="getRiwayatGantiKavling()">Muat Ulang Data </button>
                                                     <div class="divider">
-                                                        <div class="divider-text">Riwayat Ganti Nama </div>
+                                                        <div class="divider-text">Riwayat Kavling & NUP </div>
                                                     </div>
                                                     <div class="table-responsive">
                                                         <table class="table mb-0">
                                                             <thead>
                                                                 <tr>
                                                                     <th>No</th>
-                                                                    <th>File</th>
+                                                                    <th>Aksi & Perpindahan Kavling</th>
                                                                     <th>Oleh</th>
                                                                 </tr>
                                                             </thead>

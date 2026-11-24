@@ -1,3 +1,4 @@
+<!-- TODO(follow-up): migrate /list-kavling*, /export/poskon*, /riwayat/poskon* AJAX calls to /api/mkdt/posisi-konsumen/*?format=raw -->
 <link rel="stylesheet" type="text/css" href="<?= base_url() ?>app-assets/vendors/css/tables/datatable/dataTables.bootstrap4.min.css">
 <link rel="stylesheet" type="text/css" href="<?= base_url() ?>app-assets/vendors/css/tables/datatable/responsive.bootstrap4.min.css">
 <link rel="stylesheet" type="text/css" href="<?= base_url() ?>app-assets/vendors/css/tables/datatable/buttons.bootstrap4.min.css">
@@ -6,6 +7,7 @@
 <link rel="stylesheet" type="text/css" href="<?= base_url() ?>app-assets/vendors/css/pickers/flatpickr/flatpickr.min.css">
 <link rel="stylesheet" type="text/css" href="<?= base_url() ?>app-assets/vendors/css/bootstrap/extensions/fixed-columns/fixedColumns.bootstrap4.css">
 <link rel="stylesheet" type="text/css" href="<?= base_url() ?>assets/css/richtext.min.css">
+<link rel="stylesheet" type="text/css" href="<?= base_url('assets/css/poskon-list-kavling.css') ?>?v=<?= filemtime(FCPATH . 'assets/css/poskon-list-kavling.css') ?>">
 <style>
   #poskon-filter {
     border: 1px solid #e5e7eb;
@@ -17,8 +19,8 @@
     display: flex;
     flex-wrap: wrap;
     align-items: center;
-    gap: .5rem .65rem;
-    padding: .6rem .85rem;
+    gap: calc(.5rem * var(--sigapp-space-ratio, 1)) calc(.65rem * var(--sigapp-space-ratio, 1));
+    padding: calc(.6rem * var(--sigapp-space-ratio, 1)) calc(.85rem * var(--sigapp-space-ratio, 1));
     border-bottom: 1px solid #edf0f4;
     background: #fff;
   }
@@ -35,7 +37,7 @@
   #modal-filter-lanjutan .poskon-filter-grid {
     display: flex;
     flex-direction: column;
-    gap: .85rem;
+    gap: calc(.85rem * var(--sigapp-space-ratio, 1));
   }
 
   #modal-filter-lanjutan .poskon-filter-field {
@@ -48,27 +50,27 @@
     font-size: .78rem;
     font-weight: 600;
     color: #4b5563;
-    margin-bottom: .3rem;
+    margin-bottom: calc(.3rem * var(--sigapp-space-ratio, 1));
   }
 
   #poskon-filter .form-control,
   #modal-filter-lanjutan .form-control,
   #poskon-filter .select2-container--default .select2-selection--single,
   #modal-filter-lanjutan .select2-container--default .select2-selection--single {
-    min-height: 30px;
+    min-height: calc(30px * var(--sigapp-ui-scale, 1));
     border-color: #d8dee8;
     border-radius: 6px;
   }
 
   #poskon-filter .select2-container--default .select2-selection--single .select2-selection__rendered,
   #modal-filter-lanjutan .select2-container--default .select2-selection--single .select2-selection__rendered {
-    line-height: 28px;
+    line-height: calc(28px * var(--sigapp-ui-scale, 1));
     font-size: .78rem;
   }
 
   #poskon-filter .select2-container--default .select2-selection--single .select2-selection__arrow,
   #modal-filter-lanjutan .select2-container--default .select2-selection--single .select2-selection__arrow {
-    height: 28px;
+    height: calc(28px * var(--sigapp-ui-scale, 1));
   }
 
   .poskon-tabs-bar {
@@ -76,7 +78,7 @@
     align-items: center;
     justify-content: space-between;
     flex-wrap: wrap;
-    gap: .5rem;
+    gap: calc(.5rem * var(--sigapp-space-ratio, 1));
   }
 
   .poskon-tabs-bar .poskon-tabs {
@@ -88,24 +90,24 @@
   .poskon-filter-actions {
     display: flex;
     flex-wrap: wrap;
-    gap: .4rem;
+    gap: calc(.4rem * var(--sigapp-space-ratio, 1));
     align-items: center;
     justify-content: flex-end;
     margin-left: auto;
   }
 
-  .poskon-filter-actions .btn,
-  .poskon-filter-actions .btn-group .btn {
-    min-height: 30px;
-    padding: .3rem .6rem;
+  .poskon-page .poskon-filter-actions .btn,
+  .poskon-page .poskon-filter-actions .btn-group .btn {
+    min-height: calc(30px * var(--sigapp-ui-scale, 1));
+    padding: calc(.3rem * var(--sigapp-space-ratio, 1)) calc(.6rem * var(--sigapp-space-ratio, 1));
     border-radius: 6px;
     font-size: .78rem;
     font-weight: 600;
     line-height: 1.2;
   }
 
-  .poskon-filter-actions .btn i {
-    margin-right: .25rem;
+  .poskon-page .poskon-filter-actions .btn i {
+    margin-right: calc(.25rem * var(--sigapp-space-ratio, 1));
   }
 
   #poskon-filter .btn-primary,
@@ -138,9 +140,9 @@
     display: flex;
     flex-wrap: wrap;
     align-items: center;
-    gap: .5rem;
-    padding: .6rem .85rem;
-    margin-bottom: 1rem;
+    gap: calc(.5rem * var(--sigapp-space-ratio, 1));
+    padding: calc(.6rem * var(--sigapp-space-ratio, 1)) calc(.85rem * var(--sigapp-space-ratio, 1));
+    margin-bottom: calc(1rem * var(--sigapp-space-ratio, 1));
     background: #f8fafc;
     border: 1px solid #e5e7eb;
     border-radius: 8px;
@@ -156,14 +158,14 @@
   .poskon-active-filters-chips {
     display: flex;
     flex-wrap: wrap;
-    gap: .4rem;
+    gap: calc(.4rem * var(--sigapp-space-ratio, 1));
   }
 
   .poskon-filter-chip {
     display: inline-flex;
     align-items: center;
-    gap: .35rem;
-    padding: .3rem .6rem;
+    gap: calc(.35rem * var(--sigapp-space-ratio, 1));
+    padding: calc(.3rem * var(--sigapp-space-ratio, 1)) calc(.6rem * var(--sigapp-space-ratio, 1));
     border-radius: 999px;
     background: #eaf1fb;
     color: #2057a3;
@@ -185,29 +187,12 @@
     cursor: pointer;
   }
 
-  .poskon-table-card .card-body {
-    padding: 1rem;
+  .poskon-page .poskon-table-card .card-body {
+    padding: calc(1rem * var(--sigapp-space-ratio, 1));
   }
 
   .card.poskon-table-card {
     overflow: visible !important;
-  }
-
-  .poskon-datatable-card .card-body {
-    padding: .5rem;
-  }
-
-  #data_tables {
-    width: 100% !important;
-  }
-
-  #data_tables tbody td {
-    text-transform: uppercase;
-  }
-
-  #data_tables tbody td .poskon-action-cell,
-  #data_tables tbody td .poskon-action-cell * {
-    text-transform: none;
   }
 
   #poskon-filter .select2-container,
@@ -222,13 +207,13 @@
 
   @media (max-width: 767.98px) {
     .app-content.content {
-      padding-left: .75rem;
-      padding-right: .75rem;
+      padding-left: calc(.75rem * var(--sigapp-space-ratio, 1));
+      padding-right: calc(.75rem * var(--sigapp-space-ratio, 1));
     }
 
     #poskon-filter .poskon-toolbar {
       align-items: flex-start;
-      padding: .85rem;
+      padding: calc(.85rem * var(--sigapp-space-ratio, 1));
     }
 
     #poskon-filter .poskon-toolbar-title {
@@ -264,34 +249,73 @@
     .dataTables_wrapper .dataTables_filter {
       width: 100%;
       text-align: left;
-      margin-bottom: .75rem;
+      margin-bottom: calc(.75rem * var(--sigapp-space-ratio, 1));
     }
 
     .dataTables_wrapper .dataTables_filter input {
       width: 100%;
       margin-left: 0;
-      margin-top: .35rem;
+      margin-top: calc(.35rem * var(--sigapp-space-ratio, 1));
     }
 
     .dataTables_scrollBody {
       max-height: 62vh !important;
     }
 
-    #data_tables,
     #riwayat_export {
       font-size: .82rem;
     }
   }
-  #data_tables .poskon-akad-indent { background-color: #2057a3; }
-  #data_tables .poskon-referral { font-size: .76rem; line-height: 1.25; }
-  #data_tables .poskon-progress-partial { color: #ff9f43 !important; }
-  #data_tables th.poskon-keterangan-status,
-  #data_tables td.poskon-keterangan-status {
-    min-width: 280px !important;
-    width: 280px !important;
-    white-space: normal !important;
-    overflow-wrap: anywhere;
-    vertical-align: top;
+
+  #poskon-tabs-bar .poskon-status-filter-desktop-slot {
+    width: 205px;
+    flex: 0 0 auto;
+  }
+
+  #poskon-tabs-bar .poskon-status-filter-desktop-slot .poskon-status-filter-wrap {
+    width: 100%;
+    margin-bottom: 0;
+  }
+
+  #poskon-tabs-bar .poskon-status-filter-desktop-slot .poskon-status-filter-wrap label {
+    display: none;
+  }
+
+  #poskon-tabs-bar .select2-container {
+    width: 100% !important;
+  }
+
+  #poskon-tabs-bar .select2-container--default .select2-selection--single {
+    min-height: calc(30px * var(--sigapp-ui-scale, 1)) !important;
+    height: calc(30px * var(--sigapp-ui-scale, 1)) !important;
+    border-color: #d8dee8;
+    border-radius: 6px !important;
+  }
+
+  #poskon-tabs-bar .select2-container--default.select2-container--open .select2-selection--single,
+  #poskon-tabs-bar .select2-container--default.select2-container--focus .select2-selection--single {
+    border-color: #2057a3;
+  }
+
+  #poskon-tabs-bar .select2-container--default .select2-selection--single .select2-selection__rendered {
+    line-height: calc(28px * var(--sigapp-ui-scale, 1)) !important;
+    font-size: .78rem;
+    font-weight: 600;
+    color: #111827;
+    padding-right: calc(24px * var(--sigapp-ui-scale, 1)) !important;
+  }
+
+  #poskon-tabs-bar .select2-container--default .select2-selection--single .select2-selection__arrow {
+    height: calc(28px * var(--sigapp-ui-scale, 1)) !important;
+    pointer-events: none;
+  }
+
+  #modal-filter-lanjutan .poskon-status-filter-mobile-slot:empty {
+    display: none;
+  }
+
+  #modal-filter-lanjutan .select2-selection__arrow {
+    pointer-events: none;
   }
 </style>
 <style>
@@ -341,11 +365,6 @@
       padding: .85rem;
     }
   }
-
-  .poskon-action-cell .dropdown-menu {
-    max-height: 280px;
-    overflow-y: auto;
-  }
 </style>
 <!--
 <link rel="stylesheet" href="<?= base_url() ?>app-assets/vendors/css/bootstrap/extensions/sticky-header/bootstrap-table-sticky-header.min.css">
@@ -376,7 +395,7 @@
 
 
 <!-- /.card-header -->
-<div class="app-content content ">
+<div class="app-content content poskon-page">
   <div class="content-overlay"></div>
   <div class="header-navbar-shadow"></div>
   <section id="basic-datatable">
@@ -391,12 +410,17 @@
         </div>
         <div class="card poskon-table-card">
           <div class="card-body pb-0 pt-0">
-            <div class="poskon-tabs-bar">
+            <div class="poskon-tabs-bar" id="poskon-tabs-bar">
               <ul class="nav nav-tabs poskon-tabs mb-1 mt-1" role="tablist">
                 <li class="nav-item">
                   <a class="nav-link active" id="list_poskon-tab"
                     data-toggle="tab" href="#list_poskon"
                     aria-controls="list_poskon" role="tab" aria-selected="true">List Posisi Konsumen Aktif</a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link" id="list_nup-tab" data-toggle="tab"
+                    href="#list_nup" aria-controls="list_nup" role="tab"
+                    aria-selected="false"><i class="fa fa-ticket-alt mr-25"></i> Daftar NUP <span id="badge-nup-count" class="badge badge-pill badge-primary ml-50">0</span></a>
                 </li>
                 <li class="nav-item">
                   <a class="nav-link" id="riwayat_eksport-tab" data-toggle="tab"
@@ -405,8 +429,10 @@
                 </li>
               </ul>
               <div class="poskon-filter-actions">
+                <div id="poskon-status-filter-desktop-slot" class="poskon-status-filter-desktop-slot"></div>
                 <button type="button" id="btn_draw" class="btn btn-outline-primary waves-effect btn-sm" title="Filter Data"><i class="fa fa-filter"></i> Filter</button>
                 <button type="button" id="btn_open_add_modal" class="btn btn-primary waves-effect btn-sm" title="Tambah Data"><i class="fa fa-plus"></i> Tambah</button>
+                <button type="button" id="btn_open_input_nup" class="btn btn-success waves-effect btn-sm" onclick="window.SIGAPP_NUP && window.SIGAPP_NUP.openFormModal(0)" title="Input Konsumen NUP Baru"><i class="fa fa-user-plus"></i> Input NUP</button>
                 <div class="btn-group">
                   <button type="button" id="btn_export_toggle" class="btn btn-outline-primary waves-effect btn-sm dropdown-toggle" data-toggle="dropdown" title="Export Data"><i class="fa fa-file-export"></i> Export</button>
                   <div class="dropdown-menu dropdown-menu-right">
@@ -428,7 +454,7 @@
             <div class="tab-content">
               <div class="tab-pane show active" id="list_poskon"
                 aria-labelledby="list_poskon-tab" role="tabpanel">
-                <table id="data_tables" class="datatables-basic table compact table-hover table-bordered">
+                <table id="data_tables" class="datatables-basic table compact sigapp-table-compact table-hover table-bordered">
                   <thead>
                     <tr>
                       <th rowspan="3" id="tb-action">AKSI</th>
@@ -485,6 +511,51 @@
                     </tr>
                   </thead>
                 </table>
+              </div>
+              <div class="tab-pane fade" id="list_nup"
+                aria-labelledby="list_nup-tab" role="tabpanel">
+                <div class="d-flex flex-wrap justify-content-between align-items-center mb-1" style="gap:.75rem;">
+                  <div class="d-flex align-items-center flex-grow-1" style="max-width:440px;gap:.5rem;">
+                    <div class="input-group input-group-sm">
+                      <div class="input-group-prepend">
+                        <span class="input-group-text"><i class="fa fa-search"></i></span>
+                      </div>
+                      <input type="text" id="tab-nup-search" class="form-control" placeholder="Cari nama konsumen, NIK, HP, sales, atau catatan NUP...">
+                      <div class="input-group-append">
+                        <button type="button" class="btn btn-outline-primary" id="btn-refresh-tab-nup" onclick="window.SIGAPP_NUP && window.SIGAPP_NUP.reloadAll()" title="Refresh Data NUP">
+                          <i class="fa fa-sync-alt"></i>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                  <div>
+                    <button type="button" class="btn btn-success btn-sm" onclick="window.SIGAPP_NUP && window.SIGAPP_NUP.openFormModal(0)">
+                      <i class="fa fa-user-plus mr-25"></i> Input Konsumen NUP Baru
+                    </button>
+                  </div>
+                </div>
+                <div class="table-responsive">
+                  <table class="table table-bordered table-hover compact" id="table-tab-daftar-nup">
+                    <thead>
+                      <tr>
+                        <th style="width:45px;">No</th>
+                        <th style="width:110px;">No NUP</th>
+                        <th style="width:150px;">Aksi</th>
+                        <th>Tgl Booking</th>
+                        <th>Nama Konsumen &amp; NIK/NPWP</th>
+                        <th>Kontak &amp; Sales</th>
+                        <th>Total Sudah Bayar</th>
+                        <th>Catatan NUP</th>
+                        <th>Berkas</th>
+                      </tr>
+                    </thead>
+                    <tbody id="tbody-tab-daftar-nup">
+                      <tr>
+                        <td colspan="9" class="text-center text-muted">Memuat data NUP...</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
               </div>
               <div class="tab-pane show" id="riwayat_eksport"
                 aria-labelledby="riwayat_eksport-tab" role="tabpanel">
@@ -546,20 +617,25 @@
             </select>
           </div>
 
-          <div class="poskon-filter-field">
-            <label>Status</label>
-            <select id="filter_status_kavling" class="select2 self form-control">
-              <option value="booking" selected>Belum Akad (Booking)</option>
-              <option value="akad">Sudah Akad</option>
-              <option value="indent">Akad Indent</option>
-            </select>
+          <div id="poskon-status-filter-mobile-slot" class="poskon-status-filter-mobile-slot">
+            <div class="poskon-filter-field poskon-status-filter-wrap" id="poskon-status-filter-wrap">
+              <label for="filter_status_kavling">Status Konsumen</label>
+              <select id="filter_status_kavling" class="form-control">
+                <option value="semua">Semua Status</option>
+                <option value="aktif" selected>Kavling Aktif</option>
+                <option value="indent">Akad Indent</option>
+                <option value="akad">Akad AJB</option>
+                <option value="ajb_indent">Akad AJB &amp; Indent</option>
+              </select>
+            </div>
           </div>
 
           <div class="poskon-filter-field">
             <label>Tanggal Acuan Bulan/Tahun</label>
             <select id="filter_bulan_field" class="select2 self form-control">
               <option value="booking" selected>Tgl. Booking</option>
-              <option value="akad">Tgl. Akad</option>
+              <option value="akad">Tgl. Akad (AJB)</option>
+              <option value="indent">Tgl. Akad Indent</option>
             </select>
           </div>
           <div class="poskon-filter-field">
@@ -627,6 +703,31 @@
   </div>
 </div>
 
+<div class="modal fade" id="modal_export_progress" tabindex="-1" role="dialog" aria-labelledby="modalExportProgressLabel" aria-hidden="true" data-backdrop="static" data-keyboard="false">
+  <div class="modal-dialog modal-dialog-centered" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="modalExportProgressLabel">
+          <span class="poskon-export-title-icon"><i class="fa fa-file-export"></i></span>
+          <span id="poskon-export-modal-title">Mengeksport Data</span>
+        </h5>
+      </div>
+      <div class="modal-body">
+        <div class="poskon-export-card">
+          <div class="poskon-export-status-row">
+            <span id="poskon-export-progress-message" class="poskon-export-stage">Menyiapkan data export...</span>
+            <span id="poskon-export-progress-percent" class="poskon-export-percent">0%</span>
+          </div>
+          <div class="progress">
+            <div id="poskon-export-progress-bar" class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" style="width: 0%;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+          </div>
+          <p class="poskon-export-hint">Mohon tunggu, proses export sedang berlangsung dan akan otomatis mengunduh file setelah selesai.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- BEGIN: Page Vendor JS-->
 <script src="<?= base_url() ?>app-assets/vendors/js/vendors.min.js"></script>
 <script src="<?= base_url() ?>app-assets/vendors/js/tables/datatable/jquery.dataTables.min.js"></script>
@@ -660,12 +761,12 @@ if (!empty($roles)) {
 <script>
   var roleid = "<?= $k; ?>";
   var rolename = "<?= $v; ?>";
-  const has_akses = JSON.parse('<?= json_encode($data['data']['has_akses'] ?? ['proyek' => false, 'legal' => false]) ?>');
-  const pph = JSON.parse('<?= json_encode($data['data']['pph'] ?? []) ?>');
-  const ppn = JSON.parse('<?= json_encode($data['data']['ppn'] ?? []) ?>');
-  const li_keu = JSON.parse('<?= $data['data']['li_keu'] ?? '[]' ?>');
-  var conf = JSON.parse('<?= $data['data']['conf'] ?? '{}' ?>');
-  const proyekContext = <?= json_encode($data['data']['proyek'] ?? null) ?>;
+  const has_akses = JSON.parse('<?= json_encode($has_akses ?? $data['data']['has_akses'] ?? ['proyek' => false, 'legal' => false]) ?>');
+  const pph = JSON.parse('<?= json_encode($pph ?? $data['data']['pph'] ?? []) ?>');
+  const ppn = JSON.parse('<?= json_encode($ppn ?? $data['data']['ppn'] ?? []) ?>');
+  const li_keu = JSON.parse('<?= $li_keu ?? $data['data']['li_keu'] ?? '[]' ?>');
+  var conf = JSON.parse('<?= $conf ?? $data['data']['conf'] ?? '{}' ?>');
+  const proyekContext = <?= json_encode($proyek ?? $data['data']['proyek'] ?? null) ?>;
   window.siteplanMenuItems = [];
 
   window.editdtt = [];
@@ -760,6 +861,14 @@ if (!empty($roles)) {
         icon + $('<div>').text(item.label || '').html() + '</button>';
     });
 
+    if (row && row.id_mkdt && [1, 4].includes(parseInt(roleid, 10))) {
+      menuHtml += '<div class="dropdown-divider"></div>';
+      menuHtml += '<button type="button" class="' + itemClass + ' poskon-menu-action" data-onclick="' +
+        encodeURIComponent('openPindahKavlingModal()') + '" data-row="' + rowEncoded + '"><i class="fa fa-exchange-alt text-info mr-50"></i> Pindah Kavling</button>';
+      menuHtml += '<button type="button" class="' + itemClass + ' poskon-menu-action" data-onclick="' +
+        encodeURIComponent('openTarikKeNupModal()') + '" data-row="' + rowEncoded + '"><i class="fa fa-undo text-warning mr-50"></i> Tarik ke NUP</button>';
+    }
+
     return menuHtml;
   }
 
@@ -772,7 +881,7 @@ if (!empty($roles)) {
 
     const dropdown = menuHtml ?
       '<div class="btn-group ml-50">' +
-      '<button type="button" class="btn btn-outline-primary btn-sm dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Aksi</button>' +
+      '<button type="button" class="btn btn-outline-primary btn-sm dropdown-toggle poskon-action-menu-btn" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" title="Menu Aksi" aria-label="Menu Aksi"><i class="fa fa-ellipsis-v" aria-hidden="true"></i></button>' +
       '<div class="dropdown-menu dropdown-menu-right">' + menuHtml + '</div>' +
       '</div>' :
       '';
@@ -888,7 +997,7 @@ if (!empty($roles)) {
 
   window.load_kavling = function() {
     if ($.fn.DataTable.isDataTable('#data_tables')) {
-      $('#data_tables').DataTable().draw(false);
+      $('#data_tables').DataTable().ajax.reload(null, false);
     }
   };
 
@@ -928,13 +1037,64 @@ if (!empty($roles)) {
       $.fn.modal.Constructor.prototype._enforceFocus = function() {};
     }
 
-    var isMobileTable = window.matchMedia("(max-width: 767.98px)").matches;
+    var poskonMobileMedia = window.matchMedia("(max-width: 767.98px)");
+    var isMobileTable = poskonMobileMedia.matches;
+    var isProgrammaticStatusChange = false;
     var table = null;
+
+    function mountStatusKavlingFilter(isMobile) {
+      var $wrap = $("#poskon-status-filter-wrap");
+      var $select = $("#filter_status_kavling");
+      var $targetSlot = isMobile
+        ? $("#poskon-status-filter-mobile-slot")
+        : $("#poskon-status-filter-desktop-slot");
+
+      if (!$wrap.length || !$select.length || !$targetSlot.length) return;
+
+      isProgrammaticStatusChange = true;
+      try {
+        var currentVal = $select.val() || 'aktif';
+        if ($select.hasClass('select2-hidden-accessible')) {
+          $select.select2('destroy');
+        }
+        $targetSlot.append($wrap);
+        $select.select2({
+          minimumResultsForSearch: Infinity,
+          width: '100%',
+          dropdownParent: isMobile ? $("#modal-filter-lanjutan") : $(document.body)
+        });
+        $select.val(currentVal).trigger('change');
+      } finally {
+        isProgrammaticStatusChange = false;
+      }
+    }
+
+    mountStatusKavlingFilter(poskonMobileMedia.matches);
+    if (typeof poskonMobileMedia.addEventListener === "function") {
+      poskonMobileMedia.addEventListener("change", function(e) {
+        mountStatusKavlingFilter(e.matches);
+      });
+    } else if (typeof poskonMobileMedia.addListener === "function") {
+      poskonMobileMedia.addListener(function(e) {
+        mountStatusKavlingFilter(e.matches);
+      });
+    }
+
+    $("#filter_status_kavling").on("change", function() {
+      if (!isProgrammaticStatusChange && !poskonMobileMedia.matches) {
+        applyPoskonFilters();
+      }
+    });
 
     initPoskonTable(isMobileTable);
 
     function applyPoskonTableHeight() {
-      if (isMobileTable) return;
+      if (isMobileTable) {
+        if ($.fn.dataTable.isDataTable('#data_tables')) {
+          $('#data_tables').DataTable().columns.adjust();
+        }
+        return;
+      }
       var $wrapper = $('#data_tables_wrapper');
       var $scrollBody = $wrapper.find('.dataTables_scrollBody').first();
       if (!$scrollBody.length) return;
@@ -958,8 +1118,33 @@ if (!empty($roles)) {
       });
       if ($.fn.dataTable.isDataTable('#data_tables')) {
         var api = $('#data_tables').DataTable();
+        api.columns.adjust();
         if (api.fixedColumns) api.fixedColumns().relayout();
+        syncPoskonFixedHeaderWidths();
       }
+    }
+
+    function syncPoskonFixedHeaderWidths() {
+      if (isMobileTable) return;
+      var $wrapper = $('#data_tables_wrapper');
+      var $scrollHead = $wrapper.find('.dataTables_scrollHead');
+      var $leftHead = $wrapper.find('.DTFC_LeftHeadWrapper');
+      if (!$scrollHead.length || !$leftHead.length) return;
+
+      var $scrollRows = $scrollHead.find('thead > tr');
+      $leftHead.find('thead > tr').each(function(rowIdx) {
+        var $srcCells = $scrollRows.eq(rowIdx).children('th');
+        $(this).children('th').each(function(colIdx) {
+          var $src = $srcCells.eq(colIdx);
+          if (!$src.length) return;
+          var w = $src.css('width');
+          $(this).css({
+            width: w,
+            minWidth: w,
+            maxWidth: w
+          });
+        });
+      });
     }
 
     $(window).on('resize', function() {
@@ -967,6 +1152,9 @@ if (!empty($roles)) {
       window._poskonResizeTimer = setTimeout(applyPoskonTableHeight, 150);
     });
     $(window).on('load', applyPoskonTableHeight);
+    if (document.fonts && document.fonts.ready && typeof document.fonts.ready.then === 'function') {
+      document.fonts.ready.then(applyPoskonTableHeight);
+    }
 
     function initPoskonTable(isMobileTable) {
     try {
@@ -995,21 +1183,38 @@ if (!empty($roles)) {
           [3, 'asc']
         ],
         columnDefs: [{
-            targets: '_all',
-            orderable: false
-          },
-          {
             targets: [7, 9],
             orderable: true
           },
           {
-            targets: [9, 15],
+            targets: '_all',
+            orderable: false
+          },
+          {
+            targets: [2],
+            className: 'poskon-col-left poskon-col-blok'
+          },
+          {
+            targets: [5],
+            className: 'poskon-col-left'
+          },
+          {
+            targets: [7, 8, 9, 13, 14],
+            className: 'poskon-col-date',
+            width: '130px'
+          },
+          {
+            targets: 9,
+            visible: ($("#filter_status_kavling").val() || 'aktif') !== 'aktif'
+          },
+          {
+            targets: [15],
             visible: false
           },
           {
             targets: 29,
             className: 'poskon-keterangan-status',
-            width: '280px'
+            width: '260px'
           }
         ],
         paging: true,
@@ -1017,9 +1222,6 @@ if (!empty($roles)) {
           url: base_url + 'list-kavling/ambil',
           type: "POST",
           dataType: "json",
-          data: {
-            [csrfName]: csrfHash
-          },
           data: function(data) {
             data[csrfName] = csrfHash
             data.id_proyek = activeProyekId()
@@ -1027,7 +1229,7 @@ if (!empty($roles)) {
             data.id_jalan = $("#id_jalan").val()
             data.sp3k = $("#poskon_filter_sp3k").val()
             data.wawancara = $("#poskon_filter_wawancara").val()
-            data.akad_indent = ($("#filter_status_kavling").val() === 'indent') ? 1 : ''
+            data.status_kavling = $("#filter_status_kavling").val() || 'aktif'
             data.bulan_field = $("#filter_bulan_field").val()
             data.bulan = $("#filter_bulan").val()
             data.tahun = $("#filter_tahun").val()
@@ -1257,12 +1459,13 @@ if (!empty($roles)) {
 
     function applyPoskonFilters() {
       if (table) {
-        var filterVal = $("#filter_status_kavling").val();
-        table.columns([9, 15]).visible(filterVal !== 'booking');
-        var url = (filterVal === 'akad' || filterVal === 'indent') ?
-          base_url + 'list-kavling/akad/ambil' :
-          base_url + 'list-kavling/ambil';
-        table.ajax.url(url).load();
+        var filterVal = $("#filter_status_kavling").val() || 'aktif';
+        table.column(9).visible(filterVal !== 'aktif');
+        table.ajax.url(base_url + 'list-kavling/ambil').load(function() {
+          table.columns.adjust();
+          if (table.fixedColumns) table.fixedColumns().relayout();
+          applyPoskonTableHeight();
+        });
       }
       load_riwayat();
       renderActiveFilterChips();
@@ -1270,7 +1473,12 @@ if (!empty($roles)) {
 
     function resetPoskonFilterFields() {
       $("#id_cluster").val(null).trigger('change');
-      $("#filter_status_kavling").val('booking').trigger('change');
+      isProgrammaticStatusChange = true;
+      try {
+        $("#filter_status_kavling").val('aktif').trigger('change');
+      } finally {
+        isProgrammaticStatusChange = false;
+      }
       $("#filter_bulan_field").val('booking').trigger('change');
       $("#filter_bulan").val('').trigger('change');
       $("#filter_tahun").val('').trigger('change');
@@ -1282,7 +1490,12 @@ if (!empty($roles)) {
       } else if (key === 'id_jalan') {
         $("#id_jalan").val(null).trigger('change');
       } else if (key === 'filter_status_kavling') {
-        $("#filter_status_kavling").val('booking').trigger('change');
+        isProgrammaticStatusChange = true;
+        try {
+          $("#filter_status_kavling").val('aktif').trigger('change');
+        } finally {
+          isProgrammaticStatusChange = false;
+        }
       } else if (key === 'bulan_tahun') {
         $("#filter_bulan").val('').trigger('change');
         $("#filter_tahun").val('').trigger('change');
@@ -1304,8 +1517,8 @@ if (!empty($roles)) {
       var jalanData = $("#id_jalan").select2('data')[0];
       if (jalanData && jalanData.id) addChip('id_jalan', 'Blok: ' + $('<div>').text(jalanData.text).html());
 
-      var status = $("#filter_status_kavling").val();
-      if (status !== 'booking') addChip('filter_status_kavling', 'Status: ' + $("#filter_status_kavling option:selected").text());
+      var status = $("#filter_status_kavling").val() || 'aktif';
+      if (status && status !== 'aktif') addChip('filter_status_kavling', 'Status: ' + $('<div>').text($("#filter_status_kavling option:selected").text()).html());
 
       var bulan = $("#filter_bulan").val();
       var tahun = $("#filter_tahun").val();
@@ -1338,74 +1551,270 @@ if (!empty($roles)) {
       applyPoskonFilters();
     });
 
+    var isPoskonExportRunning = false;
+    var poskonExportModalShown = false;
+    var pendingPoskonExportModalHide = null;
+
+    $('#modal_export_progress')
+      .off('shown.bs.modal.poskonExport hidden.bs.modal.poskonExport')
+      .on('shown.bs.modal.poskonExport', function() {
+        poskonExportModalShown = true;
+        if (typeof pendingPoskonExportModalHide === 'function') {
+          var cb = pendingPoskonExportModalHide;
+          pendingPoskonExportModalHide = null;
+          cb();
+        }
+      })
+      .on('hidden.bs.modal.poskonExport', function() {
+        poskonExportModalShown = false;
+      });
+
+    function setPoskonExportButtonsDisabled(disabled, $activeBtn) {
+      var $excel = $("#btn_export_excel");
+      var $pdf = $("#btn_export_pdf");
+      var $toggle = $("#btn_export_toggle");
+
+      if (!$excel.data("old-html")) $excel.data("old-html", $excel.html());
+      if (!$pdf.data("old-html")) $pdf.data("old-html", $pdf.html());
+      if (!$toggle.data("old-html")) $toggle.data("old-html", $toggle.html());
+
+      $excel.prop("disabled", disabled);
+      $pdf.prop("disabled", disabled);
+      $toggle.prop("disabled", disabled);
+
+      $(".sigapp-mobile-action-btn").each(function() {
+        var text = $.trim($(this).text());
+        if (text === "Excel" || text === "PDF") {
+          $(this).prop("disabled", disabled);
+        }
+      });
+
+      if (disabled) {
+        if ($activeBtn && $activeBtn.length) {
+          $activeBtn.html("<i class='fa fa-spinner fa-spin mr-50'></i> Sedang Mengeksport");
+        }
+        $toggle.html("<i class='fa fa-spinner fa-spin'></i> Exporting...");
+      } else {
+        $excel.html($excel.data("old-html"));
+        $pdf.html($pdf.data("old-html"));
+        $toggle.html($toggle.data("old-html"));
+      }
+    }
+
+    function updateExportProgressModal(percent, message) {
+      var safePercent = Math.max(0, Math.min(100, parseInt(percent, 10) || 0));
+      $("#poskon-export-progress-bar")
+        .css("width", safePercent + "%")
+        .attr("aria-valuenow", safePercent);
+      $("#poskon-export-progress-percent").text(safePercent + "%");
+      if (message) {
+        $("#poskon-export-progress-message").text(message);
+      }
+    }
+
+    function openExportProgressModal(type) {
+      poskonExportModalShown = false;
+      pendingPoskonExportModalHide = null;
+      var formatLabel = type === "xlsx" ? "Excel (.xlsx)" : "PDF (.pdf)";
+      $("#poskon-export-modal-title").text("Mengeksport " + formatLabel);
+      updateExportProgressModal(5, "Menyiapkan data export...");
+      $("#modal_export_progress").modal({
+        backdrop: "static",
+        keyboard: false,
+        show: true
+      });
+    }
+
+    function closeExportProgressModal(onClosed) {
+      var $modal = $("#modal_export_progress");
+      var doHide = function() {
+        if ($modal.hasClass("show")) {
+          $modal.one("hidden.bs.modal.poskonExportClose", function() {
+            if (typeof onClosed === "function") onClosed();
+          });
+          $modal.modal("hide");
+        } else {
+          $modal.removeClass("show").attr("aria-hidden", "true").css("display", "");
+          $(".modal-backdrop").remove();
+          $("body").removeClass("modal-open").css("padding-right", "");
+          if (typeof onClosed === "function") onClosed();
+        }
+      };
+
+      if ($modal.hasClass("show") && !poskonExportModalShown) {
+        pendingPoskonExportModalHide = doHide;
+      } else {
+        doHide();
+      }
+    }
+
     $("#btn_export_excel").on('click', function(e) {
       if (!activeProyekId()) {
         return Swal.fire({
           icon: 'error',
           title: "Proyek belum dipilih",
           showConfirmButton: false
-        })
+        });
       }
       e.preventDefault();
+      if (isPoskonExportRunning || $(this).prop("disabled")) return;
 
-      const $btn = $(this);
+      export_file("xlsx", $(this));
+    });
 
-      // cegah klik berulang
-      $btn.prop("disabled", true);
-      $btn.data("old-text", $btn.text());
-      export_file("xlsx", $btn)
-    })
     $("#btn_export_pdf").on('click', function(e) {
       if (!activeProyekId()) {
         return Swal.fire({
           icon: 'error',
           title: "Proyek belum dipilih",
           showConfirmButton: false
-        })
+        });
       }
       e.preventDefault();
+      if (isPoskonExportRunning || $(this).prop("disabled")) return;
 
-      const $btn = $(this);
-
-      // cegah klik berulang
-      $btn.prop("disabled", true);
-      $btn.data("old-text", $btn.text());
-      export_file("pdf", $btn)
-    })
+      export_file("pdf", $(this));
+    });
 
     registerPoskonMobileBottomNav();
 
     function export_file(type, $btn) {
+      if (isPoskonExportRunning) return;
+      isPoskonExportRunning = true;
+
+      var exportToken = 'poskon_' + Date.now() + '_' + Math.random().toString(36).slice(2, 8);
+      var statusLabel = $.trim($("#filter_status_kavling option:selected").text()) || "Kavling Aktif";
+      var currentPercent = 5;
+      var exportFinished = false;
+      var isPollingInFlight = false;
+      var pollTimer = null;
+
+      function stopPolling() {
+        if (pollTimer) {
+          clearInterval(pollTimer);
+          pollTimer = null;
+        }
+      }
+
+      function handleExportFailure(errorMessage) {
+        if (exportFinished) return;
+        exportFinished = true;
+        isPoskonExportRunning = false;
+        stopPolling();
+        setPoskonExportButtonsDisabled(false);
+        closeExportProgressModal(function() {
+          Swal.fire({
+            icon: 'error',
+            title: 'Export Gagal',
+            text: errorMessage || 'Terjadi kesalahan saat memproses export data.',
+            confirmButtonColor: '#2057a3'
+          });
+        });
+      }
+
+      setPoskonExportButtonsDisabled(true, $btn);
+      openExportProgressModal(type);
+
+      pollTimer = setInterval(function() {
+        if (exportFinished || isPollingInFlight) return;
+        isPollingInFlight = true;
+        $.ajax({
+          type: "get",
+          url: "<?= base_url('api/mkdt/posisi-konsumen/export/progress') ?>/" + encodeURIComponent(exportToken),
+          dataType: "json",
+          success: function(res) {
+            if (exportFinished) return;
+            var progressData = res && res.data ? res.data : null;
+            if (!progressData) return;
+
+            var serverPercent = parseInt(progressData.percent, 10);
+            if (!isNaN(serverPercent) && serverPercent > 0) {
+              currentPercent = Math.max(currentPercent, Math.min(99, serverPercent));
+            }
+            updateExportProgressModal(currentPercent, progressData.message || "Memproses data export...");
+            if (progressData.done === true) {
+              stopPolling();
+            }
+          },
+          complete: function() {
+            isPollingInFlight = false;
+          }
+        });
+      }, 350);
+
       $.ajax({
         type: "post",
-        url: base_url + "export/poskon/" + type + "/aktif",
+        url: "<?= base_url('export/poskon') ?>/" + type + "/aktif",
         data: {
           [csrfName]: csrfHash,
           id_proyek: activeProyekId(),
-          id_cluster: $("#id_cluster").val(),
-          id_jalan: $("#id_jalan").val(),
+          id_cluster: $("#id_cluster").val() || '',
+          id_jalan: $("#id_jalan").val() || '',
+          status_kavling: $("#filter_status_kavling").val() || 'aktif',
+          bulan_field: $("#filter_bulan_field").val() || '',
+          bulan: $("#filter_bulan").val() || '',
+          tahun: $("#filter_tahun").val() || '',
+          sp3k: $("#poskon_filter_sp3k").val() || '',
+          wawancara: $("#poskon_filter_wawancara").val() || '',
+          search: table ? (table.search() || '') : '',
+          export_token: exportToken
         },
         dataType: "json",
-        beforeSend: function() {
-          $btn.html("<i class='fa fa-spinner fa-spin'></i> Sedang Mengeksport")
-          $btn.prop("disabled", true)
-        },
         success: function(data) {
-          var d = new Date()
-          d = format_date(d.getFullYear() + "-" + (parseInt(d.getMonth()) + 1) + "-" + d.getDate());
+          if (data && data.token) {
+            csrfHash = data.token;
+          }
+          if (!data || data.status === false || !data.file) {
+            handleExportFailure((data && data.message) ? data.message : "File hasil export tidak tersedia.");
+            return;
+          }
 
-          var $a = $("<a>");
-          $a.attr("href", data.file);
-          $("body").append($a);
-          $a.attr("download", "Konsumen Aktif  Per " + d + ": " + (window.SIGAPP.activeProyekName || "Proyek") + "." + type);
-          $a[0].click();
-          $a.remove();
-          $btn.html($btn.data("old-text"))
-          $btn.prop("disabled", false)
+          exportFinished = true;
+          stopPolling();
+          updateExportProgressModal(100, "Export selesai! Memulai unduhan file...");
+
+          setTimeout(function() {
+            isPoskonExportRunning = false;
+            setPoskonExportButtonsDisabled(false);
+
+            closeExportProgressModal(function() {
+              var now = new Date();
+              var rawDate = now.getFullYear() + "-" + (now.getMonth() + 1) + "-" + now.getDate();
+              var formattedDate = (typeof format_date === 'function') ? format_date(rawDate) : rawDate;
+              var proyekName = (window.SIGAPP && window.SIGAPP.activeProyekName) ? window.SIGAPP.activeProyekName : "Proyek";
+              var downloadName = statusLabel + " Per " + formattedDate + " - " + proyekName + "." + type;
+
+              var $a = $("<a>");
+              $a.attr("href", data.file);
+              $a.attr("download", downloadName);
+              $("body").append($a);
+              $a[0].click();
+              $a.remove();
+
+              if (typeof load_riwayat === 'function') {
+                load_riwayat();
+              }
+
+              Swal.fire({
+                icon: 'success',
+                title: 'Export berhasil',
+                text: 'File ' + (type === 'xlsx' ? 'Excel' : 'PDF') + ' siap diunduh.',
+                timer: 2500,
+                showConfirmButton: false,
+                toast: true,
+                position: 'top-end'
+              });
+            });
+          }, 350);
         },
-        error: function() {
-          $btn.html($btn.data("old-text"))
-          $btn.prop("disabled", false)
+        error: function(xhr, statusText) {
+          var errMsg = "Gagal mengekspor data.";
+          if (statusText === "abort") {
+            errMsg = "Proses export dibatalkan.";
+          } else if (xhr && xhr.responseJSON) {
+            errMsg = xhr.responseJSON.message || xhr.responseJSON.messages || errMsg;
+          }
+          handleExportFailure(errMsg);
         }
       });
     }
@@ -1490,31 +1899,36 @@ if (!empty($roles)) {
         }
       });
     }
+    $('#list_poskon-tab').on('click', function() {
+      if ($.fn.DataTable && $.fn.DataTable.isDataTable('#data_tables')) {
+        var dtApi = $('#data_tables').DataTable();
+        dtApi.ajax.reload(function() {
+          dtApi.columns.adjust();
+          if (dtApi.fixedColumns) dtApi.fixedColumns().relayout();
+          applyPoskonTableHeight();
+        }, false);
+      }
+    });
+
     $('a[data-toggle="tab"]').on('shown.bs.tab', function(e) {
       // e.target adalah tab yang baru saja aktif
       var target = $(e.target).attr("href");
 
       if (target === '#riwayat_eksport') {
         load_riwayat();
+      } else if ((target === '#list_poskon' || target === '#list_kavling') && $.fn.DataTable.isDataTable('#data_tables')) {
+        var dtApi = $('#data_tables').DataTable();
+        dtApi.ajax.reload(function() {
+          dtApi.columns.adjust();
+          if (dtApi.fixedColumns) dtApi.fixedColumns().relayout();
+          applyPoskonTableHeight();
+        }, false);
       }
     });
     // Hindari arrow select2 menutupi area klik (regresi dari style.css global)
     $("#poskon-filter .select2-selection__arrow, #modal-tambah-poskon .select2-selection__arrow, #modal-filter-lanjutan .select2-selection__arrow")
       .css("pointer-events", "none");
 
-  });
-
-  $('#tb-BLOK').css({
-    'min-width': '150px',
-    'max-width': '150px'
-  });
-  $('#tb_nama_konsumen').css({
-    'min-width': '150px',
-    'max-width': '150px'
-  });
-  $('#tb_tgl_booking, #tb_tgl_wwc, #tb_terbit, #tb_expired, #tb_pricelist').css({
-    'min-width': '100px',
-    'max-width': '100px'
   });
 </script>
 
@@ -1551,5 +1965,7 @@ if (in_array($role_id, [1, 7, 3])) {
   echo view('siteplan/cashout_subkon');
 }
 ?>
-<?= view('siteplan/partials/modal_detail', ['data' => $data['data'] ?? []]) ?>
+<?= view('siteplan/partials/modal_detail', isset($data['data']) ? ['data' => $data['data']] : (isset($data) ? $data : [])) ?>
 <script src="<?= base_url() ?>assets/js/siteplan-detail-modal.js?<?= filemtime(FCPATH . 'assets/js/siteplan-detail-modal.js') ?>"></script>
+<?= view('siteplan/modal/nup-modals') ?>
+<script src="<?= base_url() ?>assets/js/siteplan/nup.js?<?= filemtime(FCPATH . 'assets/js/siteplan/nup.js') ?>"></script>

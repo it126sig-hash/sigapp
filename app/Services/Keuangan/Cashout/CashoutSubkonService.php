@@ -2,10 +2,12 @@
 
 namespace App\Services\Keuangan\Cashout;
 
+use App\Enums\NotificationEvent;
 use App\Repositories\Keuangan\Cashout\CashoutSubkonRepo;
 use App\Repositories\KavlingRepository;
 use App\Services\FileAccessService;
 use App\Services\FinanceLedgerService;
+use App\Services\Notifikasi\NotifikasiService;
 use App\Services\StorageService;
 
 class CashoutSubkonService
@@ -16,8 +18,9 @@ class CashoutSubkonService
     protected $storageService;
     protected $fileAccessService;
     protected $ledgerService;
+    protected NotifikasiService $notifikasiService;
 
-    public function __construct()
+    public function __construct(?NotifikasiService $notifikasiService = null)
     {
         $this->repo = new CashoutSubkonRepo();
         $this->kavlingRepo = new KavlingRepository();
@@ -25,10 +28,50 @@ class CashoutSubkonService
         $this->storageService = new StorageService();
         $this->fileAccessService = new FileAccessService();
         $this->ledgerService = new FinanceLedgerService();
+        $this->notifikasiService = $notifikasiService ?? new NotifikasiService();
+    }
+
+    public function getIndexData(): array
+    {
+        return [
+            'title' => 'Cashout Subkon',
+        ];
+    }
+
+    public function getMetaPayload(): array
+    {
+        helper('auth');
+        $isAdmin = function_exists('in_groups') && in_groups(['1']);
+        $isKeuangan = $isAdmin || (function_exists('in_groups') && in_groups(['3']));
+        $isProduksi = $isAdmin || (function_exists('in_groups') && in_groups(['7']));
+
+        return [
+            'statuses' => [
+                ['value' => '0', 'label' => 'Berjalan'],
+                ['value' => '1', 'label' => 'Selesai / Dibayar'],
+            ],
+            'termin_statuses' => [
+                ['value' => 0, 'label' => 'Terbit SPK'],
+                ['value' => 1, 'label' => 'Turun Jatuh Tempo'],
+                ['value' => 2, 'label' => 'Pengajuan SPP'],
+                ['value' => 3, 'label' => 'Pengajuan Pencairan'],
+                ['value' => 4, 'label' => 'Dibayar Oleh Keuangan'],
+            ],
+            'permissions' => [
+                'can_view' => true,
+                'can_manage' => $isKeuangan || $isProduksi,
+                'can_create_spk' => $isProduksi,
+                'can_turun_jatuh_tempo' => $isKeuangan,
+                'can_ajukan_spp' => $isProduksi,
+                'can_ajukan_pencairan' => $isKeuangan,
+                'can_pembayaran' => $isKeuangan,
+            ],
+        ];
     }
 
     public function getDataTables(array $var): array
     {
+        $var = $this->normalizeDataTablesParams($var);
         $result = $this->repo->getDataTables($var);
         $rows = [];
         $no = (int) ($var['start'] ?? 0);
@@ -70,6 +113,64 @@ class CashoutSubkonService
             'recordsFiltered' => $result['recordsFiltered'],
             'data' => $rows,
         ];
+    }
+
+    public function getDataTablesRaw(array $var): array
+    {
+        $var = $this->normalizeDataTablesParams($var);
+        $result = $this->repo->getDataTables($var);
+        $items = [];
+
+        foreach ($result['rows'] as $row) {
+            $idKavlings = $this->decodeCsv($row->id_kavlings ?? null);
+            $selectedKavlings = $this->decodeKavlings($row->kavling_options ?? null);
+
+            $items[] = [
+                'id_cashout_subkon' => (int) $row->id_cashout_subkon,
+                'id_proyek' => isset($row->id_proyek) && $row->id_proyek !== null ? (int) $row->id_proyek : null,
+                'nomor_surat' => (string) ($row->nomor_surat ?? ''),
+                'tanggal_surat' => $row->tanggal_surat ?? null,
+                'nama_subkon' => (string) ($row->nama_subkon ?? ''),
+                'id_kavlings' => $idKavlings,
+                'selected_kavlings' => $selectedKavlings,
+                'total_nominal' => (float) ($row->total_nominal ?? 0),
+                'total_sudah_cair' => (float) ($row->total_sudah_cair ?? 0),
+                'total_hutang' => (float) ($row->total_hutang ?? 0),
+                'tanggal_hutang_list' => $this->decodeCsv($row->tanggal_hutang_list ?? null),
+                'tanggal_jatuh_tempo_list' => $this->decodeCsv($row->tanggal_jatuh_tempo_list ?? null),
+                'status' => isset($row->status) ? (int) $row->status : 0,
+                'created_at' => $row->created_at ?? null,
+            ];
+        }
+
+        return [
+            'items' => $items,
+            'meta' => [
+                'draw' => (int) ($var['draw'] ?? 1),
+                'recordsTotal' => $result['recordsTotal'],
+                'recordsFiltered' => $result['recordsFiltered'],
+                'total' => $result['recordsFiltered'],
+            ],
+        ];
+    }
+
+    private function normalizeDataTablesParams(array $var): array
+    {
+        $search = $var['search'] ?? '';
+        if (! is_array($search)) {
+            $search = ['value' => (string) $search];
+        } elseif (! array_key_exists('value', $search)) {
+            $search['value'] = '';
+        }
+
+        return array_merge($var, [
+            'draw' => (int) ($var['draw'] ?? 1),
+            'start' => max(0, (int) ($var['start'] ?? 0)),
+            'length' => isset($var['length']) ? (int) $var['length'] : 25,
+            'search' => $search,
+            'order' => is_array($var['order'] ?? null) ? $var['order'] : [],
+            'columns' => is_array($var['columns'] ?? null) ? $var['columns'] : [],
+        ]);
     }
 
     public function getDetailList(int $id_cashout_subkon): array
@@ -540,6 +641,12 @@ class CashoutSubkonService
                 ];
             }
 
+            $this->notifyCashoutSubkon(
+                (int) $detail['id_cashout_subkon'],
+                [7],
+                'Pembayaran Cek No ' . $cek_no . ' Cashout Subkon telah disimpan untuk: ' . ($detail['berita_acara'] ?? '-')
+            );
+
             return [
                 'status' => 'success',
                 'message' => 'Pembayaran berhasil disimpan',
@@ -584,23 +691,28 @@ class CashoutSubkonService
 
     private function notifyCashoutSubkon(int $id_cashout_subkon, array $targets, string $message): void
     {
-        $id_kavlings = $this->repo->getKavlingBySubkonId($id_cashout_subkon);
-        if (empty($id_kavlings)) {
-            return;
-        }
+        try {
+            $id_kavlings = $this->repo->getKavlingBySubkonId($id_cashout_subkon);
+            if (empty($id_kavlings)) {
+                return;
+            }
 
-        $notif = new \App\Controllers\Notif();
-        foreach ($id_kavlings as $id_kavling) {
-            $notif->tambah_notif(
-                $targets,
-                $message,
-                user_id(),
-                $id_kavling,
-                null,
-                \App\Enums\NotificationEvent::CASHOUT_SUBKON,
-                null,
-                'cashout/subkon?open_kavling=' . $id_kavling
-            );
+            $actorId = function_exists('user_id') && user_id() ? (int) user_id() : 0;
+            foreach ($id_kavlings as $id_kavling) {
+                $this->notifikasiService->tambah_notif(
+                    $targets,
+                    $message,
+                    $actorId,
+                    $id_kavling,
+                    null,
+                    NotificationEvent::CASHOUT_SUBKON,
+                    null,
+                    'cashout/subkon?open_kavling=' . $id_kavling,
+                    NotificationEvent::CASHOUT_SUBKON
+                );
+            }
+        } catch (\Throwable $e) {
+            log_message('error', '[CashoutSubkonService::notifyCashoutSubkon] {message}', ['message' => $e->getMessage()]);
         }
     }
 

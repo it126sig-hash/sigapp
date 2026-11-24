@@ -52,21 +52,36 @@
     return window.btoa(String.fromCharCode.apply(null, new Uint8Array(buffer)));
   }
 
+  function apiUrl(path) {
+    const root = (typeof base_url !== "undefined" ? base_url : "/").replace(/\/+$/, "");
+    return root + (path.startsWith("/") ? path : "/" + path);
+  }
+
   async function postJson(url, payload) {
+    const headers = {
+      "Content-Type": "application/json",
+      "X-Requested-With": "XMLHttpRequest",
+    };
+    if (typeof csrfName !== "undefined" && typeof csrfHash !== "undefined" && csrfName && csrfHash) {
+      headers["X-CSRF-TOKEN"] = csrfHash;
+      headers[csrfName] = csrfHash;
+    }
+
     const response = await fetch(url, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "X-Requested-With": "XMLHttpRequest",
-      },
+      headers: headers,
       body: JSON.stringify(payload),
     });
 
     const body = await response.json().catch(() => ({}));
     updateToken(body);
 
-    if (!response.ok) {
-      throw new Error(body.messages || body.error || "Request push notification gagal.");
+    if (!response.ok || body.success === false) {
+      let errMsg = body.messages || body.error || "Request push notification gagal.";
+      if (typeof errMsg === "object" && errMsg !== null) {
+        errMsg = Object.values(errMsg).join(", ");
+      }
+      throw new Error(errMsg);
     }
 
     return body;
@@ -133,7 +148,7 @@
       });
     }
 
-    await postJson(base_url + "/api/notif/push/subscribe", sub.toJSON());
+    await postJson(apiUrl("/api/notif/push/subscribe"), sub.toJSON());
     state.ready = true;
     setAction("Notifikasi Aktif", true, true);
 
@@ -152,7 +167,7 @@
       return true;
     }
 
-    await postJson(base_url + "/api/notif/push/unsubscribe", {
+    await postJson(apiUrl("/api/notif/push/unsubscribe"), {
       endpoint: sub.endpoint,
     });
     await sub.unsubscribe();
@@ -196,7 +211,7 @@
     if (logoutLink) {
       event.preventDefault();
 
-      const href = logoutLink.href || base_url + "/logout";
+      const href = logoutLink.href || apiUrl("/logout");
       let settled = false;
       const goLogout = () => {
         if (settled) {

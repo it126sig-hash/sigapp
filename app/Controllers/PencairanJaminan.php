@@ -2,73 +2,16 @@
 
 namespace App\Controllers;
 
-use App\Controllers\BaseController;
-use App\Models\RiwayatPencairanJaminanModel;
-use App\Services\DanaJaminanService;
-use App\Services\FileAccessService;
+use CodeIgniter\HTTP\RequestInterface;
+use CodeIgniter\HTTP\ResponseInterface;
+use Psr\Log\LoggerInterface;
 
-/**
- * @deprecated Modul ini deprecated dan dijadwalkan untuk dihapus.
- * Seluruh fungsi pencairan retensi/dana jaminan telah digantikan oleh PencairanAkad pada modul Keuangan.
- */
-class PencairanJaminan extends BaseController
+/** @deprecated Zero-Downtime Shim — gunakan \App\Controllers\Api\Keuangan\DanaJaminanController */
+class PencairanJaminan extends \App\Controllers\Api\Keuangan\DanaJaminanController
 {
-    protected $model;
-    protected $fileAccessService;
-    protected $danaJaminanService;
-    public function __construct()
+    public function initController(RequestInterface $request, ResponseInterface $response, LoggerInterface $logger)
     {
-        $this->model = new RiwayatPencairanJaminanModel();
-        $this->fileAccessService = new FileAccessService();
-        $this->danaJaminanService = new DanaJaminanService();
-        helper(['form']);
-    }
-
-    public function index()
-    {
-        return view('pencairan_jaminan/index');
-    }
-
-    public function list($id_kavling)
-    {
-        return $this->response->setJSON(
-            $this->danaJaminanService->listPengajuan((int) $id_kavling)
-        );
-    }
-
-    public function store()
-    {
-        return $this->response->setJSON(
-            $this->danaJaminanService->storePengajuan($this->request, user_id())
-        );
-    }
-
-    public function toggleStatus($id)
-    {
-        return $this->response->setJSON($this->danaJaminanService->rejectLegacyToggle());
-    }
-
-    public function cairkan($id)
-    {
-        return $this->response->setJSON(
-            $this->danaJaminanService->cairkanPengajuan((int) $id, $this->request, user_id())
-        );
-    }
-
-    public function history($id_kavling)
-    {
-        return $this->response->setJSON(
-            $this->danaJaminanService->getHistory((int) $id_kavling)
-        );
-    }
-
-    public function download($id)
-    {
-        $row = $this->model->find($id);
-        if (!$row) {
-            return $this->response->setBody('Lampiran tidak ditemukan')->setStatusCode(404);
-        }
-
-        return redirect()->to(site_url('files/pencairan_jaminan/' . $id . '?download=1'));
+        parent::initController($request, $response, $logger);
+        log_message('warning', 'DEPRECATED_KEUANGAN_HIT: ' . static::class . ' via ' . $request->getUri()->getPath());
     }
 }

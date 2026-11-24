@@ -1,0 +1,866 @@
+<?php
+
+namespace App\Repositories\Transaksi;
+
+use CodeIgniter\Database\BaseConnection;
+use CodeIgniter\Database\BaseBuilder;
+use App\Models\KavlingModel;
+
+class KavlingRepository
+{
+    protected $db;
+    protected $model;
+
+    public function __construct(?BaseConnection $db = null)
+    {
+        $this->db = $db ?? \Config\Database::connect();
+        $this->model = model(KavlingModel::class);
+    }
+
+    public function getKavlingByIdMkdt(int $id_mkdt): ?array
+    {
+        return $this->db->table('kavling')
+            ->select('
+                        kavling.id_mkdt,
+                        kavling.no_kavling, 
+                        jalan.nama_jalan, 
+                        tipe.id_tipe,
+                        tipe.tipe_rumah,
+                        tipe.lb,
+                        tipe.lt
+                    ')
+            ->join('jalan', 'jalan.id_jalan = kavling.id_jalan')
+            ->join('cluster', 'cluster.id_cluster = jalan.id_cluster')
+            ->join('proyek', 'proyek.id_proyek = cluster.id_proyek')
+            ->join('tipe', 'kavling.id_tipe = tipe.id_tipe')
+            ->where('kavling.id_mkdt', $id_mkdt)
+            ->get()->getResult();
+    }
+
+    public function getIdProyekByIdMkdt(int $id_mkdt): ?int
+    {
+        $row = $this->db->table('kavling')
+            ->select('cluster.id_proyek')
+            ->join('jalan', 'jalan.id_jalan = kavling.id_jalan')
+            ->join('cluster', 'cluster.id_cluster = jalan.id_cluster')
+            ->where('kavling.id_mkdt', $id_mkdt)
+            ->get()->getRow();
+
+        return $row ? (int) $row->id_proyek : null;
+    }
+
+    public function getIdProyekByKavling(int $id_kavling): ?int
+    {
+        $row = $this->db->table('kavling')
+            ->select('cluster.id_proyek')
+            ->join('jalan', 'jalan.id_jalan = kavling.id_jalan')
+            ->join('cluster', 'cluster.id_cluster = jalan.id_cluster')
+            ->where('kavling.id_kavling', $id_kavling)
+            ->get()->getRow();
+
+        return $row ? (int) $row->id_proyek : null;
+    }
+
+    public function getKavlingById(int $idKavling): ?object
+    {
+        return $this->model->select('
+                        kavling.id_mkdt,
+                        kavling.no_kavling, 
+                        jalan.nama_jalan, 
+                        tipe.id_tipe,
+                        tipe.tipe_rumah,
+                        tipe.lb,
+                        tipe.lt
+                    ')
+            ->join('jalan', 'jalan.id_jalan = kavling.id_jalan')
+            ->join('cluster', 'cluster.id_cluster = jalan.id_cluster')
+            ->join('proyek', 'proyek.id_proyek = cluster.id_proyek')
+            ->join('tipe', 'kavling.id_tipe = tipe.id_tipe')
+            ->where('kavling.id_kavling', $idKavling)
+            ->first();
+    }
+
+    public function getKavlingByIds(array $idKavlings): ?array
+    {
+        return $this->model->select('
+                        kavling.id_kavling,
+                        kavling.id_mkdt,
+                        kavling.no_kavling, 
+                        jalan.nama_jalan, 
+                        tipe.id_tipe,
+                        tipe.tipe_rumah,
+                        tipe.lb,
+                        tipe.lt
+                    ')
+            ->join('jalan', 'jalan.id_jalan = kavling.id_jalan')
+            ->join('cluster', 'cluster.id_cluster = jalan.id_cluster')
+            ->join('proyek', 'proyek.id_proyek = cluster.id_proyek')
+            ->join('tipe', 'kavling.id_tipe = tipe.id_tipe')
+            ->whereIn('kavling.id_kavling', $idKavlings)
+            ->get()
+            ->getResult();
+    }
+
+    public function getKavlingList($id_proyek = null, $search = "", $limit = null, $is_cashout_subkon = 0, $id_cluster = null, $id_jalan = null, $only_available = 0)
+    {
+        $builder = $this->db->table('kavling');
+        $builder->select('kavling.id_kavling, jalan.nama_jalan, kavling.no_kavling');
+        if ($is_cashout_subkon == 1) {
+            $builder->select('cashout_subkon_kavling.id_cashout_subkon');
+        }
+        $builder->join('jalan', 'jalan.id_jalan = kavling.id_jalan');
+        $builder->join('cluster', 'cluster.id_cluster = jalan.id_cluster');
+        $builder->join('proyek', 'proyek.id_proyek = cluster.id_proyek');
+
+        if ($is_cashout_subkon == 1) {
+            $builder->join('cashout_subkon_kavling', 'cashout_subkon_kavling.id_kavling = kavling.id_kavling', 'left');
+        }
+
+        if ($only_available) {
+            $builder->join('mkdt', 'mkdt.id_mkdt = kavling.id_mkdt', 'left');
+            $builder->groupStart()
+                ->where('mkdt.id_mkdt', null)
+                ->orWhere('mkdt.status_mkdt', 'Batal')
+                ->groupEnd();
+        }
+
+        $builder->where('proyek.id_proyek', $id_proyek);
+
+        if (!empty($id_cluster)) {
+            $builder->where('cluster.id_cluster', $id_cluster);
+        }
+
+        if (!empty($id_jalan)) {
+            $builder->where('kavling.id_jalan', $id_jalan);
+        }
+
+        if (!empty($search)) {
+            $builder->groupStart()
+                ->like("CONCAT(nama_jalan, ' ', no_kavling)", $search)
+                ->orLike("CONCAT(nama_jalan, ' no ', no_kavling)", $search)
+                ->orLike('nama_jalan', $search)
+                ->orLike('no_kavling', $search)
+                ->groupEnd();
+        }
+
+        $builder->orderBy("jalan.nama_jalan", 'ASC');
+        $builder->orderBy("ABS(kavling.no_kavling)", 'ASC');
+
+        return $builder->get($limit)->getResult();
+    }
+
+    /**
+     * Daftar kavling untuk dropdown/autocomplete pengajuan ubah tipe (memblokir status Akad & Akad Indent).
+     */
+    public function getKavlingListForRequest(int $idProyek, string $search = '', int $limit = 50): array
+    {
+        if ($idProyek <= 0) {
+            return [];
+        }
+
+        $builder = $this->db->table('kavling')
+            ->select('
+                kavling.id_kavling,
+                jalan.nama_jalan,
+                kavling.no_kavling,
+                kavling.id_tipe,
+                tipe.no_tipe_rumah,
+                tipe.tipe_rumah,
+                kavling.id_mkdt,
+                mkdt.status_mkdt,
+                mkdt.is_batal,
+                mkdt.akad,
+                mkdt.akad_indent,
+                konsumen.nama_konsumen
+            ')
+            ->join('jalan', 'jalan.id_jalan = kavling.id_jalan')
+            ->join('cluster', 'cluster.id_cluster = jalan.id_cluster')
+            ->join('proyek', 'proyek.id_proyek = cluster.id_proyek')
+            ->join('tipe', 'tipe.id_tipe = kavling.id_tipe', 'left')
+            ->join('mkdt', 'mkdt.id_mkdt = kavling.id_mkdt', 'left')
+            ->join('konsumen', 'konsumen.id_konsumen = mkdt.id_konsumen', 'left')
+            ->where('proyek.id_proyek', $idProyek)
+            ->where(
+                "NOT (mkdt.id_mkdt IS NOT NULL AND COALESCE(mkdt.is_batal, 0) = 0 AND LOWER(COALESCE(mkdt.status_mkdt, '')) != 'batal' AND (LOWER(COALESCE(mkdt.status_mkdt, '')) = 'akad' OR COALESCE(mkdt.akad, 0) = 1 OR COALESCE(mkdt.akad_indent, 0) = 1))",
+                null,
+                false
+            );
+
+        $search = trim($search);
+        if ($search !== '') {
+            $builder->groupStart()
+                ->like("CONCAT(jalan.nama_jalan, ' ', kavling.no_kavling)", $search)
+                ->orLike("CONCAT(jalan.nama_jalan, ' No. ', kavling.no_kavling)", $search)
+                ->orLike("CONCAT(jalan.nama_jalan, ' no ', kavling.no_kavling)", $search)
+                ->orLike('jalan.nama_jalan', $search)
+                ->orLike('kavling.no_kavling', $search)
+                ->orLike('konsumen.nama_konsumen', $search)
+                ->orLike('tipe.no_tipe_rumah', $search)
+                ->orLike('tipe.tipe_rumah', $search)
+                ->groupEnd();
+        }
+
+        $builder->orderBy('jalan.nama_jalan', 'ASC')
+            ->orderBy('ABS(kavling.no_kavling)', 'ASC')
+            ->orderBy('kavling.no_kavling', 'ASC');
+
+        $safeLimit = $limit > 0 ? $limit : 50;
+
+        return $builder->get($safeLimit)->getResult();
+    }
+
+    public function getDiskresiByKavlingId(int $idKavling): ?object
+    {
+        return $this->db->table('kavling k')
+            ->select([
+                'k.id_mkdt',
+                'k.harga_akhir_tgl',
+                'a.username AS username_harga_akhir',
+                'k.diskresi_harga',
+                'k.diskresi_memo',
+                'k.diskresi_at',
+                'b.username AS username_diskresi',
+            ])
+            ->join('users a', 'a.id = k.harga_akhir_oleh', 'left')
+            ->join('users b', 'b.id = k.diskresi_oleh', 'left')
+            ->where('k.id_kavling', $idKavling)
+            ->limit(1)
+            ->get()
+            ->getRow();
+    }
+
+    protected function baseQuery(): BaseBuilder
+    {
+        return $this->db->table('cluster')
+            ->select('
+                kavling.*,
+                hargajual.hargajual,
+                hargajual.tgl_harga,
+                hargajual.is_subsidi,
+                jalan.nama_jalan,
+                cluster.id_cluster,
+                cluster.nama_cluster,
+                tipe.id_tipe,
+                tipe.tipe_rumah,
+                tipe.no_tipe_rumah,
+                tipe.id_gambar_kerja,
+                hargajual.id_tipe as hj_tipe_rumah,
+                COALESCE(NULLIF(TRIM(hargajual.id_tipe), \'\'), tipe.tipe_rumah) as tipe_rumah_aktif,
+                produksi.progres_bangunan,
+                produksi.tanggal_pembangunan,
+                produksi.tanggal_rencana_selesai_pembangunan,
+                produksi.tanggal_selesai_pembangunan,
+                produksi.keterangan as keterangan_produksi,
+                mkdt.status_mkdt,
+                mkdt.is_batal,
+                mkdt.booking_tgl,
+                mkdt.wawancara,
+                mkdt.wawancara_tgl,
+                mkdt.sp3k,
+                mkdt.sp3k_tgl,
+                mkdt.akad_indent,
+                mkdt.akad_indent_tgl,
+                mkdt.akad,
+                mkdt.akad_tgl,
+                mkdt.is_kpr,
+                mkdt.is_subsidi as mkdt_is_subsidi,
+                users.username as harga_akhir_oleh_username,
+                u.username as perintah_bangun_username
+            ')
+            ->join('jalan', 'jalan.id_cluster = cluster.id_cluster')
+            ->join('kavling FORCE INDEX (idx_kavling_id_jalan)', 'kavling.id_jalan = jalan.id_jalan', '', false)
+            ->join('mkdt', 'mkdt.id_mkdt = kavling.id_mkdt', 'left')
+            ->join('proyek', 'proyek.id_proyek = cluster.id_proyek')
+            ->join('tipe', 'kavling.id_tipe = tipe.id_tipe')
+            ->join('hargajual', 'hargajual.id = kavling.harga_akhir', "left")
+            ->join('legal', 'legal.id_legal = kavling.id_legal', 'left')
+            ->join('pajak', 'pajak.id = kavling.id_pajak', 'left')
+            ->join('produksi', 'produksi.id_produksi = kavling.id_produksi', 'left')
+            ->join("users as u", "u.id = kavling.perintah_bangun_oleh", "left")
+            ->join("users", "users.id = kavling.harga_akhir_oleh", "left");
+    }
+
+    /**
+     * Select tambahan berdasarkan divisi.
+     */
+    protected function addDivisiSelect(BaseBuilder $builder, $id_divisi)
+    {
+        $divisiFields = [
+            3 => "mkdt.is_lunas, mkdt.dajam_selesai,
+                  (SELECT jatuh_tempo_tgl FROM keuangan WHERE keuangan.id_mkdt = mkdt.id_mkdt
+                   and sudah_dibayar = 0 ORDER BY jatuh_tempo_tgl asc LIMIT 1) AS jatuh_tempo_tgl, mkdt.is_sudah_isi_tagihan",
+
+            4 => "mkdt.is_sudah_isi_tagihan",
+
+            5 => "pbb_pecah_nop, pbb_pecah_luas_bumi, pbb_pecah_njop_bumi, pbb_pecah_luas_bangunan,
+                  pbb_pecah_njop_bangunan, pbb_pecah_tanggal_bayar, pbb_pecah_jumlah_tagihan,
+                  pbb_is_pembetulan, pbb_tgl_pembetulan, pbb_is_balik_nama, pbb_balik_nama,
+                  pbb_balik_nama_tgl_pengiriman, pbb_balik_nama_ke,
+                  sertifikat_split_no_hgb_induk, sertifikat_is_split, sertifikat_split_no_hgb,
+                  sertifikat_split_tanggal_terbit, sertifikat_split_tanggal_berakhir,
+                  sertifikat_split_nib, sertifikat_split_tanggal_surat_ukur, sertifikat_split_no_surat_ukur,
+                  sertifikat_split_luas_tanah, sertifikat_balik_nama, sertifikat_balik_nama_tgl_pengiriman,
+                  sertifikat_balik_nama_ke, sertifikat_nib_elektronik, sertifikat_is_balik_nama,
+                  pbg_no, pbg_tanggal_terbit, pbg_tanggal_pengajuan, pbg_tipe,
+                  pbg_status, pbg_dikirim_ke, pbg_tanggal_kirim, pbg_is_revisi, pbg_no_revisi,
+                  pbg_status_revisi, pbg_tanggal_terbit_revisi, pbg_tipe_revisi, bphtb_tanggal_verifikasi,
+                  bphtb_jatuh_tempo, bphtb_perpanjang_jatuh_tempo, bphtb_tanggal_pembayaran,
+                  bphtb_nominal_disetujui, bphtb_tanggal_validasi, bphtb_nominal_tervalidasi,
+                  pph_tgl_permohonan, pph_nominal_validasi, pph_nominal_bayar, pph_nominal_disetujui,
+                  pph_tanggal_validasi, pph_no_sket, pph_kode_verifikasi, pph_ntpn, pph_tgl_bayar,
+                  pph_tgl_selesai, pph_jenis_validasi, ajb_no, ajb_tanggal, ajb_notaris, ajb_dikirim_ke,
+                  ajb_tanggal_dikirim, ppjb_no, ppjb_tanggal, ppjb_notaris",
+
+            7 => "produksi.st_0, produksi.st_25, produksi.st_50, produksi.st_75, produksi.st_100,
+                  produksi.slo, produksi.bp, produksi.lpa, produksi.st_jalan, produksi.st_saluran,
+                  produksi.st_air",
+
+            8 => "",
+
+            10 => "pajak.pph42_nilai, pajak.pph42_tgl_bayar, pajak.pph42_ntpn,
+                   pajak.ppn_nilai, pajak.ppn_tgl_bayar, pajak.ppn_ntpn, pajak.ppn_no_faktur"
+        ];
+
+        if (array_key_exists($id_divisi, $divisiFields)) {
+            if ($divisiFields[$id_divisi] !== '') {
+                $builder->select($divisiFields[$id_divisi], true);
+            }
+        } else {
+            $builder->select("
+                mkdt.is_lunas, mkdt.dajam_selesai,
+                sertifikat_split_no_hgb_induk, sertifikat_split_no_hgb, sertifikat_is_balik_nama,
+                pbb_pecah_nop, pbb_is_balik_nama, pbg_no, ajb_no, pph_tgl_bayar,
+                bphtb_tanggal_pembayaran
+            ", true);
+        }
+    }
+
+    /**
+     * Select tambahan untuk status pencairan hasil akad (mode utama dan divisi Keuangan).
+     */
+    protected function addPencairanAkadSelect(BaseBuilder $builder): void
+    {
+        $builder->join('pencairan_akad_plan pap', 'pap.id_mkdt = mkdt.id_mkdt', 'left');
+
+        $builder->join(
+            "(SELECT id_plan,
+                     SUM(CASE WHEN status <> 'void' THEN 1 ELSE 0 END) AS pa_pengajuan_count,
+                     SUM(CASE WHEN status IN ('active', 'partial') THEN 1 ELSE 0 END) AS pa_pengajuan_outstanding_count,
+                     SUM(CASE WHEN status <> 'void' THEN total_cair ELSE 0 END) AS pa_total_cair_sum,
+                     MAX(CASE WHEN status IN ('active', 'partial') THEN tanggal_pengajuan ELSE NULL END) AS pa_tanggal_pengajuan,
+                     MAX(CASE WHEN status <> 'void' THEN tanggal_pengajuan ELSE NULL END) AS pa_tanggal_pengajuan_last
+              FROM pencairan_akad_pengajuan
+              GROUP BY id_plan) papg",
+            'papg.id_plan = pap.id',
+            'left',
+            false
+        );
+
+        $builder->join(
+            "(SELECT pg.id_plan,
+                     MAX(pay.tanggal_cair) AS pa_tanggal_cair_last
+              FROM pencairan_akad_payment pay
+              JOIN pencairan_akad_pengajuan pg ON pg.id = pay.id_pengajuan
+              WHERE pg.status <> 'void'
+                AND pay.total_cair > 0
+              GROUP BY pg.id_plan) papay",
+            'papay.id_plan = pap.id',
+            'left',
+            false
+        );
+
+        $builder->select('
+            pap.id AS pa_plan_id,
+            pap.total_hasil_akad AS pa_total_hasil_akad,
+            papg.pa_pengajuan_count,
+            papg.pa_pengajuan_outstanding_count,
+            papg.pa_total_cair_sum,
+            papg.pa_tanggal_pengajuan,
+            papg.pa_tanggal_pengajuan_last,
+            papay.pa_tanggal_cair_last
+        ', true);
+    }
+
+    /**
+     * Field lintas departemen yang diperlukan renderer utama siteplan.
+     */
+    protected function addCompositeVisualSelect(BaseBuilder $builder): void
+    {
+        $builder->select('
+            mkdt.id_konsumen AS visual_id_konsumen,
+            kavling.perintah_bangun AS is_turun_pembangunan
+        ', true);
+    }
+
+    /**
+     * Satu join agregat untuk jumlah tagihan aktif, total nominal tagihan,
+     * tanggal jatuh tempo paling awal, dan total pembayaran per transaksi.
+     */
+    protected function addCompositeFinanceSelect(BaseBuilder $builder): void
+    {
+        $builder->join(
+            "(SELECT id_mkdt,
+                     COUNT(*) AS tagihan_aktif_count,
+                     COALESCE(SUM(nominal), 0) AS tagihan_total_nominal,
+                     MIN(CASE
+                         WHEN sudah_dibayar = 0 AND jatuh_tempo_tgl IS NOT NULL
+                         THEN jatuh_tempo_tgl
+                         ELSE NULL
+                     END) AS jatuh_tempo_tgl
+              FROM keuangan
+              WHERE is_void = 0
+              GROUP BY id_mkdt) keu_visual",
+            'keu_visual.id_mkdt = mkdt.id_mkdt',
+            'left',
+            false
+        );
+
+        $this->addTagihanPaymentDerivedJoins($builder);
+
+        $builder->select('keu_visual.tagihan_aktif_count, keu_visual.jatuh_tempo_tgl', true);
+        $this->selectTagihanAggregates($builder, 'keu_visual');
+    }
+
+    /**
+     * Join agregat total tagihan dan total pembayaran untuk filter divisi Keuangan
+     * tanpa menduplikasi alias jatuh_tempo_tgl dari addDivisiSelect(3).
+     */
+    protected function addKeuanganFinanceSelect(BaseBuilder $builder): void
+    {
+        $builder->join(
+            "(SELECT id_mkdt,
+                     COALESCE(SUM(nominal), 0) AS tagihan_total_nominal
+              FROM keuangan
+              WHERE is_void = 0
+              GROUP BY id_mkdt) keu_total",
+            'keu_total.id_mkdt = mkdt.id_mkdt',
+            'left',
+            false
+        );
+
+        $this->addTagihanPaymentDerivedJoins($builder);
+        $this->selectTagihanAggregates($builder, 'keu_total');
+    }
+
+    /**
+     * LEFT JOIN derived table agregasi pembayaran per transaksi (rumus resmi KeuanganRepository::getBelumLunasGroupedQuery).
+     */
+    protected function addTagihanPaymentDerivedJoins(BaseBuilder $builder): void
+    {
+        $paidDetailSubQuery = $this->db->table('log_pembayaran_detail lpd')
+            ->select('lp.id_mkdt, COALESCE(SUM(lpd.nominal), 0) AS total_sudah_bayar_detail')
+            ->join('log_pembayaran lp', 'lp.id_pembayaran = lpd.id_pembayaran')
+            ->join('keuangan_item_list kil', 'kil.id_keuangan_item_list = lpd.id_keuangan_item_list')
+            ->where('lp.is_deleted', 0)
+            ->where("NOT (kil.kategori = 'BO' AND COALESCE(lpd.booking_is_installment, 0) = 0)", null, false)
+            ->where("LOWER(REPLACE(TRIM(COALESCE(lp.payment_type,'')), ';', '')) != 'refund'", null, false)
+            ->groupBy('lp.id_mkdt')
+            ->getCompiledSelect();
+
+        $paidLogSubQuery = $this->db->table('log_pembayaran lp')
+            ->select('lp.id_mkdt, COALESCE(SUM(lp.nominal), 0) AS total_sudah_bayar_log')
+            ->join('log_pembayaran_detail lpd', 'lpd.id_pembayaran = lp.id_pembayaran', 'left')
+            ->where('lp.is_deleted', 0)
+            ->where('lpd.id_pembayaran', null)
+            ->where("LOWER(REPLACE(TRIM(COALESCE(lp.payment_type,'')), ';', '')) NOT IN ('booking','refund')", null, false)
+            ->groupBy('lp.id_mkdt')
+            ->getCompiledSelect();
+
+        $builder->join("({$paidDetailSubQuery}) paid_detail_agg", 'paid_detail_agg.id_mkdt = mkdt.id_mkdt', 'left', false);
+        $builder->join("({$paidLogSubQuery}) paid_log_agg", 'paid_log_agg.id_mkdt = mkdt.id_mkdt', 'left', false);
+    }
+
+    private function selectTagihanAggregates(BaseBuilder $builder, string $keuanganAlias): void
+    {
+        $builder->select(
+            "COALESCE({$keuanganAlias}.tagihan_total_nominal, 0) AS tagihan_total_nominal, " .
+            '(COALESCE(paid_detail_agg.total_sudah_bayar_detail, 0) + COALESCE(paid_log_agg.total_sudah_bayar_log, 0)) AS tagihan_sudah_bayar',
+            false
+        );
+    }
+
+    /**
+     * Select tiket masalah aktif per kavling (LEFT JOIN derived table teragregasi).
+     */
+    protected function addActiveTiketSelect(BaseBuilder $builder): void
+    {
+        $builder->join(
+            "(SELECT 
+                tm.ref_id,
+                SUBSTRING_INDEX(GROUP_CONCAT(tm.id ORDER BY CASE tm.prioritas WHEN 'urgent' THEN 1 WHEN 'medium' THEN 2 WHEN 'normal' THEN 3 WHEN 'low' THEN 4 ELSE 5 END ASC, tm.created_at DESC), ',', 1) AS active_tiket_id,
+                SUBSTRING_INDEX(GROUP_CONCAT(tm.prioritas ORDER BY CASE tm.prioritas WHEN 'urgent' THEN 1 WHEN 'medium' THEN 2 WHEN 'normal' THEN 3 WHEN 'low' THEN 4 ELSE 5 END ASC, tm.created_at DESC), ',', 1) AS active_tiket_prioritas,
+                SUBSTRING_INDEX(GROUP_CONCAT(tm.status ORDER BY CASE tm.prioritas WHEN 'urgent' THEN 1 WHEN 'medium' THEN 2 WHEN 'normal' THEN 3 WHEN 'low' THEN 4 ELSE 5 END ASC, tm.created_at DESC), ',', 1) AS active_tiket_status
+            FROM tiket_masalah tm
+            WHERE tm.ref_type = 'kavling'
+              AND tm.status NOT IN ('selesai', 'batal', 'hold')
+            GROUP BY tm.ref_id) act_tm",
+            'act_tm.ref_id = kavling.id_kavling',
+            'left',
+            false
+        );
+
+        $builder->select('
+            act_tm.active_tiket_id,
+            act_tm.active_tiket_prioritas,
+            act_tm.active_tiket_status
+        ', true);
+    }
+
+    /**
+     * Main: ambil data kavling dengan seluruh filter.
+     */
+    public function getAll($id_proyek, $id_cluster = null, $id_jalan = null, $id_divisi = null, $kategoriFilters = [])
+    {
+        $builder = $this->baseQuery();
+        $clusterIds = $this->normalizeIds($id_cluster);
+        $jalanIds = $this->normalizeIds($id_jalan);
+
+        $idDivisi = (int) $id_divisi;
+
+        $this->addDivisiSelect($builder, $idDivisi);
+
+        if ($idDivisi === 0) {
+            $this->addCompositeVisualSelect($builder);
+            $this->addCompositeFinanceSelect($builder);
+            $this->addPencairanAkadSelect($builder);
+        } elseif ($idDivisi === 3) {
+            $this->addKeuanganFinanceSelect($builder);
+            $this->addPencairanAkadSelect($builder);
+        }
+
+        $this->addActiveTiketSelect($builder);
+
+        if (!empty($kategoriFilters['kategori'])) {
+            if (in_array('Masalah', $kategoriFilters['kategori'])) {
+                $statusMasalah = $kategoriFilters['status_masalah'] ?? null;
+                $periodeMulai = $kategoriFilters['periode_mulai'] ?? null;
+                $periodeSelesai = $kategoriFilters['periode_selesai'] ?? null;
+                $periodeMasalahJenis = $kategoriFilters['periode_masalah_jenis'] ?? null;
+
+                $statusSql = "";
+                if ($statusMasalah) {
+                    $statusSql = "AND tm.status = " . $this->db->escape($statusMasalah);
+                } else {
+                    $statusSql = "AND tm.status != 'selesai'";
+                }
+
+                $dateSql = "";
+                $dateCol = ($periodeMasalahJenis === 'tgl_selesai') ? "tmp.created_at" : "tm.tanggal_masalah";
+
+                if ($periodeMulai && $periodeSelesai) {
+                    $dateSql = "AND $dateCol >= " . $this->db->escape($periodeMulai) . " AND $dateCol <= " . $this->db->escape($periodeSelesai);
+                } elseif ($periodeMulai) {
+                    $dateSql = "AND $dateCol >= " . $this->db->escape($periodeMulai);
+                } elseif ($periodeSelesai) {
+                    $dateSql = "AND $dateCol <= " . $this->db->escape($periodeSelesai);
+                }
+
+                if ($periodeMasalahJenis === 'tgl_selesai' && $dateSql !== "") {
+                    $builder->select("(
+                        SELECT tm.prioritas FROM tiket_masalah_progress tmp 
+                        JOIN tiket_masalah tm ON tmp.id_tiket_masalah = tm.id 
+                        WHERE tm.ref_type = 'kavling' AND tm.ref_id = kavling.id_kavling AND tmp.status_sesudah = 'selesai' 
+                        $statusSql $dateSql
+                        ORDER BY tm.created_at DESC LIMIT 1
+                    ) as prioritas_masalah", false);
+                } else {
+                    $builder->select("(SELECT tm.prioritas FROM tiket_masalah tm 
+                        WHERE tm.ref_type = 'kavling' AND tm.ref_id = kavling.id_kavling 
+                        $statusSql $dateSql
+                        ORDER BY tm.created_at DESC LIMIT 1) as prioritas_masalah", false);
+                }
+            }
+            $this->applyKategoriFilter($builder, $kategoriFilters);
+        }
+
+        // filter proyek
+        $builder->where('cluster.id_proyek', $id_proyek);
+
+        $projectJalanIds = $this->getProjectJalanIds($id_proyek, $clusterIds);
+        if ($projectJalanIds === []) {
+            return [];
+        }
+
+        $builder->whereIn('kavling.id_jalan', $projectJalanIds);
+
+        // filter cluster
+        if ($clusterIds !== []) {
+            $builder->whereIn('cluster.id_cluster', $clusterIds);
+        }
+
+        // filter jalan
+        if ($jalanIds !== []) {
+            $builder->whereIn('kavling.id_jalan', $jalanIds);
+        }
+
+        return $builder->get()->getResult();
+    }
+
+    protected function getProjectJalanIds($id_proyek, $id_cluster = null): array
+    {
+        if (empty($id_proyek)) {
+            return [];
+        }
+
+        $builder = $this->db->table('jalan')
+            ->select('jalan.id_jalan')
+            ->join('cluster', 'cluster.id_cluster = jalan.id_cluster')
+            ->where('cluster.id_proyek', $id_proyek);
+
+        $clusterIds = $this->normalizeIds($id_cluster);
+        if ($clusterIds !== []) {
+            $builder->whereIn('cluster.id_cluster', $clusterIds);
+        }
+
+        $rows = $builder->get()->getResult();
+
+        return array_values(array_map(static function ($row) {
+            return (string) $row->id_jalan;
+        }, $rows));
+    }
+
+    protected function normalizeIds($value): array
+    {
+        $values = is_array($value) ? $value : (($value === null || $value === '') ? [] : [$value]);
+        $ids = [];
+
+        foreach ($values as $item) {
+            $id = filter_var($item, FILTER_VALIDATE_INT);
+            if ($id !== false && $id > 0) {
+                $ids[(int) $id] = (int) $id;
+            }
+        }
+
+        return array_values($ids);
+    }
+
+    public function getPerintahBangun($id_kavling)
+    {
+        return $this->model->select('
+            perintah_bangun,
+            perintah_bangun_tgl,
+            perintah_bangun_file,
+            username
+        ')
+            ->join('users', 'users.id = kavling.perintah_bangun_oleh', 'left')
+            ->where('kavling.id_kavling', $id_kavling)
+            ->first();
+    }
+
+    public function setPerintahBangun($id, $data)
+    {
+        return $this->model->update($id, $data);
+    }
+
+    public function getKategoriOptions(int $idProyek): array
+    {
+        $options = [
+            ['key' => 'Akad & Booking', 'label' => 'Akad & Booking', 'has_periode' => true, 'cat' => 'Status kavling'],
+            ['key' => 'Akad Subsidi & Akad Komersil', 'label' => 'Akad Subsidi & Akad Komersil', 'has_periode' => true, 'cat' => 'Status kavling'],
+            ['key' => 'Batal', 'label' => 'Batal', 'has_periode' => true, 'cat' => 'Status kavling'],
+            ['key' => 'SP3K', 'label' => 'SP3K', 'has_periode' => true, 'cat' => 'Status kavling'],
+            ['key' => 'Masalah', 'label' => 'Masalah', 'has_periode' => true, 'cat' => 'Masalah'],
+            ['key' => 'Turun Pembangunan', 'label' => 'Turun Pembangunan', 'has_periode' => true, 'cat' => 'Pembangunan'],
+            ['key' => 'Bangunan Selesai', 'label' => 'Bangunan Selesai', 'has_periode' => true, 'cat' => 'Pembangunan'],
+            ['key' => 'Jatuh Tempo', 'label' => 'Jatuh Tempo', 'has_periode' => true, 'cat' => 'Keuangan'],
+            ['key' => 'Pengajuan Pencairan Hasil Akad', 'label' => 'Pengajuan Pencairan Hasil Akad', 'has_periode' => true, 'cat' => 'Keuangan'],
+        ];
+
+        $results = [];
+        foreach ($options as $opt) {
+            $builder = $this->db->table('kavling')
+                ->join('jalan', 'jalan.id_jalan = kavling.id_jalan')
+                ->join('cluster', 'cluster.id_cluster = jalan.id_cluster');
+            $builder->where('cluster.id_proyek', $idProyek);
+            $builder->join('mkdt', 'mkdt.id_mkdt = kavling.id_mkdt', 'left');
+            $builder->join('produksi', 'produksi.id_produksi = kavling.id_produksi', 'left');
+
+            $this->applySingleKategoriCondition($builder, $opt['key'], null, null, null, null);
+            $count = $builder->countAllResults();
+            if ($count > 0 || in_array($opt['key'], ['Masalah'])) {
+                $opt['count'] = $count;
+                $results[] = $opt;
+            }
+        }
+        return $results;
+    }
+
+    public function applyKategoriFilter(BaseBuilder $builder, array $filters)
+    {
+        $kategoriList = $filters['kategori'] ?? [];
+        $periodeMulai = $filters['periode_mulai'] ?? null;
+        $periodeSelesai = $filters['periode_selesai'] ?? null;
+        $statusMasalah = $filters['status_masalah'] ?? null;
+        $periodeMasalahJenis = $filters['periode_masalah_jenis'] ?? null;
+
+        if (empty($kategoriList)) {
+            return;
+        }
+
+        $builder->groupStart();
+
+        foreach ($kategoriList as $kategori) {
+            $builder->orGroupStart();
+            $this->applySingleKategoriCondition($builder, $kategori, $periodeMulai, $periodeSelesai, $statusMasalah, $periodeMasalahJenis);
+            $builder->groupEnd();
+        }
+
+        $builder->groupEnd();
+    }
+
+    protected function applySingleKategoriCondition(BaseBuilder $builder, string $kategori, ?string $periodeMulai, ?string $periodeSelesai, ?string $statusMasalah, ?string $periodeMasalahJenis)
+    {
+        $dateCondition = function (string $column) use ($builder, $periodeMulai, $periodeSelesai) {
+            if ($periodeMulai && $periodeSelesai) {
+                $builder->where("$column >=", $periodeMulai);
+                $builder->where("$column <=", $periodeSelesai);
+            } elseif ($periodeMulai) {
+                $builder->where("$column >=", $periodeMulai);
+            } elseif ($periodeSelesai) {
+                $builder->where("$column <=", $periodeSelesai);
+            }
+        };
+
+        switch ($kategori) {
+            case 'Akad & Booking':
+                $builder->groupStart()
+                    ->groupStart()
+                        ->where('mkdt.status_mkdt', 'Akad');
+                        if ($periodeMulai && $periodeSelesai) {
+                            $builder->where('mkdt.akad_tgl >=', $periodeMulai);
+                            $builder->where('mkdt.akad_tgl <=', $periodeSelesai);
+                        } elseif ($periodeMulai) {
+                            $builder->where('mkdt.akad_tgl >=', $periodeMulai);
+                        } elseif ($periodeSelesai) {
+                            $builder->where('mkdt.akad_tgl <=', $periodeSelesai);
+                        }
+                    $builder->groupEnd()
+                    ->orGroupStart()
+                        ->where('mkdt.status_mkdt', 'Booking');
+                        if ($periodeMulai && $periodeSelesai) {
+                            $builder->where('mkdt.booking_tgl >=', $periodeMulai);
+                            $builder->where('mkdt.booking_tgl <=', $periodeSelesai);
+                        } elseif ($periodeMulai) {
+                            $builder->where('mkdt.booking_tgl >=', $periodeMulai);
+                        } elseif ($periodeSelesai) {
+                            $builder->where('mkdt.booking_tgl <=', $periodeSelesai);
+                        }
+                    $builder->groupEnd()
+                ->groupEnd();
+                break;
+            case 'Akad Subsidi & Akad Komersil':
+                $builder->where('mkdt.status_mkdt', 'Akad');
+                $dateCondition('mkdt.akad_tgl');
+                break;
+            case 'Batal':
+                $builder->groupStart()
+                    ->where('mkdt.is_batal', 1)
+                    ->orWhere('mkdt.status_mkdt', 'Batal')
+                    ->groupEnd();
+                $dateCondition('mkdt.mkdt_batal_tgl');
+                break;
+            case 'Masalah':
+                $statusSql = "";
+                if ($statusMasalah) {
+                    $statusSql = "AND tm.status = " . $this->db->escape($statusMasalah);
+                } else {
+                    $statusSql = "AND tm.status NOT IN ('selesai', 'batal')";
+                }
+
+                $dateSql = "";
+                $dateCol = ($periodeMasalahJenis === 'tgl_selesai') ? "tmp.created_at" : "tm.tanggal_masalah";
+
+                if ($periodeMulai && $periodeSelesai) {
+                    $dateSql = "AND $dateCol >= " . $this->db->escape($periodeMulai) . " AND $dateCol <= " . $this->db->escape($periodeSelesai);
+                } elseif ($periodeMulai) {
+                    $dateSql = "AND $dateCol >= " . $this->db->escape($periodeMulai);
+                } elseif ($periodeSelesai) {
+                    $dateSql = "AND $dateCol <= " . $this->db->escape($periodeSelesai);
+                }
+
+                if ($periodeMasalahJenis === 'tgl_selesai' && $dateSql !== "") {
+                    $builder->where("EXISTS (
+                        SELECT 1 FROM tiket_masalah_progress tmp 
+                        JOIN tiket_masalah tm ON tmp.id_tiket_masalah = tm.id 
+                        WHERE tm.ref_type = 'kavling' AND tm.ref_id = kavling.id_kavling AND tmp.status_sesudah = 'selesai' 
+                        $statusSql $dateSql
+                    )", null, false);
+                } else {
+                    $builder->where("EXISTS (
+                        SELECT 1 FROM tiket_masalah tm 
+                        WHERE tm.ref_type = 'kavling' AND tm.ref_id = kavling.id_kavling 
+                        $statusSql $dateSql
+                    )", null, false);
+                }
+                break;
+            case 'Turun Pembangunan':
+                $builder->where('mkdt.perintah_bangun', 1);
+                $dateCondition('mkdt.perintah_bangun_tgl');
+                break;
+            case 'Bangunan Selesai':
+                $builder->where('produksi.progres_bangunan', 100);
+                $dateCondition('produksi.tanggal_selesai_pembangunan');
+                break;
+            case 'Jatuh Tempo':
+                $dateSql = "";
+                if ($periodeMulai && $periodeSelesai) {
+                    $dateSql = "AND keu.jatuh_tempo_tgl >= " . $this->db->escape($periodeMulai) . " AND keu.jatuh_tempo_tgl <= " . $this->db->escape($periodeSelesai);
+                } elseif ($periodeMulai) {
+                    $dateSql = "AND keu.jatuh_tempo_tgl >= " . $this->db->escape($periodeMulai);
+                } elseif ($periodeSelesai) {
+                    $dateSql = "AND keu.jatuh_tempo_tgl <= " . $this->db->escape($periodeSelesai);
+                }
+                $builder->where("EXISTS (SELECT 1 FROM keuangan keu WHERE keu.id_mkdt = mkdt.id_mkdt AND keu.sudah_dibayar = 0 AND keu.jatuh_tempo_tgl < CURDATE() $dateSql)", null, false);
+                break;
+            case 'Hasil Akad Belum Cair':
+                $builder->where('mkdt.status_mkdt', "Akad");
+                $builder->where('mkdt.is_kpr', 1);
+                $builder->where("NOT EXISTS (
+                    SELECT 1 FROM pencairan_akad_plan pap
+                    JOIN pencairan_akad_pengajuan papg ON papg.id_plan = pap.id
+                    WHERE pap.id_mkdt = mkdt.id_mkdt AND papg.status <> 'void' AND papg.total_cair > 0
+                )", null, false);
+                break;
+            case 'Pengajuan Pencairan Hasil Akad':
+                $dateSql = "";
+                if ($periodeMulai && $periodeSelesai) {
+                    $dateSql = "AND papg.tanggal_pengajuan >= " . $this->db->escape($periodeMulai) . " AND papg.tanggal_pengajuan <= " . $this->db->escape($periodeSelesai);
+                } elseif ($periodeMulai) {
+                    $dateSql = "AND papg.tanggal_pengajuan >= " . $this->db->escape($periodeMulai);
+                } elseif ($periodeSelesai) {
+                    $dateSql = "AND papg.tanggal_pengajuan <= " . $this->db->escape($periodeSelesai);
+                }
+                $builder->where("EXISTS (
+                    SELECT 1 FROM pencairan_akad_plan pap
+                    JOIN pencairan_akad_pengajuan papg ON papg.id_plan = pap.id
+                    WHERE pap.id_mkdt = mkdt.id_mkdt AND papg.status <> 'void' AND papg.total_pengajuan > 0
+                    $dateSql
+                )", null, false);
+                break;
+            case 'Pencairan Hasil Akad':
+                $dateSql = "";
+                if ($periodeMulai && $periodeSelesai) {
+                    $dateSql = "AND papy.tanggal_cair >= " . $this->db->escape($periodeMulai) . " AND papy.tanggal_cair <= " . $this->db->escape($periodeSelesai);
+                } elseif ($periodeMulai) {
+                    $dateSql = "AND papy.tanggal_cair >= " . $this->db->escape($periodeMulai);
+                } elseif ($periodeSelesai) {
+                    $dateSql = "AND papy.tanggal_cair <= " . $this->db->escape($periodeSelesai);
+                }
+                $builder->where("EXISTS (
+                    SELECT 1 FROM pencairan_akad_plan pap
+                    JOIN pencairan_akad_pengajuan papg ON papg.id_plan = pap.id
+                    JOIN pencairan_akad_payment papy ON papy.id_pengajuan = papg.id
+                    WHERE pap.id_mkdt = mkdt.id_mkdt AND papg.status <> 'void'
+                    $dateSql
+                )", null, false);
+                break;
+            case 'SP3K':
+                $builder->groupStart()
+                    ->where('mkdt.sp3k_tgl IS NOT NULL')
+                    ->where('mkdt.status_mkdt', 'Booking')
+                    ->groupEnd();
+                $dateCondition('mkdt.sp3k_tgl');
+                break;
+        }
+    }
+}

@@ -6,9 +6,9 @@
 <link rel="stylesheet" type="text/css" href="<?= base_url() ?>/app-assets/vendors/css/pickers/flatpickr/flatpickr.min.css">
 
 <script>
+  // TODO(follow-up): migrate /promo/* AJAX calls and inline JS/CSS to /api/mkdt/promo/*?format=raw + external assets per sigapp-ui-acuan
   var csrfName = '<?= csrf_token() ?>';
   var csrfHash = '<?= csrf_hash() ?>';
-  const base_url = '<?= base_url() ?>';
 </script>
 <div class="app-content content ">
   <div class="content-overlay"></div>
@@ -234,25 +234,15 @@
     })
     //remove bug arrow select2
     $(".select2-selection__arrow").css("pointer-events", "none")
-  });
 
-  function add() {
-    // reset the form 
-    $("#add-form")[0].reset();
-    $(".form-control").removeClass('is-invalid').removeClass('is-valid');
-    $('#add-modal').modal('show');
-    if (activeProyekId()) {
-      $("#add-form #idProyek").val(activeProyekId()).trigger('change');
-    }
-    // submit the add from 
-    $.validator.setDefaults({
+    $('#add-form').validate({
       highlight: function(element) {
         $(element).addClass('is-invalid').removeClass('is-valid');
       },
       unhighlight: function(element) {
         $(element).removeClass('is-invalid').addClass('is-valid');
       },
-      errorElement: 'div ',
+      errorElement: 'div',
       errorClass: 'invalid-feedback',
       errorPlacement: function(error, element) {
         if (element.parent('.input-group').length) {
@@ -260,7 +250,6 @@
         } else if ($(element).is('.select')) {
           element.next().after(error);
         } else if (element.hasClass('select2')) {
-          //error.insertAfter(element);
           error.insertAfter(element.next());
         } else if (element.hasClass('selectpicker')) {
           error.insertAfter(element.next());
@@ -268,17 +257,19 @@
           error.insertAfter(element);
         }
       },
-
-      submitHandler: function(form) {
-
+      submitHandler: function() {
         var form = $('#add-form');
-        // remove the text-danger
+        const isEdit = Boolean($('#id').val());
+        const submitUrl = isEdit
+          ? '<?= base_url($controller . '/edit') ?>'
+          : '<?= base_url($controller . '/add') ?>';
+
         $(".text-danger").remove();
 
         $.ajax({
-          url: '<?php echo base_url($controller . '/add') ?>',
+          url: submitUrl,
           type: 'post',
-          data: form.serialize() + "&" + csrfName + "=" + csrfHash, // /converting the form data into array and sending it to server
+          data: form.serialize() + "&" + csrfName + "=" + csrfHash,
           dataType: 'json',
           beforeSend: function() {
             $('#add-form-btn').html('<i class="fa fa-spinner fa-spin"></i>');
@@ -287,7 +278,6 @@
             csrfHash = response.token;
 
             if (response.success === true) {
-
               Swal.fire({
                 position: 'bottom-end',
                 icon: 'success',
@@ -297,41 +287,70 @@
               }).then(function() {
                 $('#data_table').DataTable().ajax.reload(null, false).draw(false);
                 $('#add-modal').modal('hide');
-              })
+              });
+            } else if (response.messages instanceof Object) {
+              $.each(response.messages, function(index, value) {
+                var id = $("#" + index);
 
+                id.closest('.form-control')
+                  .removeClass('is-invalid')
+                  .removeClass('is-valid')
+                  .addClass(value.length > 0 ? 'is-invalid' : 'is-valid');
+
+                id.after(value);
+              });
             } else {
-
-              if (response.messages instanceof Object) {
-                $.each(response.messages, function(index, value) {
-                  var id = $("#" + index);
-
-                  id.closest('.form-control')
-                    .removeClass('is-invalid')
-                    .removeClass('is-valid')
-                    .addClass(value.length > 0 ? 'is-invalid' : 'is-valid');
-
-                  id.after(value);
-
-                });
-              } else {
-                Swal.fire({
-                  position: 'bottom-end',
-                  icon: 'error',
-                  title: response.messages,
-                  showConfirmButton: false,
-                  timer: 1500
-                })
-
-              }
+              Swal.fire({
+                position: 'bottom-end',
+                icon: 'error',
+                title: response.messages,
+                showConfirmButton: false,
+                timer: 1500
+              });
             }
-            $('#add-form-btn').html('Add');
+          },
+          error: function() {
+            Swal.fire({
+              position: 'bottom-end',
+              icon: 'error',
+              title: isEdit ? "Terjadi kesalahan saat memperbaharui data" : "Terjadi kesalahan saat menyimpan data",
+              showConfirmButton: false,
+              timer: 1500
+            });
+          },
+          complete: function() {
+            $('#add-form-btn').html('Simpan');
           }
         });
 
         return false;
       }
     });
-    $('#add-form').validate();
+  });
+
+  const promoDateFields = ['tgl_berlaku_start', 'tgl_berlaku_end', 'tgl_booking_start', 'tgl_booking_end'];
+
+  function resetPromoForm() {
+    $("#add-form")[0].reset();
+    $('#id').val('');
+    $("#idProyek").trigger('change');
+    $(".form-control").removeClass('is-invalid').removeClass('is-valid');
+    $(".text-danger").remove();
+    promoDateFields.forEach(function(field) {
+      const input = document.getElementById(field);
+      if (input && input._flatpickr) {
+        input._flatpickr.clear();
+      }
+    });
+    $('#add-form-btn').html('Simpan');
+  }
+
+  function add() {
+    resetPromoForm();
+    $('#add-modal').modal('show');
+    if (activeProyekId()) {
+      $("#add-form #idProyek").val(activeProyekId()).trigger('change');
+    }
   }
 
   function edit(id_cluster) {
@@ -345,121 +364,24 @@
       dataType: 'json',
       success: function(r) {
         csrfHash = r.token;
-        // reset the form 
-        $("#add-form")[0].reset();
-        $(".form-control").removeClass('is-invalid').removeClass('is-valid');
+        resetPromoForm();
         $('#add-modal').modal('show');
 
         $("#id").val(r.id);
+        $("#idProyek").val(r.id_proyek).trigger('change');
         $("#isActive").val(r.status);
         $("#nama_promo").val(r.nama_promo);
         $("#insentif").val(r.insentif);
         $("#keterangan").val(r.keterangan);
         $("#diskon").val(r.diskon).keyup();
 
-        if (r.tgl_berlaku_start != "0000-00-00")
-          document.querySelector("#tgl_berlaku_start")._flatpickr.setDate(r.tgl_berlaku_start);
-        if (r.tgl_berlaku_end != "0000-00-00")
-          document.querySelector("#tgl_berlaku_end")._flatpickr.setDate(r.tgl_berlaku_end);
-        if (r.tgl_booking_start != "0000-00-00")
-          document.querySelector("#tgl_booking_start")._flatpickr.setDate(r.tgl_booking_start);
-        if (r.tgl_booking_end != "0000-00-00")
-          document.querySelector("#tgl_booking_end")._flatpickr.setDate(r.tgl_booking_end);
-
-        // submit the edit from 
-        $.validator.setDefaults({
-          highlight: function(element) {
-            $(element).addClass('is-invalid').removeClass('is-valid');
-          },
-          unhighlight: function(element) {
-            $(element).removeClass('is-invalid').addClass('is-valid');
-          },
-          errorElement: 'div ',
-          errorClass: 'invalid-feedback',
-          errorPlacement: function(error, element) {
-            if (element.parent('.input-group').length) {
-              error.insertAfter(element.parent());
-            } else if ($(element).is('.select')) {
-              element.next().after(error);
-            } else if (element.hasClass('select2')) {
-              //error.insertAfter(element);
-              error.insertAfter(element.next());
-            } else if (element.hasClass('selectpicker')) {
-              error.insertAfter(element.next());
-            } else {
-              error.insertAfter(element);
-            }
-          },
-
-          submitHandler: function(form) {
-            var form = $('#add-form');
-            $(".text-danger").remove();
-            $.ajax({
-              url: '<?php echo base_url($controller . '/edit') ?>',
-              type: 'post',
-              data: form.serialize() + "&" + csrfName + "=" + csrfHash,
-              dataType: 'json',
-              beforeSend: function() {
-                $('#add-form-btn').html('<i class="fa fa-spinner fa-spin"></i>');
-              },
-              success: function(response) {
-                csrfHash = response.token;
-
-                if (response.success === true) {
-
-                  Swal.fire({
-                    position: 'bottom-end',
-                    icon: 'success',
-                    title: response.messages,
-                    showConfirmButton: false,
-                    timer: 1500
-                  }).then(function() {
-                    $('#data_table').DataTable().ajax.reload(null, false).draw(false);
-                    $('#add-modal').modal('hide');
-                  })
-
-                } else {
-
-                  if (response.messages instanceof Object) {
-                    $.each(response.messages, function(index, value) {
-                      var id = $("#" + index);
-
-                      id.closest('.form-control')
-                        .removeClass('is-invalid')
-                        .removeClass('is-valid')
-                        .addClass(value.length > 0 ? 'is-invalid' : 'is-valid');
-
-                      id.after(value);
-
-                    });
-                  } else {
-                    Swal.fire({
-                      position: 'bottom-end',
-                      icon: 'error',
-                      title: response.messages,
-                      showConfirmButton: false,
-                      timer: 1500
-                    })
-
-                  }
-                }
-                $('#add-form-btn').html('Simpan');
-              },error: function (){
-                Swal.fire({
-                      position: 'bottom-end',
-                      icon: 'error',
-                      title: "Terjadi kesalahan saat memperbaharui data",
-                      showConfirmButton: false,
-                      timer: 1500
-                    })
-              }
-            });
-
-            return false;
+        promoDateFields.forEach(function(field) {
+          const val = r[field];
+          const input = document.getElementById(field);
+          if (val && val !== '0000-00-00' && input && input._flatpickr) {
+            input._flatpickr.setDate(val);
           }
         });
-        $('#add-form').validate();
-
       }
     });
   }

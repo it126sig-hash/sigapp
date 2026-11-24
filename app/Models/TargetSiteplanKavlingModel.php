@@ -12,7 +12,11 @@ class TargetSiteplanKavlingModel extends Model
     protected $allowedFields = [
         'id_target',
         'id_kavling',
+        'id_tipe',
+        'tipe_manual',
         'created_at',
+        'updated_by',
+        'updated_at',
     ];
     protected $useTimestamps = false;
     protected $skipValidation = true;

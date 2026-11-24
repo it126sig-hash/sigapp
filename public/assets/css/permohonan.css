@@ -1,0 +1,1038 @@
+/* ==========================================================================
+   MODUL: PUSAT PERMOHONAN & APPROVAL (/permohonan)
+   Scope: .permohonan-page, #permohonan-*-modal, #permohonan-image-lightbox
+   Acuan: .agents/skills/sigapp-ui-acuan/SKILL.md
+   ========================================================================== */
+
+.swal2-container {
+    z-index: 12000 !important;
+}
+
+.permohonan-page {
+    --perm-primary: #2057a3;
+    --perm-primary-dark: #163f78;
+    --perm-primary-soft: #edf4ff;
+    --perm-info: #1f7a8c;
+    --perm-success: #15803d;
+    --perm-success-soft: #ecfdf3;
+    --perm-warning: #d97706;
+    --perm-warning-soft: #fff7ed;
+    --perm-danger: #dc2626;
+    --perm-danger-soft: #fef2f2;
+    --perm-neutral: #4b5563;
+    --perm-neutral-soft: #f3f4f6;
+    --perm-border: #e5e7eb;
+    --perm-input-border: #d8dde3;
+    --perm-text: #111827;
+    --perm-text-secondary: #374151;
+    --perm-muted: #6b7280;
+    --perm-bg-subtle: #f3f5f7;
+    --perm-surface: #ffffff;
+}
+
+.permohonan-page [hidden] {
+    display: none !important;
+}
+
+.permohonan-page .permohonan-subtitle {
+    color: var(--perm-muted);
+    font-size: .86rem;
+    margin-top: .25rem;
+}
+
+/* Primary Buttons */
+.permohonan-page .btn-primary,
+#permohonan-bpb-modal .btn-primary,
+#permohonan-bpb-action-modal .btn-primary,
+#permohonan-fee-sales-modal .btn-primary,
+#permohonan-fs-sign-modal .btn-primary,
+#permohonan-kavling-modal .btn-primary,
+#permohonan-tagihan-direksi-modal .btn-primary,
+#permohonan-mgm-modal .btn-primary {
+    background-color: var(--perm-primary, #2057a3) !important;
+    border-color: var(--perm-primary, #2057a3) !important;
+}
+
+.permohonan-page .btn-primary:hover,
+.permohonan-page .btn-primary:focus,
+#permohonan-bpb-modal .btn-primary:hover,
+#permohonan-fee-sales-modal .btn-primary:hover,
+#permohonan-kavling-modal .btn-primary:hover,
+#permohonan-tagihan-direksi-modal .btn-primary:hover,
+#permohonan-mgm-modal .btn-primary:hover {
+    background-color: #163f78 !important;
+    border-color: #163f78 !important;
+}
+
+.permohonan-page .btn-outline-primary {
+    border-color: var(--perm-primary);
+    color: var(--perm-primary);
+}
+
+.permohonan-page .btn-outline-primary:hover {
+    background-color: var(--perm-primary);
+    border-color: var(--perm-primary);
+    color: #fff;
+}
+
+/* Cards */
+.permohonan-page .card {
+    border: 1px solid var(--perm-border);
+    border-radius: 8px;
+    box-shadow: none;
+    background: var(--perm-surface);
+}
+
+.permohonan-page .card-header {
+    background: var(--perm-surface);
+    border-bottom: 1px solid var(--perm-border);
+    padding: 1rem 1.25rem;
+}
+
+/* ==========================================================================
+   3 SCOPE TABS + KPI SUMMARY CARDS
+   ========================================================================== */
+.permohonan-page .permohonan-scope-tabs {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: .85rem;
+    margin-bottom: 1rem;
+}
+
+.permohonan-page .permohonan-scope-card {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: .85rem;
+    width: 100%;
+    padding: .95rem 1.1rem;
+    text-align: left;
+    background: var(--perm-surface);
+    border: 1px solid var(--perm-border);
+    border-radius: 10px;
+    cursor: pointer;
+    transition: border-color .18s ease, background-color .18s ease, transform .18s ease;
+}
+
+.permohonan-page .permohonan-scope-card:hover {
+    border-color: #93b4e4;
+    background: #f8fbff;
+    transform: translateY(-1px);
+}
+
+.permohonan-page .permohonan-scope-card.is-active {
+    border-color: var(--perm-primary);
+    background: var(--perm-primary-soft);
+    box-shadow: inset 4px 0 0 var(--perm-primary);
+}
+
+.permohonan-page .permohonan-scope-left {
+    display: flex;
+    align-items: center;
+    gap: .8rem;
+    min-width: 0;
+}
+
+.permohonan-page .permohonan-scope-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 42px;
+    width: 42px;
+    height: 42px;
+    border-radius: 10px;
+    background: var(--perm-bg-subtle);
+    color: var(--perm-primary);
+    font-size: 1.05rem;
+}
+
+.permohonan-page .permohonan-scope-card.is-active .permohonan-scope-icon {
+    background: var(--perm-primary);
+    color: #fff;
+}
+
+.permohonan-page .permohonan-scope-copy {
+    min-width: 0;
+}
+
+.permohonan-page .permohonan-scope-title {
+    display: block;
+    color: var(--perm-text);
+    font-size: .92rem;
+    font-weight: 700;
+    line-height: 1.25;
+}
+
+.permohonan-page .permohonan-scope-desc {
+    display: block;
+    color: var(--perm-muted);
+    font-size: .75rem;
+    margin-top: .15rem;
+}
+
+.permohonan-page .permohonan-scope-count {
+    flex: 0 0 auto;
+    min-width: 40px;
+    padding: .35rem .65rem;
+    text-align: center;
+    border-radius: 999px;
+    background: #eef2f7;
+    color: var(--perm-text);
+    font-size: .95rem;
+    font-weight: 800;
+    font-variant-numeric: tabular-nums;
+}
+
+.permohonan-page .permohonan-scope-card.is-active .permohonan-scope-count {
+    background: var(--perm-primary);
+    color: #fff;
+}
+
+/* ==========================================================================
+   MODULE FILTER PILLS (1 BARIS HORIZONTAL SCROLL DI MOBILE)
+   ========================================================================== */
+.permohonan-page .permohonan-module-pills {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: .45rem;
+    margin-bottom: .9rem;
+}
+
+.permohonan-page .permohonan-module-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: .4rem;
+    padding: .42rem .8rem;
+    border-radius: 999px;
+    border: 1px solid var(--perm-border);
+    background: #f9fafb;
+    color: var(--perm-text-secondary);
+    font-size: .8rem;
+    font-weight: 600;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all .15s ease;
+}
+
+.permohonan-page .permohonan-module-pill:hover {
+    border-color: #9bb8e3;
+    background: #f2f7ff;
+    color: var(--perm-primary);
+}
+
+.permohonan-page .permohonan-module-pill.is-active {
+    background: var(--perm-primary);
+    border-color: var(--perm-primary);
+    color: #fff;
+}
+
+.permohonan-page .permohonan-pill-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 20px;
+    height: 20px;
+    padding: 0 .4rem;
+    border-radius: 999px;
+    background: rgba(17, 24, 39, .08);
+    color: inherit;
+    font-size: .72rem;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+}
+
+.permohonan-page .permohonan-module-pill.is-active .permohonan-pill-badge {
+    background: rgba(255, 255, 255, .24);
+    color: #fff;
+}
+
+/* ==========================================================================
+   FILTER BAR & ACTIVE CHIPS
+   ========================================================================== */
+.permohonan-page .permohonan-filter-bar {
+    display: grid;
+    grid-template-columns: minmax(200px, 1.1fr) minmax(180px, .9fr) minmax(240px, 1.5fr);
+    gap: .75rem;
+    align-items: end;
+}
+
+.permohonan-page .permohonan-filter-group label {
+    display: block;
+    color: var(--perm-muted);
+    font-size: .74rem;
+    font-weight: 700;
+    margin-bottom: .3rem;
+}
+
+.permohonan-page .permohonan-filter-group .form-control,
+.permohonan-page .permohonan-filter-group .select2-selection--single {
+    border-color: var(--perm-input-border);
+    border-radius: 6px;
+    min-height: 38px;
+}
+
+.permohonan-page .permohonan-search-wrap {
+    position: relative;
+}
+
+.permohonan-page .permohonan-search-wrap .permohonan-search-icon {
+    position: absolute;
+    left: .75rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--perm-muted);
+    pointer-events: none;
+}
+
+.permohonan-page .permohonan-search-wrap input {
+    padding-left: 2.15rem;
+    padding-right: 2.15rem;
+}
+
+.permohonan-page .permohonan-search-clear {
+    position: absolute;
+    right: .45rem;
+    top: 50%;
+    transform: translateY(-50%);
+    border: 0;
+    background: transparent;
+    color: var(--perm-muted);
+    padding: .2rem .4rem;
+    cursor: pointer;
+}
+
+.permohonan-page .permohonan-active-filters {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: .4rem;
+    margin-top: .75rem;
+}
+
+.permohonan-page .permohonan-filter-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: .35rem;
+    padding: .26rem .6rem;
+    color: #24466f;
+    background: var(--perm-primary-soft);
+    border: 1px solid #d5e4fa;
+    border-radius: 999px;
+    font-size: .74rem;
+    font-weight: 600;
+}
+
+.permohonan-page .permohonan-filter-chip button {
+    border: 0;
+    background: transparent;
+    color: inherit;
+    padding: 0;
+    line-height: 1;
+    cursor: pointer;
+}
+
+/* ==========================================================================
+   TABEL DESKTOP & KARTU MOBILE
+   ========================================================================== */
+.permohonan-page .permohonan-table th {
+    background: #f8fafc;
+    color: var(--perm-muted);
+    font-size: .74rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .02em;
+    border-top: 0;
+    border-bottom: 1px solid var(--perm-border);
+    white-space: nowrap;
+}
+
+.permohonan-page .permohonan-table td {
+    vertical-align: middle;
+    color: var(--perm-text);
+    font-size: .84rem;
+    border-color: #eef1f4;
+    padding: .75rem .8rem;
+}
+
+.permohonan-page .permohonan-table tbody tr {
+    transition: background-color .15s ease;
+}
+
+.permohonan-page .permohonan-table tbody tr:hover {
+    background: #f8fbff;
+}
+
+.permohonan-page .permohonan-doc-no,
+#permohonan-bpb-modal .permohonan-mono,
+#permohonan-fee-sales-modal .permohonan-mono,
+#permohonan-kavling-modal .permohonan-mono,
+#permohonan-tagihan-direksi-modal .permohonan-mono,
+#permohonan-mgm-modal .permohonan-mono {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: .79rem;
+    font-weight: 700;
+    color: var(--perm-primary, #2057a3);
+}
+
+.permohonan-page .permohonan-item-title {
+    font-weight: 700;
+    color: var(--perm-text);
+    line-height: 1.3;
+}
+
+.permohonan-page .permohonan-item-sub {
+    color: var(--perm-muted);
+    font-size: .76rem;
+    margin-top: .15rem;
+    line-height: 1.35;
+}
+
+.permohonan-page .permohonan-module-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: .3rem;
+    padding: .22rem .55rem;
+    border-radius: 6px;
+    background: #f1f5f9;
+    color: #334155;
+    font-size: .73rem;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+/* Status Badges (Soft Tinted Pills) */
+.permohonan-status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: .32rem;
+    padding: .24rem .58rem;
+    border-radius: 999px;
+    font-size: .72rem;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.permohonan-status-badge::before {
+    content: "";
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: currentColor;
+}
+
+.permohonan-status--secondary {
+    background: #f3f4f6;
+    color: #4b5563;
+    border: 1px solid #9ca3af;
+}
+
+.permohonan-status--primary {
+    background: #edf3ff;
+    color: #2057a3;
+    border: 1px solid #2057a3;
+}
+
+.permohonan-status--warning {
+    background: #fff7ed;
+    color: #9a3412;
+    border: 1px solid #d97706;
+}
+
+.permohonan-status--success {
+    background: #ecfdf3;
+    color: #166534;
+    border: 1px solid #15803d;
+}
+
+.permohonan-status--danger {
+    background: #fef2f2;
+    color: #991b1b;
+    border: 1px solid #dc2626;
+}
+
+/* Mobile List Cards */
+.permohonan-page .permohonan-mobile-list {
+    display: flex;
+    flex-direction: column;
+    gap: .75rem;
+    padding: .85rem;
+}
+
+.permohonan-page .permohonan-mobile-card {
+    background: var(--perm-surface);
+    border: 1px solid var(--perm-border);
+    border-radius: 10px;
+    padding: .9rem;
+    display: flex;
+    flex-direction: column;
+    gap: .55rem;
+}
+
+.permohonan-page .permohonan-mobile-card-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: .4rem;
+}
+
+.permohonan-page .permohonan-mobile-card-meta {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: .45rem .75rem;
+    background: #f9fafb;
+    border: 1px solid #edf0f2;
+    border-radius: 6px;
+    padding: .55rem .65rem;
+    font-size: .78rem;
+}
+
+.permohonan-page .permohonan-mobile-card-meta small {
+    display: block;
+    color: var(--perm-muted);
+    font-size: .7rem;
+    font-weight: 700;
+}
+
+.permohonan-page .permohonan-mobile-card-foot {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: .5rem;
+    padding-top: .4rem;
+    border-top: 1px solid #eef1f4;
+}
+
+/* Empty & State Containers */
+.permohonan-page .permohonan-state-box {
+    text-align: center;
+    padding: 2.5rem 1.25rem;
+    color: var(--perm-muted);
+}
+
+.permohonan-page .permohonan-state-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 54px;
+    height: 54px;
+    border-radius: 14px;
+    background: var(--perm-primary-soft);
+    color: var(--perm-primary);
+    font-size: 1.4rem;
+    margin-bottom: .75rem;
+}
+
+.permohonan-page .permohonan-pagination-bar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: .75rem;
+    padding: .85rem 1.25rem;
+    border-top: 1px solid var(--perm-border);
+    background: #fafbfc;
+}
+
+/* ==========================================================================
+   BASELINE MODAL STYLING (#modal_detail / #bpb-detail-modal)
+   ========================================================================== */
+#permohonan-bpb-modal .modal-dialog,
+#permohonan-fee-sales-modal .modal-dialog,
+#permohonan-kavling-modal .modal-dialog,
+#permohonan-tagihan-direksi-modal .modal-dialog,
+#permohonan-mgm-modal .modal-dialog {
+    margin: 1rem auto;
+    max-width: min(1140px, calc(100vw - 32px));
+}
+
+#permohonan-bpb-modal .modal-content,
+#permohonan-bpb-action-modal .modal-content,
+#permohonan-fee-sales-modal .modal-content,
+#permohonan-fs-sign-modal .modal-content,
+#permohonan-fs-reject-modal .modal-content,
+#permohonan-fs-cair-modal .modal-content,
+#permohonan-fs-void-modal .modal-content,
+#permohonan-kavling-modal .modal-content,
+#permohonan-tagihan-direksi-modal .modal-content,
+#permohonan-mgm-modal .modal-content {
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+    box-shadow: 0 18px 42px rgba(15, 23, 42, .16);
+    overflow: hidden;
+}
+
+#permohonan-bpb-modal .modal-header,
+#permohonan-fee-sales-modal .modal-header,
+#permohonan-kavling-modal .modal-header,
+#permohonan-tagihan-direksi-modal .modal-header,
+#permohonan-mgm-modal .modal-header {
+    align-items: center;
+    background: #fff;
+    border-bottom: 1px solid #e5e7eb;
+    padding: .9rem 1.25rem;
+    gap: .75rem;
+}
+
+#permohonan-bpb-modal .modal-title,
+#permohonan-fee-sales-modal .modal-title,
+#permohonan-kavling-modal .modal-title,
+#permohonan-tagihan-direksi-modal .modal-title,
+#permohonan-mgm-modal .modal-title {
+    display: flex;
+    align-items: center;
+    gap: .65rem;
+    color: #111827;
+    font-size: 1.02rem;
+    font-weight: 700;
+    margin: 0;
+}
+
+.permohonan-modal-title-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border-radius: .65rem;
+    background: #edf4ff;
+    color: #2057a3;
+    flex: 0 0 36px;
+}
+
+.permohonan-modal-header-right {
+    display: flex;
+    align-items: center;
+    gap: .65rem;
+    margin-left: auto;
+}
+
+#permohonan-bpb-modal .modal-body,
+#permohonan-fee-sales-modal .modal-body,
+#permohonan-kavling-modal .modal-body,
+#permohonan-tagihan-direksi-modal .modal-body,
+#permohonan-mgm-modal .modal-body {
+    background: #f3f5f7;
+    max-height: calc(100vh - 9.5rem);
+    overflow-y: auto;
+    padding: 1rem;
+}
+
+#permohonan-bpb-modal .modal-footer,
+#permohonan-fee-sales-modal .modal-footer,
+#permohonan-kavling-modal .modal-footer,
+#permohonan-tagihan-direksi-modal .modal-footer,
+#permohonan-mgm-modal .modal-footer {
+    background: #fff;
+    border-top: 1px solid #e5e7eb;
+    padding: .8rem 1.25rem;
+    gap: .5rem;
+}
+
+#permohonan-bpb-modal .card,
+#permohonan-fee-sales-modal .card,
+#permohonan-kavling-modal .card,
+#permohonan-tagihan-direksi-modal .card,
+#permohonan-mgm-modal .card {
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    box-shadow: none;
+    margin-bottom: 1rem;
+}
+
+#permohonan-bpb-modal .info-row,
+#permohonan-fee-sales-modal .info-row,
+#permohonan-kavling-modal .info-row,
+#permohonan-tagihan-direksi-modal .info-row,
+#permohonan-mgm-modal .info-row {
+    background: #f9fafb;
+    border: 1px solid #edf0f2;
+    border-radius: 6px;
+    padding: .5rem .65rem;
+    margin-bottom: .5rem;
+}
+
+#permohonan-bpb-modal .info-label,
+#permohonan-fee-sales-modal .info-label,
+#permohonan-kavling-modal .info-label,
+#permohonan-tagihan-direksi-modal .info-label,
+#permohonan-mgm-modal .info-label {
+    display: block;
+    color: #6b7280;
+    font-size: .74rem;
+    font-weight: 700;
+    margin-bottom: .15rem;
+}
+
+#permohonan-bpb-modal .info-value,
+#permohonan-fee-sales-modal .info-value,
+#permohonan-kavling-modal .info-value,
+#permohonan-tagihan-direksi-modal .info-value,
+#permohonan-mgm-modal .info-value {
+    color: #111827;
+    font-weight: 600;
+    font-size: .88rem;
+    overflow-wrap: anywhere;
+}
+
+/* Signature Canvas Pad */
+.permohonan-canvas-wrap {
+    position: relative;
+    border: 1px solid #d8dde3;
+    border-radius: 8px;
+    background: #ffffff;
+    overflow: hidden;
+}
+
+.permohonan-canvas-wrap canvas {
+    display: block;
+    width: 100%;
+    height: 185px;
+    touch-action: none;
+    cursor: crosshair;
+}
+
+.permohonan-canvas-clear {
+    position: absolute;
+    top: .5rem;
+    right: .5rem;
+}
+
+/* Dropzone Upload (.bpb-dropzone spec) */
+#permohonan-bpb-action-modal .bpb-dropzone,
+#permohonan-fs-cair-modal .bpb-dropzone,
+#permohonan-mgm-modal .bpb-dropzone {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    gap: .35rem;
+    padding: 1.1rem .9rem;
+    border: 2px dashed #b8c9df;
+    border-radius: .6rem;
+    background: #f8faff;
+    color: #455b78;
+    cursor: pointer;
+    transition: border-color .15s ease, background-color .15s ease;
+}
+
+#permohonan-bpb-action-modal .bpb-dropzone:hover,
+#permohonan-bpb-action-modal .bpb-dropzone:focus,
+#permohonan-bpb-action-modal .bpb-dropzone.is-dragging,
+#permohonan-fs-cair-modal .bpb-dropzone:hover,
+#permohonan-fs-cair-modal .bpb-dropzone:focus,
+#permohonan-fs-cair-modal .bpb-dropzone.is-dragging,
+#permohonan-mgm-modal .bpb-dropzone:hover,
+#permohonan-mgm-modal .bpb-dropzone:focus,
+#permohonan-mgm-modal .bpb-dropzone.is-dragging {
+    border-color: #2057a3;
+    background: #eef4ff;
+    outline: none;
+}
+
+/* Attachments & Timeline */
+.permohonan-attachments-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .6rem;
+}
+
+.permohonan-image-thumb {
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
+    gap: .3rem;
+    width: 112px;
+    padding: .35rem;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    background: #fff;
+    cursor: pointer;
+    text-align: center;
+}
+
+.permohonan-image-thumb img {
+    width: 100%;
+    height: 76px;
+    object-fit: cover;
+    border-radius: 5px;
+}
+
+.permohonan-image-thumb span {
+    font-size: .71rem;
+    color: #374151;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.permohonan-file-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: .4rem;
+    padding: .4rem .7rem;
+    border: 1px solid #d8dde3;
+    border-radius: 8px;
+    background: #fff;
+    color: #2057a3;
+    font-size: .8rem;
+    font-weight: 600;
+}
+
+.permohonan-signature-card {
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    padding: .75rem;
+    background: #fff;
+    height: 100%;
+}
+
+.permohonan-signature-preview {
+    height: 86px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #f9fafb;
+    border: 1px dashed #d8dde3;
+    border-radius: 6px;
+    margin: .5rem 0;
+    padding: .35rem;
+}
+
+.permohonan-signature-preview img {
+    max-height: 72px;
+    max-width: 100%;
+    object-fit: contain;
+}
+
+.permohonan-timeline-item {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: .75rem;
+    padding: .65rem .75rem;
+    border-left: 3px solid #cbd5e1;
+    background: #f9fafb;
+    border-radius: 0 6px 6px 0;
+    margin-bottom: .5rem;
+}
+
+.permohonan-timeline-item.is-current {
+    border-left-color: #2057a3;
+    background: #edf4ff;
+}
+
+/* Lightbox */
+#permohonan-image-lightbox {
+    position: fixed;
+    inset: 0;
+    z-index: 11500;
+    background: rgba(15, 23, 42, .88);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1.5rem;
+}
+
+#permohonan-image-lightbox.d-none {
+    display: none !important;
+}
+
+#permohonan-image-lightbox img {
+    max-width: 90vw;
+    max-height: 80vh;
+    border-radius: 8px;
+}
+
+#permohonan-image-lightbox .permohonan-lightbox-close {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    width: 40px;
+    height: 40px;
+    border-radius: 999px;
+    border: 0;
+    background: rgba(255, 255, 255, .18);
+    color: #fff;
+    cursor: pointer;
+}
+
+/* ==========================================================================
+   DARK LAYOUT SUPPORT
+   ========================================================================== */
+.dark-layout .permohonan-page {
+    --perm-border: rgba(255, 255, 255, .1);
+    --perm-input-border: rgba(255, 255, 255, .14);
+    --perm-text: #e2e8f0;
+    --perm-text-secondary: #cbd5e1;
+    --perm-muted: #94a3b8;
+    --perm-bg-subtle: #1e2638;
+    --perm-surface: #283046;
+}
+
+.dark-layout .permohonan-page .permohonan-scope-card:hover {
+    background: #2f3952;
+}
+
+.dark-layout .permohonan-page .permohonan-scope-card.is-active {
+    background: rgba(32, 87, 163, .26);
+}
+
+.dark-layout .permohonan-page .permohonan-module-pill {
+    background: #1f2739;
+}
+
+.dark-layout .permohonan-page .permohonan-table th,
+.dark-layout .permohonan-page .permohonan-pagination-bar,
+.dark-layout .permohonan-page .permohonan-mobile-card-meta {
+    background: #21293d;
+}
+
+.dark-layout .permohonan-page .permohonan-table tbody tr:hover {
+    background: rgba(255, 255, 255, .03);
+}
+
+.dark-layout #permohonan-bpb-modal .modal-header,
+.dark-layout #permohonan-bpb-modal .modal-footer,
+.dark-layout #permohonan-fee-sales-modal .modal-header,
+.dark-layout #permohonan-fee-sales-modal .modal-footer,
+.dark-layout #permohonan-kavling-modal .modal-header,
+.dark-layout #permohonan-kavling-modal .modal-footer,
+.dark-layout #permohonan-tagihan-direksi-modal .modal-header,
+.dark-layout #permohonan-tagihan-direksi-modal .modal-footer,
+.dark-layout #permohonan-mgm-modal .modal-header,
+.dark-layout #permohonan-mgm-modal .modal-footer,
+.dark-layout #permohonan-bpb-modal .card,
+.dark-layout #permohonan-fee-sales-modal .card,
+.dark-layout #permohonan-kavling-modal .card,
+.dark-layout #permohonan-tagihan-direksi-modal .card,
+.dark-layout #permohonan-mgm-modal .card {
+    background: #283046;
+    border-color: rgba(255, 255, 255, .08);
+    color: #e2e8f0;
+}
+
+.dark-layout #permohonan-bpb-modal .modal-body,
+.dark-layout #permohonan-fee-sales-modal .modal-body,
+.dark-layout #permohonan-kavling-modal .modal-body,
+.dark-layout #permohonan-tagihan-direksi-modal .modal-body,
+.dark-layout #permohonan-mgm-modal .modal-body {
+    background: #161d31;
+}
+
+.dark-layout #permohonan-bpb-modal .info-row,
+.dark-layout #permohonan-fee-sales-modal .info-row,
+.dark-layout #permohonan-kavling-modal .info-row,
+.dark-layout #permohonan-tagihan-direksi-modal .info-row,
+.dark-layout #permohonan-mgm-modal .info-row {
+    background: #21293d;
+    border-color: rgba(255, 255, 255, .08);
+}
+
+.dark-layout #permohonan-bpb-modal .info-value,
+.dark-layout #permohonan-fee-sales-modal .info-value,
+.dark-layout #permohonan-kavling-modal .info-value,
+.dark-layout #permohonan-tagihan-direksi-modal .info-value,
+.dark-layout #permohonan-mgm-modal .info-value,
+.dark-layout #permohonan-bpb-modal .modal-title,
+.dark-layout #permohonan-fee-sales-modal .modal-title,
+.dark-layout #permohonan-kavling-modal .modal-title,
+.dark-layout #permohonan-tagihan-direksi-modal .modal-title,
+.dark-layout #permohonan-mgm-modal .modal-title {
+    color: #e2e8f0;
+}
+
+/* ==========================================================================
+   RESPONSIVITAS MOBILE (< 768px) & TAB HORIZONTAL SCROLL
+   ========================================================================== */
+@media (max-width: 991.98px) {
+    .permohonan-page .permohonan-filter-bar {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .permohonan-page .permohonan-filter-group--search {
+        grid-column: 1 / -1;
+    }
+}
+
+@media (max-width: 767.98px) {
+    .permohonan-page {
+        padding-bottom: 4.5rem;
+    }
+
+    .permohonan-page .permohonan-scope-tabs {
+        display: flex;
+        flex-direction: row !important;
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        padding-bottom: .3rem;
+        gap: .6rem;
+    }
+
+    .permohonan-page .permohonan-scope-card {
+        flex: 0 0 245px;
+        padding: .75rem .9rem;
+    }
+
+    .permohonan-page .permohonan-module-pills {
+        flex-direction: row !important;
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        padding-bottom: .3rem;
+    }
+
+    .permohonan-page .permohonan-filter-bar {
+        grid-template-columns: 1fr;
+    }
+
+    #permohonan-bpb-modal .modal-dialog,
+    #permohonan-fee-sales-modal .modal-dialog,
+    #permohonan-kavling-modal .modal-dialog,
+    #permohonan-tagihan-direksi-modal .modal-dialog,
+    #permohonan-mgm-modal .modal-dialog {
+        margin: .5rem auto;
+        max-width: calc(100vw - 16px);
+    }
+
+    #permohonan-bpb-modal .modal-body,
+    #permohonan-fee-sales-modal .modal-body,
+    #permohonan-kavling-modal .modal-body,
+    #permohonan-tagihan-direksi-modal .modal-body,
+    #permohonan-mgm-modal .modal-body {
+        max-height: calc(100vh - 8.5rem);
+        padding: .75rem;
+    }
+
+    #permohonan-bpb-modal .nav-tabs,
+    #permohonan-bpb-modal .nav-pills,
+    #permohonan-fee-sales-modal .nav-tabs,
+    #permohonan-fee-sales-modal .nav-pills,
+    #permohonan-kavling-modal .nav-tabs,
+    #permohonan-kavling-modal .nav-pills,
+    #permohonan-tagihan-direksi-modal .nav-tabs,
+    #permohonan-tagihan-direksi-modal .nav-pills,
+    #permohonan-mgm-modal .nav-tabs,
+    #permohonan-mgm-modal .nav-pills {
+        flex-direction: row !important;
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        padding-bottom: .25rem;
+    }
+
+    #permohonan-bpb-modal .nav-tabs .nav-link,
+    #permohonan-bpb-modal .nav-pills .nav-link,
+    #permohonan-fee-sales-modal .nav-tabs .nav-link,
+    #permohonan-fee-sales-modal .nav-pills .nav-link,
+    #permohonan-kavling-modal .nav-tabs .nav-link,
+    #permohonan-kavling-modal .nav-pills .nav-link,
+    #permohonan-tagihan-direksi-modal .nav-tabs .nav-link,
+    #permohonan-tagihan-direksi-modal .nav-pills .nav-link,
+    #permohonan-mgm-modal .nav-tabs .nav-link,
+    #permohonan-mgm-modal .nav-pills .nav-link {
+        white-space: nowrap;
+    }
+}

@@ -1,22 +1,17 @@
 [
     {
-        "layer": "Controller",
-        "file": "Hargajual.php",
-        "name": "index"
+        "layer": "Service",
+        "file": "TransaksiService.php",
+        "name": "update"
     },
     {
-        "layer": "Controller",
-        "file": "Hargajual.php",
-        "name": "add"
+        "layer": "Service",
+        "file": "HargaJualService.php",
+        "name": "create"
     },
     {
-        "layer": "Controller",
-        "file": "Hargajual.php",
-        "name": "remove"
-    },
-    {
-        "layer": "Repository",
-        "file": "TransaksiRepository.php",
-        "name": "getKonsumenByIdKavling"
+        "layer": "Service",
+        "file": "HargaJualService.php",
+        "name": "update"
     }
 ]

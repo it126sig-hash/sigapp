@@ -26,7 +26,7 @@ class FileAccessService
         */
 
         'file_produksi'     => [1, 2,  3, 4, 5, 6, 7, 8, 9, 10],
-        'gambar_kerja'      => [1, 2,  6, 7, 9],
+        'gambar_kerja'      => [1, 2,  3, 4, 5, 6, 7, 8, 9, 10],
         'siteplan_upload'   => [1, 2,  2, 3, 4, 5, 6, 7, 8, 9, 10],
         'file_spptb'        => [1, 2,  3, 4, 9],
         'pencairan_jaminan' => [1, 2,  3, 9],
@@ -41,6 +41,9 @@ class FileAccessService
         'mkdt_sp3k'         => [1, 2,  3, 4, 9],
         'mkdt_bast'         => [1, 2,  3, 4, 9],
         'mkdt_surat_batal'  => [1, 2,  3, 4, 5, 8, 9],
+        'mkdt_file_nup'     => [1, 2,  3, 4, 5, 8, 9],
+        'mkdt_surat_pindah' => [1, 2,  3, 4, 5, 8, 9],
+        'mkdt_kavling_history' => [1, 2, 3, 4, 5, 8, 9],
         'konsumen_ktp'      => [1, 2,  3, 4, 5, 8, 9],
         'konsumen_npwp'     => [1, 2,  3, 4, 5, 8, 9],
         'konsumen_data'     => [1, 2,  3, 4, 5, 8, 9],
@@ -112,6 +115,135 @@ class FileAccessService
         }
     }
 
+    public function signingKey(): string
+    {
+        $key = config('Encryption')->key ?? '';
+        if (str_starts_with($key, 'hex2bin:')) {
+            $key = hex2bin(substr($key, 8));
+        } elseif (str_starts_with($key, 'base64:')) {
+            $key = base64_decode(substr($key, 7));
+        }
+
+        if (empty($key)) {
+            $key = getenv('encryption.key') ?: '';
+            if (str_starts_with($key, 'hex2bin:')) {
+                $key = hex2bin(substr($key, 8));
+            } elseif (str_starts_with($key, 'base64:')) {
+                $key = base64_decode(substr($key, 7));
+            }
+        }
+
+        return !empty($key) ? $key : 'sigapp_file_access_fallback_secret_32b!';
+    }
+
+    public function generateSignature(string $source, string|int $identifier, ?string $variant, int $expires, int $userId): string
+    {
+        $payload = implode('|', [$source, (string) $identifier, (string) ($variant ?? ''), $expires, $userId]);
+        return hash_hmac('sha256', $payload, $this->signingKey());
+    }
+
+    public function verifySignature(string $source, string|int $identifier, ?string $variant, int $expires, int $userId, string $signature): bool
+    {
+        if (time() > $expires || $userId <= 0 || trim($signature) === '') {
+            return false;
+        }
+
+        $expected = $this->generateSignature($source, $identifier, $variant, $expires, $userId);
+        return hash_equals($expected, $signature);
+    }
+
+    public function verifyRequestSignature($request): bool
+    {
+        $expires = (int) $request->getGet('expires');
+        $uid = (int) $request->getGet('uid');
+        $sig = trim((string) $request->getGet('sig'));
+
+        if ($expires <= 0 || $uid <= 0 || $sig === '' || time() > $expires) {
+            return false;
+        }
+
+        $path = trim($request->getUri()->getPath(), '/');
+        $parts = explode('/', $path);
+        $filesIdx = array_search('files', $parts);
+        if ($filesIdx === false || !isset($parts[$filesIdx + 1])) {
+            return false;
+        }
+
+        $source = $parts[$filesIdx + 1];
+        $third = $parts[$filesIdx + 2] ?? null;
+        $fourth = $parts[$filesIdx + 3] ?? null;
+
+        if ($third === 'path') {
+            $identifier = (string) $request->getGet('path');
+            $variant = ($fourth === 'thumbnail') ? 'thumb' : null;
+        } elseif (is_numeric($third)) {
+            $identifier = (int) $third;
+            $variant = ($fourth === 'thumbnail' || $request->getGet('variant') === 'thumb') ? 'thumb' : ($request->getGet('variant') ?: null);
+        } else {
+            return false;
+        }
+
+        return $this->verifySignature($source, $identifier, $variant, $expires, $uid, $sig);
+    }
+
+    public function signedUrl(string $source, int $id, int|bool $expiresIn = 3600, ?string $variant = null, bool $download = false, ?int $userId = null): string
+    {
+        if (is_bool($expiresIn)) {
+            $download  = $expiresIn;
+            $expiresIn = 3600;
+        }
+
+        $uid = $userId ?: (function_exists('user_id') && user_id() ? (int) user_id() : 0);
+        $expires = time() + max(60, $expiresIn);
+        $sig = $this->generateSignature($source, $id, $variant, $expires, $uid);
+
+        $url = site_url('files/' . rawurlencode($source) . '/' . $id);
+        if ($variant === 'thumbnail' || $variant === 'thumb') {
+            $url .= '/thumbnail';
+        }
+
+        $params = [
+            'expires' => $expires,
+            'uid'     => $uid,
+            'sig'     => $sig,
+        ];
+        if ($variant && !in_array($variant, ['thumbnail', 'thumb'], true)) {
+            $params['variant'] = $variant;
+        }
+        if ($download) {
+            $params['download'] = 1;
+        }
+
+        return $url . '?' . http_build_query($params);
+    }
+
+    public function signedThumbnailUrl(string $source, int $id, int $expiresIn = 3600, ?int $userId = null): string
+    {
+        return $this->signedUrl($source, $id, $expiresIn, 'thumb', false, $userId);
+    }
+
+    public function signedPathUrl(string $source, string $logicalPath, int $expiresIn = 3600, bool $thumbnail = false, bool $download = false, ?int $userId = null): string
+    {
+        $token = $this->encodePathToken($this->normalizeLogicalPath($logicalPath));
+        $uid = $userId ?: (function_exists('user_id') && user_id() ? (int) user_id() : 0);
+        $expires = time() + max(60, $expiresIn);
+        $variant = $thumbnail ? 'thumb' : null;
+        $sig = $this->generateSignature($source, $token, $variant, $expires, $uid);
+
+        $url = site_url('files/' . rawurlencode($source) . '/path' . ($thumbnail ? '/thumbnail' : ''));
+        $params = [
+            'path'    => $token,
+            'expires' => $expires,
+            'uid'     => $uid,
+            'sig'     => $sig,
+        ];
+        if ($download) {
+            $params['download'] = 1;
+        }
+
+        return $url . '?' . http_build_query($params);
+    }
+
     public function accessUrl(string $source, int $id, bool $download = false): string
     {
         $url = site_url('files/' . rawurlencode($source) . '/' . $id);
@@ -155,14 +287,14 @@ class FileAccessService
         return site_url('files/' . rawurlencode($source) . '/path/thumbnail?path=' . rawurlencode($token));
     }
 
-    public function resolve(string $source, int $id, bool $thumbnail = false): array
+    public function resolve(string $source, int $id, bool $thumbnail = false, ?int $signedUserId = null): array
     {
-        $file = $this->resolveMetadata($source, $id, $thumbnail);
+        $file = $this->resolveMetadata($source, $id, $thumbnail, $signedUserId);
 
-        return $this->resolveFile($file);
+        return $this->resolveFile($file, $signedUserId);
     }
 
-    public function resolvePath(string $source, string $pathToken): array
+    public function resolvePath(string $source, string $pathToken, ?int $signedUserId = null): array
     {
         $logicalPath = $this->decodePathToken($pathToken);
         $file = $this->fileMeta(
@@ -172,12 +304,19 @@ class FileAccessService
             (object) ['logical_path' => $logicalPath]
         );
 
-        return $this->resolveFile($file);
+        return $this->resolveFile($file, $signedUserId);
     }
 
-    private function resolveFile(array $file): array
+    private function resolveFile(array $file, ?int $signedUserId = null): array
     {
-        if (!$this->canAccess($file['roles'])) {
+        $authorized = false;
+        if ($signedUserId !== null && $signedUserId > 0) {
+            $authorized = $this->canAccessForUser($signedUserId, $file['roles']);
+        } else {
+            $authorized = $this->canAccess($file['roles']);
+        }
+
+        if (!$authorized) {
             throw new RuntimeException('FORBIDDEN');
         }
 
@@ -227,23 +366,71 @@ class FileAccessService
 
     public function addAccessUrlsToRows(array $rows, string $source, string $idField = 'id'): array
     {
+        foreach ($rows as $index => $row) {
+            $rows[$index] = $this->addAccessUrlsToRow($row, $source, $idField);
+        }
+
+        return $rows;
+    }
+
+    public function addAccessUrlsToRow(mixed $row, string $source, string $idField = 'id'): mixed
+    {
+        $id = is_array($row) ? ($row[$idField] ?? null) : ($row->{$idField} ?? null);
+        if (!$id) {
+            return $row;
+        }
+
+        $intId          = (int) $id;
+        $accessUrl      = $this->accessUrl($source, $intId);
+        $downloadUrl    = $this->accessUrl($source, $intId, true);
+        $signedUrl      = $this->signedUrl($source, $intId, 3600, null, false);
+        $signedDownload = $this->signedUrl($source, $intId, 3600, null, true);
+
+        if (is_array($row)) {
+            $row['access_url']          = $accessUrl;
+            $row['download_url']        = $downloadUrl;
+            $row['signed_url']          = $signedUrl;
+            $row['signed_download_url'] = $signedDownload;
+            if ($source === 'file_produksi') {
+                $row['thumbnail_url']        = $this->thumbnailUrl($source, $intId);
+                $row['signed_thumbnail_url'] = $this->signedThumbnailUrl($source, $intId);
+            }
+        } elseif (is_object($row)) {
+            $row->access_url          = $accessUrl;
+            $row->download_url        = $downloadUrl;
+            $row->signed_url          = $signedUrl;
+            $row->signed_download_url = $signedDownload;
+            if ($source === 'file_produksi') {
+                $row->thumbnail_url        = $this->thumbnailUrl($source, $intId);
+                $row->signed_thumbnail_url = $this->signedThumbnailUrl($source, $intId);
+            }
+        }
+
+        return $row;
+    }
+
+    public function addSignedAccessUrlsToRows(array $rows, string $source, string $idField = 'id', int $expiresIn = 3600, ?int $userId = null): array
+    {
         foreach ($rows as $row) {
             $id = is_array($row) ? ($row[$idField] ?? null) : ($row->{$idField} ?? null);
             if (!$id) {
                 continue;
             }
 
+            $signedAccess = $this->signedUrl($source, (int) $id, $expiresIn, null, false, $userId);
+            $signedDownload = $this->signedUrl($source, (int) $id, $expiresIn, null, true, $userId);
+
             if (is_array($row)) {
-                $row['access_url'] = $this->accessUrl($source, (int) $id);
-                $row['download_url'] = $this->accessUrl($source, (int) $id, true);
+                $row['access_url'] = $signedAccess;
+                $row['download_url'] = $signedDownload;
                 if ($source === 'file_produksi') {
-                    $row['thumbnail_url'] = $this->thumbnailUrl($source, (int) $id);
+                    $row['thumbnail_url'] = $this->signedThumbnailUrl($source, (int) $id, $expiresIn, $userId);
                 }
             } else {
-                $row->access_url = $this->accessUrl($source, (int) $id);
-                $row->download_url = $this->accessUrl($source, (int) $id, true);
+                $row->access_url = $signedAccess;
+                $row->download_url = $signedDownload;
                 if ($source === 'file_produksi') {
-                    $row->thumbnail_url = $this->thumbnailUrl($source, (int) $id);
+                    $row->thumbnail_url = $this->signedThumbnailUrl($source, (int) $id, $expiresIn, $userId);
                 }
             }
         }
@@ -270,7 +457,7 @@ class FileAccessService
         return $urls;
     }
 
-    private function resolveMetadata(string $source, int $id, bool $thumbnail): array
+    private function resolveMetadata(string $source, int $id, bool $thumbnail, ?int $signedUserId = null): array
     {
         switch ($source) {
             case 'file_upload':
@@ -348,16 +535,25 @@ class FileAccessService
             case 'mkdt_sp3k':
             case 'mkdt_bast':
             case 'mkdt_surat_batal':
+            case 'mkdt_file_nup':
+            case 'mkdt_surat_pindah':
                 $field = [
-                    'mkdt_perintah'   => 'perintah_bangun_file',
-                    'mkdt_file_spptb' => 'file_spptb',
-                    'mkdt_sp3k'       => 'sp3k_file',
-                    'mkdt_bast'       => 'bast_file',
-                    'mkdt_surat_batal' => 'surat_batal',
+                    'mkdt_perintah'     => 'perintah_bangun_file',
+                    'mkdt_file_spptb'   => 'file_spptb',
+                    'mkdt_sp3k'         => 'sp3k_file',
+                    'mkdt_bast'         => 'bast_file',
+                    'mkdt_surat_batal'  => 'surat_batal',
+                    'mkdt_file_nup'     => 'file_nup',
+                    'mkdt_surat_pindah' => 'file_surat_pindah',
                 ][$source];
                 $row = $this->db->table('mkdt')->select("id_mkdt, {$field}")->where('id_mkdt', $id)->get()->getRow();
                 $this->assertRow($row);
                 return $this->fileMeta($row->{$field}, basename((string) $row->{$field}), $this->sourceRoles[$source], $row);
+
+            case 'mkdt_kavling_history':
+                $row = $this->db->table('mkdt_kavling_history')->select('id, file_lampiran')->where('id', $id)->get()->getRow();
+                $this->assertRow($row);
+                return $this->fileMeta($row->file_lampiran, basename((string) $row->file_lampiran), $this->sourceRoles[$source], $row);
 
             case 'konsumen_ktp':
             case 'konsumen_npwp':
@@ -387,7 +583,10 @@ class FileAccessService
                     ->join('bpb_requests b', 'b.id=f.bpb_id')
                     ->where('f.id', $id)->get()->getRow();
                 $this->assertRow($row);
-                if ($row->bpb_status === 'draft' && (! function_exists('user_id') || (int) user_id() !== (int) $row->applicant_user_id)) {
+                $effectiveUserId = ($signedUserId !== null && $signedUserId > 0)
+                    ? $signedUserId
+                    : (function_exists('user_id') ? (int) user_id() : 0);
+                if ($row->bpb_status === 'draft' && $effectiveUserId !== (int) $row->applicant_user_id) {
                     throw new RuntimeException('FORBIDDEN');
                 }
                 return $this->fileMeta($row->logical_path, $row->original_name, $this->sourceRoles[$source], $row);
@@ -397,6 +596,14 @@ class FileAccessService
                 $row = $this->db->table('kopsurat')->where('id', $id)->get()->getRow();
                 $this->assertRow($row);
                 return $this->fileMeta($row->lokasi, basename((string) $row->lokasi), $this->sourceRoles['kop_surat'], $row);
+
+            case 'profile_photo':
+                $row = $this->db->table('users')->select('id, profile_photo')->where('id', $id)->get()->getRow();
+                $this->assertRow($row);
+                if (trim((string) ($row->profile_photo ?? '')) === '') {
+                    throw new RuntimeException('NOT_FOUND');
+                }
+                return $this->fileMeta($row->profile_photo, basename((string) $row->profile_photo), $this->sourceRoles[$source], $row);
         }
 
         throw new RuntimeException('NOT_FOUND');
@@ -459,6 +666,31 @@ class FileAccessService
         }
 
         return null;
+    }
+
+    public function getUserRoles(int $userId): array
+    {
+        if ($userId <= 0) {
+            return [];
+        }
+
+        $rows = $this->db->table('auth_groups_users')
+            ->select('group_id')
+            ->where('user_id', $userId)
+            ->get()
+            ->getResultArray();
+
+        return array_map('intval', array_column($rows, 'group_id'));
+    }
+
+    public function canAccessForUser(int $userId, array $allowedRoles): bool
+    {
+        if ($userId <= 0) {
+            return false;
+        }
+
+        $userRoles = $this->getUserRoles($userId);
+        return count(array_intersect($userRoles, $allowedRoles)) > 0;
     }
 
     private function canAccess(array $allowedRoles): bool

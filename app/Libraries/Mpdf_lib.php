@@ -7,12 +7,85 @@ use \Mpdf\Mpdf;
 class Mpdf_lib
 {
     protected $mpdf;
+    protected ?bool $watermarkFooter = null;
 
     public function __construct() {}
 
-    public function generate($html, $filename = '', $header = '', $mg = [15, 15, 25, 45], $format = 'A4', $stream = true, $footer = "")
+    public function setWatermarkFooter(?bool $enable): self
     {
-        $mpdf = $this->createDocument($html, $header, $mg, $format, $footer);
+        $this->watermarkFooter = $enable;
+        return $this;
+    }
+
+    public function isWatermarkFooterEnabled(?bool $explicit = null): bool
+    {
+        if ($explicit !== null) {
+            return $explicit;
+        }
+        if ($this->watermarkFooter !== null) {
+            return $this->watermarkFooter;
+        }
+        // Cek URL query parameter ?watermark=0 atau ?watermark=false
+        if (function_exists('service')) {
+            try {
+                $request = service('request');
+                if ($request && method_exists($request, 'getGet')) {
+                    $val = $request->getGet('watermark');
+                    if ($val !== null && $val !== '') {
+                        return filter_var($val, FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE) ?? ($val === '1');
+                    }
+                }
+            } catch (\Throwable $e) {
+                // Abaikan jika di context CLI tanpa request
+            }
+        }
+        // Fallback ke config
+        if (function_exists('config')) {
+            try {
+                $config = config('Pdf');
+                if ($config && isset($config->enableWatermarkFooter)) {
+                    return (bool) $config->enableWatermarkFooter;
+                }
+            } catch (\Throwable $e) {
+            }
+        }
+        return true;
+    }
+
+    public function buildWatermarkFooterHtml(): string
+    {
+        $config = function_exists('config') ? config('Pdf') : null;
+        $appName = $config->appName ?? 'SIGAPP';
+        $includeUser = $config->includeUsername ?? true;
+        $includePageNumbers = $config->includePageNumbers ?? true;
+
+        $now = date('d/m/Y H:i') . ' WIB';
+        $userLabel = '';
+        if ($includeUser && function_exists('user') && function_exists('logged_in') && logged_in()) {
+            $username = user()->username ?? null;
+            if (!empty($username)) {
+                $userLabel = ' oleh ' . (function_exists('esc') ? esc($username) : htmlspecialchars($username, ENT_QUOTES, 'UTF-8'));
+            }
+        }
+
+        $pageNumberHtml = $includePageNumbers ? '<td style="text-align: right; vertical-align: middle; border: none; padding: 0; width: 30%;">Hal. {PAGENO}</td>' : '';
+        $escapedAppName = function_exists('esc') ? esc($appName) : htmlspecialchars($appName, ENT_QUOTES, 'UTF-8');
+
+        return '<div class="sigapp-pdf-watermark-footer" style="border-top: 0.5px solid #dcdcdc; padding-top: 2px; margin-top: 2px; font-family: sans-serif; font-size: 6.5pt; color: #777777;">'
+            . '<table width="100%" style="font-family: sans-serif; font-size: 6.5pt; color: #777777; border: none; border-collapse: collapse; margin: 0; padding: 0; width: 100%;">'
+            . '<tr>'
+            . '<td style="text-align: left; vertical-align: middle; border: none; padding: 0; width: 70%;">'
+            . 'Dokumen ini dicetak otomatis melalui ' . $escapedAppName . ' pada ' . $now . $userLabel
+            . '</td>'
+            . $pageNumberHtml
+            . '</tr>'
+            . '</table>'
+            . '</div>';
+    }
+
+    public function generate($html, $filename = '', $header = '', $mg = [15, 15, 25, 45], $format = 'A4', $stream = true, $footer = "", ?bool $watermarkFooter = null)
+    {
+        $mpdf = $this->createDocument($html, $header, $mg, $format, $footer, null, null, $watermarkFooter);
 
         if ($stream) {
             $mpdf->Output($filename, \Mpdf\Output\Destination::INLINE);
@@ -37,15 +110,31 @@ class Mpdf_lib
         $format = 'A4',
         $footer = '',
         ?callable $configure = null,
-        ?callable $beforeOutput = null
+        ?callable $beforeOutput = null,
+        ?bool $watermarkFooter = null
     ): string {
-        $mpdf = $this->createDocument($html, $header, $mg, $format, $footer, $configure, $beforeOutput);
+        $mpdf = $this->createDocument($html, $header, $mg, $format, $footer, $configure, $beforeOutput, $watermarkFooter);
 
         return $mpdf->Output('', \Mpdf\Output\Destination::STRING_RETURN);
     }
 
-    private function createDocument($html, $header, $mg, $format, $footer, ?callable $configure = null, ?callable $beforeOutput = null): Mpdf
-    {
+    private function createDocument(
+        $html,
+        $header,
+        $mg,
+        $format,
+        $footer,
+        ?callable $configure = null,
+        ?callable $beforeOutput = null,
+        ?bool $watermarkFooter = null
+    ): Mpdf {
+        $isWatermark = $this->isWatermarkFooterEnabled($watermarkFooter);
+        $wmHtml = $isWatermark ? $this->buildWatermarkFooterHtml() : '';
+
+        if ($isWatermark && isset($mg[3]) && $mg[3] < 8) {
+            $mg[3] = 8;
+        }
+
         $paper = $format;
         if ($format == 'F4' || $format == 'Folio') {
             $paper = [215.9, 330];
@@ -65,19 +154,27 @@ class Mpdf_lib
             $configure($mpdf);
         }
 
-
         if (is_array($html)) {
             for ($i = 0; $i < count($html); $i++) {
                 $page = $html[$i];
                 $pageHtml = is_array($page) ? ($page['html'] ?? '') : $page;
                 if (is_array($page)) {
                     $pageFooter = (string) ($page['footer'] ?? '');
-                    $pageFooter !== '' ? $mpdf->setHTMLFooter($pageFooter) : $mpdf->setFooter();
-                } elseif ($i == 0) {
-                    $mpdf->setHTMLFooter($footer);
+                    if ($pageFooter !== '') {
+                        $mpdf->setHTMLFooter($isWatermark ? ($pageFooter . $wmHtml) : $pageFooter);
+                    } else {
+                        $isWatermark ? $mpdf->setHTMLFooter($wmHtml) : $mpdf->setFooter();
+                    }
+                } elseif ($i === 0) {
+                    $firstFooter = $footer !== '' ? ($footer . ($isWatermark ? $wmHtml : '')) : ($isWatermark ? $wmHtml : '');
+                    $firstFooter !== '' ? $mpdf->setHTMLFooter($firstFooter) : $mpdf->setFooter();
                 } else {
-                    // Halaman lainnya → matikan footer
-                    $mpdf->setFooter(); // <----- penting
+                    if ($isWatermark) {
+                        $mpdf->setHTMLFooter($wmHtml);
+                    } else {
+                        // Halaman lainnya → matikan footer
+                        $mpdf->setFooter(); // <----- penting
+                    }
                 }
 
                 $mpdf->WriteHTML($pageHtml);
@@ -86,6 +183,17 @@ class Mpdf_lib
                 }
             }
         } else {
+            if (preg_match('/<\/htmlpagefooter>/i', $html)) {
+                if ($isWatermark) {
+                    $html = (string) preg_replace('/<\/htmlpagefooter>/i', $wmHtml . '</htmlpagefooter>', $html, 1);
+                }
+            } else {
+                $finalFooter = $footer !== '' ? ($footer . ($isWatermark ? $wmHtml : '')) : ($isWatermark ? $wmHtml : '');
+                if ($finalFooter !== '') {
+                    $mpdf->setHTMLFooter($finalFooter);
+                }
+            }
+
             $this->writeHtmlChunked($mpdf, $html);
         }
 

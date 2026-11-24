@@ -40,7 +40,25 @@
 
     <!-- BEGIN: Custom CSS-->
     <link rel="stylesheet" type="text/css" href="<?= base_url() ?>/assets/css/style.css?v=<?= filemtime(FCPATH . 'assets/css/style.css') ?>">
+    <link rel="stylesheet" type="text/css" href="<?= base_url() ?>/assets/css/display-scale.css?v=<?= filemtime(FCPATH . 'assets/css/display-scale.css') ?>">
     <!-- END: Custom CSS-->
+    <script>
+        (function () {
+            try {
+                var rawUi = parseFloat(window.localStorage.getItem('sigapp.display.uiScale'));
+                var rawFont = parseFloat(window.localStorage.getItem('sigapp.display.fontScale'));
+                var ui = isFinite(rawUi) ? Math.min(1.15, Math.max(0.75, Math.round(rawUi * 100) / 100)) : 1;
+                var font = isFinite(rawFont) ? Math.min(1.25, Math.max(0.85, Math.round(rawFont * 100) / 100)) : 1;
+                if (Math.abs(ui - 1) > 0.0001 || Math.abs(font - 1) > 0.0001) {
+                    var root = document.documentElement;
+                    root.style.setProperty('--sigapp-ui-scale', String(ui));
+                    root.style.setProperty('--sigapp-font-scale', String(font));
+                    root.style.setProperty('--sigapp-space-ratio', (ui / font).toFixed(4));
+                    root.setAttribute('data-sigapp-custom-scale', '1');
+                }
+            } catch (e) {}
+        })();
+    </script>
     <style>
         #loading {
             position: fixed;

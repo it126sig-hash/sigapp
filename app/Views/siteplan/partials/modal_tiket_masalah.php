@@ -3,85 +3,85 @@
     window.is_supervisor_manager = <?= (function_exists('in_groups') && in_groups(['Admin', 'Direksi', 'Manager', 'Supervisor'])) ? 'true' : 'false' ?>;
 </script>
 
-<style>
-    #modal_tiket_masalah .modal-dialog {
-        max-width: 100%;
-        margin: 0;
-        top: 0;
-        bottom: 0;
-        left: 0;
-        right: 0;
-        height: 100vh;
-        display: flex;
-    }
-
-    #modal_tiket_masalah .modal-content {
-        height: 100vh;
-        border-radius: 0;
-    }
-
-    #modal_tiket_masalah .detail-kavling-sidebar,
-    #modal_tiket_masalah .detail-hero-card {
-        position: static !important;
-
-        #modal_tiket_masalah .badge-prio-laporan {
-            background-color: #00cfe8;
-            color: #fff;
-        }
-</style>
 <div class="modal fade" id="modal_tiket_masalah" tabindex="-1" role="dialog" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-scrollable modal-xl p-1" role="document">
+    <div class="modal-dialog modal-dialog-scrollable modal-xl" role="document">
         <div class="modal-content border-0">
 
-            <div class="modal-header bg-white border-bottom-0 pb-0">
-                <h5 class="modal-title font-weight-bold text-dark">
-                    <i class="feather icon-alert-circle text-warning mr-1"></i> Tiket Masalah
-                </h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                </button>
+            <!-- 1. SYSTEM TOP BAR -->
+            <div class="tm-system-bar">
+                <div class="d-flex align-items-center">
+                    <span class="font-weight-bold text-white" style="font-size: 13px; letter-spacing: 0.3px;">Tiket Masalah</span>
+                </div>
+                <div class="d-flex align-items-center">
+                    <button type="button" class="tm-btn-close-system" data-dismiss="modal" aria-label="Close">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
             </div>
 
-            <div class="modal-body p-2" style="background-color: #e2e4e6;">
+            <!-- 2. SUB-HEADER NAVIGATION (Populated dynamically in detail view) -->
+            <div id="tm_subheader_nav" class="tm-subheader-nav d-none">
+                <!-- Injected via renderTiketDetail() -->
+            </div>
 
-                <div class="row">
-                    <!-- LEFT SIDEBAR (col-md-3 Sticky Hero Card) -->
-                    <div class="col-md-3 detail-kavling-sidebar mb-3 mb-md-0">
-                        <div class="card detail-hero-card">
-                            <div class="card-body p-3">
-                                <h4 class="hero-project-title mb-2" id="tm_hero_project_title">SANGGAR INDAH PALASTRI</h4>
+            <!-- 3. MAIN BODY 2-COLUMN LAYOUT -->
+            <div class="modal-body p-0" style="background-color: #f8fafc; overflow: hidden;">
+                <div class="row no-gutters h-100">
+                    <!-- LEFT SIDEBAR: Gradient Hero Blue (col-12 col-md-3) -->
+                    <div class="col-12 col-md-3 p-0">
+                        <div class="tm-hero-sidebar">
+                            <div>
+                                <span class="tm-sidebar-label">KAVLING &amp; UNIT TERPILIH</span>
+                                <h4 class="tm-sidebar-project-title" id="tm_hero_project_title">SANGGAR INDAH PALASTRI</h4>
 
-                                <div class="hero-meta-item mb-2" id="tm_hero_location_container">
-                                    <i class="fas fa-map-marker-alt"></i>
-                                    <span id="tm_hero_location_text">CALYA DALAM, No.8</span>
-                                </div>
-
-                                <div class="hero-meta-item mb-3" id="tm_hero_tipe_container">
-                                    <i class="fas fa-home"></i>
-                                    <span id="tm_hero_tipe_text">Tipe 31/72 DESAIN BARU</span>
-                                </div>
-
-                                <div class="mt-3 pt-2 border-top border-white-50">
-                                    <div class="d-flex justify-content-between align-items-center mb-1">
-                                        <span class="text-xs text-white-50 font-weight-bold">PROGRES PEMBANGUNAN</span>
-                                        <span class="text-sm font-weight-bold text-white" id="tm_hero_progress_text">0%</span>
+                                <div class="tm-sidebar-meta-item" id="tm_hero_location_container">
+                                    <div class="tm-sidebar-icon-box">
+                                        <i class="fas fa-map-marker-alt"></i>
                                     </div>
-                                    <div class="progress-track">
-                                        <div class="progress-fill" id="tm_hero_progress_bar" style="width: 0%;"></div>
+                                    <div>
+                                        <div class="tm-sidebar-meta-val" id="tm_hero_location_text">CALYA DALAM, No.8</div>
+                                        <span class="tm-sidebar-meta-sub">Alamat / Posisi Unit</span>
                                     </div>
                                 </div>
+
+                                <div class="tm-sidebar-meta-item" id="tm_hero_tipe_container">
+                                    <div class="tm-sidebar-icon-box">
+                                        <i class="fas fa-home"></i>
+                                    </div>
+                                    <div>
+                                        <div class="tm-sidebar-meta-val" id="tm_hero_tipe_text">Tipe 31/72 DESAIN BARU</div>
+                                        <span class="tm-sidebar-meta-sub">Spesifikasi Desain</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="tm-sidebar-progress-box">
+                                <div class="d-flex justify-content-between align-items-center mb-1">
+                                    <span class="tm-sidebar-label mb-0">PROGRES FISIK</span>
+                                    <span class="font-weight-bold text-white text-sm" id="tm_hero_progress_text">0%</span>
+                                </div>
+                                <div class="tm-progress-track">
+                                    <div class="tm-progress-fill" id="tm_hero_progress_bar" style="width: 0%;"></div>
+                                </div>
+                                <span class="tm-sidebar-meta-sub mt-2">Terakhir diverifikasi dari opname lapangan</span>
                             </div>
                         </div>
                     </div>
 
-                    <!-- RIGHT CONTENT AREA (col-md-9) -->
-                    <div class="col-md-9">
+                    <!-- RIGHT CONTENT AREA (col-12 col-md-9) -->
+                    <div class="col-12 col-md-9 p-0 tm-main-content-scroll">
 
                         <!-- VIEW 1: LIST TIKET -->
-                        <div id="view_list_tiket">
-                            <div class="d-flex justify-content-between align-items-center mb-3">
-                                <h6 class="mb-0 font-weight-bold text-slate-700">Daftar Tiket Kendala</h6>
-                                <button class="btn btn-primary btn-sm rounded-pill px-3" id="btn_show_buat_tiket">
+                        <div id="view_list_tiket" class="p-3 p-md-4">
+                            <!-- Mobile hero card placeholder at top of list view -->
+                            <div id="tm_mobile_list_hero_container" class="d-block d-md-none mb-3"></div>
+
+                            <div class="d-flex justify-content-between align-items-center mb-3 pb-2 border-bottom">
+                                <div>
+                                    <span class="tm-sidebar-label text-slate-500 mb-0" style="font-size: 10px; font-weight: 800; letter-spacing: 0.8px; color: #64748b; text-transform: uppercase;">DAFTAR LAPORAN</span>
+                                    <h5 class="mb-0 font-weight-bold text-slate-800" style="font-size: 1.05rem;">Tiket Masalah &amp; Kendala Unit</h5>
+                                </div>
+                                <button class="btn btn-primary btn-sm rounded-pill px-3 shadow-sm font-weight-bold transition-all" id="btn_show_buat_tiket">
                                     <i class="fas fa-plus mr-1"></i> Buat Laporan
                                 </button>
                             </div>
@@ -91,27 +91,41 @@
                         </div>
 
                         <!-- VIEW 2: DETAIL TIKET & HISTORY -->
-                        <div id="view_detail_tiket" class="d-none">
+                        <div id="view_detail_tiket" class="d-none p-3 p-md-4">
                             <div id="tm_detail_content">
                                 <!-- Rendered via JS -->
                             </div>
                         </div>
 
-                        <!-- VIEW 3: FORM BUAT TIKET -->
-                        <div id="form_buat_tiket" class="d-none">
-                            <div class="card border-0 shadow-sm rounded-12 mb-0">
-                                <div class="card-header bg-white p-3 border-bottom">
-                                    <h6 class="mb-0 font-weight-bold">Buat Laporan</h6>
+                        <!-- VIEW 3: FORM BUAT / EDIT TIKET -->
+                        <div id="form_buat_tiket" class="d-none p-3 p-md-4">
+                            <!-- Mobile hero card placeholder at top of form view -->
+                            <div id="tm_mobile_form_hero_container" class="d-block d-md-none mb-3"></div>
+
+                            <div class="card border-0 shadow-sm mb-0" style="border-radius: 16px; border: 1px solid #e2e8f0; overflow: hidden;">
+                                <div class="card-header bg-white p-3 p-md-4 border-bottom d-flex justify-content-between align-items-center">
+                                    <div class="d-flex align-items-center flex-nowrap" style="gap: 8px;">
+                                        <button type="button" class="btn btn-sm btn-light border rounded-pill px-3 font-weight-bold mr-2 text-nowrap flex-shrink-0" id="btn_batal_buat_tiket_top" style="white-space: nowrap;">
+                                            <i class="fas fa-arrow-left mr-1"></i> Kembali
+                                        </button>
+                                        <div style="min-width: 0;">
+                                            <span class="tm-sidebar-label text-slate-500 mb-0 text-truncate" id="tm_form_subtitle_label">FORM LAPORAN KENDALA</span>
+                                            <h5 class="mb-0 font-weight-bold text-slate-800" id="tm_form_title_heading" style="font-size: 1.1rem;">Buat Laporan Baru</h5>
+                                        </div>
+                                    </div>
+                                    <span class="badge badge-light-primary border border-primary px-3 py-1 font-weight-bold text-xs d-none d-sm-inline-block" id="tm_form_status_pill">
+                                        Formulir Lapangan
+                                    </span>
                                 </div>
-                                <div class="card-body p-1">
+                                <div class="card-body p-3 p-md-4">
                                     <form id="form_buat_tiket_form">
-                                        <!-- BLOK INPUT AREA BARU (Disembunyikan jika tiket untuk area yang sudah ada) -->
-                                        <div id="tm_new_others_fields" class="d-none border p-1 bg-light rounded mb-3">
+                                        <!-- BLOK INPUT AREA BARU -->
+                                        <div id="tm_new_others_fields" class="d-none border p-3 rounded-12 mb-3" style="border-radius: 12px; background: #f8fafc; border: 1px solid #e2e8f0;">
                                             <h6 class="font-weight-bold text-primary mb-3 border-bottom pb-2"><i class="feather icon-map-pin mr-1"></i> Data Area Baru</h6>
                                             <div class="row">
                                                 <div class="col-md-6 form-group">
-                                                    <label class="form-label" for="tm_id_jenis">Jenis Area <span class="text-danger">*</span></label>
-                                                    <select id="tm_id_jenis" name="id_jenis" class="custom-select">
+                                                    <label class="tm-detail-label" for="tm_id_jenis">Jenis Area <span class="text-danger">*</span></label>
+                                                    <select id="tm_id_jenis" name="id_jenis" class="custom-select form-control">
                                                         <option value=""> - Pilih Jenis - </option>
                                                         <option value="jalan">Jalan</option>
                                                         <option value="fasos">Fasos</option>
@@ -121,17 +135,17 @@
                                                     </select>
                                                 </div>
                                                 <div class="col-md-6 form-group">
-                                                    <label class="form-label" for="tm_nama_others">Nama Area <span class="text-danger">*</span></label>
+                                                    <label class="tm-detail-label" for="tm_nama_others">Nama Area <span class="text-danger">*</span></label>
                                                     <input type="text" id="tm_nama_others" name="nama" class="form-control" placeholder="Mis: Taman Utama">
                                                 </div>
                                                 <div class="col-md-6 form-group">
-                                                    <label class="form-label" for="tm_id_cluster">Cluster (Opsional)</label>
+                                                    <label class="tm-detail-label" for="tm_id_cluster">Cluster (Opsional)</label>
                                                     <select id="tm_id_cluster" name="id_cluster" class="form-control" style="width:100%">
                                                         <option value=""> - Semua Cluster - </option>
                                                     </select>
                                                 </div>
                                                 <div class="col-md-6 form-group">
-                                                    <label class="form-label" for="tm_id_jalan">Jalan/Blok (Opsional)</label>
+                                                    <label class="tm-detail-label" for="tm_id_jalan">Jalan/Blok (Opsional)</label>
                                                     <select id="tm_id_jalan" name="id_jalan" class="form-control" style="width:100%">
                                                         <option value=""> - Pilih Jalan - </option>
                                                     </select>
@@ -150,7 +164,7 @@
                                             </div>
                                             <div class="col-md-4 form-group">
                                                 <label class="tm-detail-label">Skala Prioritas <span class="text-danger">*</span></label>
-                                                <select name="prioritas" class="custom-select" required>
+                                                <select name="prioritas" class="custom-select form-control" required>
                                                     <option value="normal">Normal</option>
                                                     <option value="low">Low</option>
                                                     <option value="medium">Medium</option>
@@ -162,23 +176,25 @@
 
                                         <div class="form-group">
                                             <label class="tm-detail-label">Keterangan Masalah <span class="text-danger">*</span></label>
-                                            <textarea name="keterangan" id="keterangan_masalah" class="form-control richtext" rows="3" required placeholder="Deskripsikan masalah dengan jelas..."></textarea>
+                                            <textarea name="keterangan" id="keterangan_masalah" class="form-control richtext" rows="4" required placeholder="Deskripsikan temuan masalah dengan jelas..."></textarea>
                                         </div>
 
-                                        <!-- ADVANCED FILE UPLOAD (Drag & Drop, Clipboard Paste, Kamera HTML5) -->
+                                        <!-- ADVANCED FILE UPLOAD -->
                                         <div class="form-group">
                                             <label class="tm-detail-label">Foto Pendukung (Max 5MB/foto)</label>
 
                                             <div class="drag-drop-zone mb-2" id="tm_dropzone">
-                                                <i class="feather icon-upload-cloud font-large-1 text-primary mb-2"></i>
-                                                <p class="mb-1 font-weight-bold text-dark">Tarik & Lepas Foto di sini, atau Paste (Ctrl + V)</p>
-                                                <span class="text-xs text-muted">Bisa upload beberapa foto sekaligus</span>
-                                                <div class="mt-2">
-                                                    <button type="button" class="btn btn-sm btn-outline-primary mr-1" onclick="$('#tm_foto').click()">
+                                                <div class="mb-2" style="font-size: 2rem; color: #1e5da6;">
+                                                    <i class="fas fa-cloud-upload-alt"></i>
+                                                </div>
+                                                <p class="mb-1 font-weight-bold text-slate-800">Tarik &amp; Lepas Foto di sini, atau Paste (Ctrl + V)</p>
+                                                <span class="text-xs text-muted d-block mb-3">Format JPG, PNG, WEBP (Bisa upload beberapa foto sekaligus)</span>
+                                                <div class="d-flex justify-content-center flex-wrap gap-2">
+                                                    <button type="button" class="btn btn-sm btn-outline-primary rounded-pill px-3 mr-2 font-weight-bold" onclick="$('#tm_foto').click()">
                                                         <i class="fas fa-folder-open mr-1"></i> Pilih File
                                                     </button>
-                                                    <button type="button" class="btn btn-sm btn-outline-info" onclick="$('#tm_foto_camera').click()">
-                                                        <i class="fas fa-camera mr-1"></i> Ambil Foto Kamera
+                                                    <button type="button" class="btn btn-sm btn-outline-info rounded-pill px-3 font-weight-bold" onclick="$('#tm_foto_camera').click()">
+                                                        <i class="fas fa-camera mr-1"></i> Ambil Kamera
                                                     </button>
                                                 </div>
                                             </div>
@@ -195,15 +211,19 @@
                                             <select name="assigned_users[]" id="tm_assigned_users" class="select2 form-control" multiple="multiple" style="width:100%">
                                                 <!-- User options loaded via ajax -->
                                             </select>
-                                            <small class="text-muted d-block mt-1">User yang dipilih akan mendapat notifikasi dan bisa menambah progress.</small>
+                                            <small class="text-muted d-block mt-1">User yang dipilih akan mendapat notifikasi dan dapat menambah progres perbaikan.</small>
                                         </div>
 
-                                        <hr class="my-3">
-
-                                        <div class="d-flex flex-column flex-md-row justify-content-end mt-3 gap-2">
-                                            <button type="button" class="btn btn-light border mb-2 mb-md-0 order-3 order-md-1" id="btn_batal_buat_tiket">Batal</button>
-                                            <button type="submit" class="btn btn-secondary px-4 order-2 order-md-2" id="btn_simpan_draft">Save as Draft</button>
-                                            <button type="submit" class="btn btn-primary px-4 order-1 order-md-3" id="btn_simpan_tiket">Simpan Tiket</button>
+                                        <div class="d-flex flex-column flex-sm-row justify-content-end align-items-center pt-3 border-top mt-4 gap-2">
+                                            <button type="button" class="btn btn-light border rounded-pill px-4 font-weight-bold mr-sm-2 mb-2 mb-sm-0 w-100 w-sm-auto order-3 order-sm-1" id="btn_batal_buat_tiket">
+                                                Batal
+                                            </button>
+                                            <button type="submit" class="btn btn-light border-warning text-warning rounded-pill px-4 font-weight-bold mr-sm-2 mb-2 mb-sm-0 w-100 w-sm-auto order-2 order-sm-2" id="btn_simpan_draft">
+                                                <i class="far fa-save mr-1"></i> Simpan Draft
+                                            </button>
+                                            <button type="submit" class="btn btn-primary rounded-pill px-4 font-weight-bold shadow-sm w-100 w-sm-auto order-1 order-sm-3" id="btn_simpan_tiket">
+                                                <i class="fas fa-paper-plane mr-1"></i> Simpan Tiket
+                                            </button>
                                         </div>
                                     </form>
                                 </div>
@@ -213,6 +233,11 @@
                     </div>
                 </div>
 
+            </div>
+
+            <!-- 4. AUDIT FOOTER (Populated dynamically in detail view) -->
+            <div id="tm_audit_footer" class="tm-audit-footer d-none">
+                <!-- Injected via renderTiketDetail() -->
             </div>
         </div>
     </div>

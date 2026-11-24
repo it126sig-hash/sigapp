@@ -1007,7 +1007,21 @@ function save_komplain_produksi() {
   });
 }
 //open form add/edit
-function open_produksi(sh, role, id_kavling) {
+function open_produksi() {
+  if (editdtt.length == 0)
+            return swal('error', 'Terjad Kesalahan', 'Tidak ada kavling yang dipilih')
+
+  //bug isi data with addmode
+  if (editdtt.length > 1) {
+      swal('error', 'Terjad Kesalahan', 'Tidak bisa merubah data lebih dari 1 kavling')
+      hapus_seleksi();
+      return;
+  }
+
+  let role,
+      sh = editdtt[0],
+      id_kavling = sh.id.substr(3);
+
   if (editdtt.length > 1) {
     swal("error", "Tidak bisa mengisi data lebih dari 1 secara bersamaan");
   }
@@ -1178,10 +1192,13 @@ function open_fotherproduksi(sh) {
 }
 
 function open_fproduksi(sh, role, id_kavling) {
-  let update_tanggal_pembangunan = has_akses.update_tanggal_pembangunan
-    ? true
-    : false;
-  $(".tgl_bangun").prop("disabled", !update_tanggal_pembangunan);
+  $(".tgl_bangun")
+    .prop("disabled", false)
+    .each(function () {
+      if (this._flatpickr && this._flatpickr.altInput) {
+        this._flatpickr.altInput.disabled = false;
+      }
+    });
 
   $("#fm-prod-progress-tab").click();
   resetProduksiHistoryTimeline();
@@ -1206,6 +1223,7 @@ function open_fproduksi(sh, role, id_kavling) {
     "jalan_foto_update",
     "listrik_pln_foto",
     "listrik_disediakan_dokumen",
+    "listrik_disediakan_foto",
     "air_komunal",
     "air_tanah",
     "air_pdam",
@@ -1289,10 +1307,6 @@ function open_fproduksi(sh, role, id_kavling) {
           r.tanggal_selesai_pembangunan,
           "#tanggal_selesai_pembangunan",
         );
-
-        if (!r.tanggal_pembangunan) {
-          $(".tgl_bangun").prop("disabled", false);
-        }
 
         $("#tanggal_pembangunan_old").val(r.tanggal_pembangunan);
         $("#tanggal_rencana_selesai_pembangunan_old").val(

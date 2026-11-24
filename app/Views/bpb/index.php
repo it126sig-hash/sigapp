@@ -2,7 +2,7 @@
 <link rel="stylesheet" href="<?= base_url() ?>app-assets/vendors/css/tables/datatable/responsive.bootstrap4.min.css">
 <link rel="stylesheet" href="<?= base_url() ?>app-assets/vendors/css/extensions/sweetalert2.min.css">
 <link rel="stylesheet" href="<?= base_url() ?>app-assets/vendors/css/forms/select/select2.min.css">
-<link rel="stylesheet" href="<?= base_url() ?>assets/css/bpb.css?v=<?= time() ?>">
+<link rel="stylesheet" href="<?= base_url() ?>assets/css/bpb.css?v=<?= filemtime(FCPATH . 'assets/css/bpb.css') ?>">
 
 <div class="app-content content bpb-page">
     <div class="content-overlay"></div><div class="header-navbar-shadow"></div>
@@ -71,11 +71,15 @@
                                 <div class="col-md-4 form-group"><label>Password saat ini</label><input type="password" autocomplete="current-password" class="form-control" id="bpb-password"></div>
                             </div>
                             <div class="bpb-canvas-wrap" id="bpb-form-canvas-wrap"><canvas id="bpb-form-canvas"></canvas><button type="button" class="btn btn-sm btn-outline-secondary bpb-clear-canvas" data-canvas="bpb-form-canvas">Hapus</button></div>
-                            <div class="custom-control custom-checkbox mt-1"><input type="checkbox" class="custom-control-input" id="bpb-consent"><label class="custom-control-label" for="bpb-consent">Saya menyetujui isi BPB dan penggunaan tanda tangan elektronik internal ini.</label></div>
                         </div>
-                        <div class="d-flex flex-wrap justify-content-end mt-2 bpb-sticky-actions">
-                            <button type="button" class="btn btn-outline-secondary mr-1" id="bpb-save-draft">Simpan Draft</button>
-                            <button type="submit" class="btn btn-primary" id="bpb-submit">Ajukan BPB</button>
+                        <div class="bpb-sticky-actions d-flex align-items-center justify-content-between flex-wrap mt-2">
+                            <button type="button" class="btn btn-outline-secondary" id="bpb-form-back-bottom">
+                                <i class="fa fa-arrow-left mr-50"></i>Kembali
+                            </button>
+                            <div class="d-flex align-items-center flex-wrap" style="gap: .5rem;">
+                                <button type="button" class="btn btn-outline-secondary" id="bpb-save-draft">Simpan Draft</button>
+                                <button type="submit" class="btn btn-primary" id="bpb-submit">Ajukan BPB</button>
+                            </div>
                         </div>
                     </form>
                 </div>
@@ -149,4 +153,4 @@
 <script src="<?= base_url() ?>app-assets/vendors/js/extensions/sweetalert2.all.min.js"></script>
 <script src="<?= base_url() ?>app-assets/vendors/js/forms/select/select2.full.min.js"></script>
 <script>window.SIGAPP=window.SIGAPP||{};window.SIGAPP.bpb={baseUrl:<?= json_encode(rtrim(base_url(), '/')) ?>,csrfName:<?= json_encode(csrf_token()) ?>,csrfHash:<?= json_encode(csrf_hash()) ?>,openId:<?= json_encode((int) (service('request')->getGet('open') ?? 0)) ?>};</script>
-<script src="<?= base_url() ?>assets/js/bpb.js?v=<?= time() ?>"></script>
+<script src="<?= base_url() ?>assets/js/bpb.js?v=<?= filemtime(FCPATH . 'assets/js/bpb.js') ?>"></script>

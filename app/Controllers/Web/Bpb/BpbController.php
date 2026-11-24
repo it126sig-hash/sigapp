@@ -11,9 +11,22 @@ use RuntimeException;
 
 class BpbController extends BaseController
 {
+    protected BpbService $service;
+
+    public function __construct()
+    {
+        $this->service = new BpbService();
+    }
+
     public function index()
     {
         return view('template', ['content' => 'bpb/index', 'data' => ['title' => 'Bon Permintaan Barang']]);
+    }
+
+    public function shared(string $token)
+    {
+        $detail = $this->service->detailByToken($token, (int) user_id());
+        return view('bpb/shared', ['bpb' => $detail]);
     }
 
     public function signature(int $id)

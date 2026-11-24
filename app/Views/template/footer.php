@@ -48,6 +48,116 @@
            <span>Menu</span>
        </button>
    </nav>
+
+   <div class="modal fade" id="sigapp-display-scale-modal" tabindex="-1" role="dialog" aria-labelledby="sigapp-display-scale-modal-title" aria-hidden="true">
+       <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable" role="document">
+           <div class="modal-content">
+               <div class="modal-header">
+                   <h5 class="modal-title" id="sigapp-display-scale-modal-title">
+                       <span class="detail-title-icon" aria-hidden="true">
+                           <i data-feather="sliders"></i>
+                       </span>
+                       <span>
+                           Pengaturan Tampilan
+                           <small class="sigapp-scale-subtitle">Atur kepadatan tata letak dan ukuran huruf secara terpisah</small>
+                       </span>
+                   </h5>
+                   <button type="button" class="close" data-dismiss="modal" aria-label="Tutup">
+                       <span aria-hidden="true">&times;</span>
+                   </button>
+               </div>
+               <div class="modal-body">
+                   <div class="card">
+                       <div class="card-body">
+                           <div class="divider divider-left">
+                               <div class="divider-text">Skala Tata Letak &amp; Ukuran Font</div>
+                           </div>
+
+                           <div class="sigapp-scale-control">
+                               <div class="sigapp-scale-control-head">
+                                   <div>
+                                       <label class="sigapp-scale-label" for="sigapp-ui-scale-range">Skala Tata Letak &amp; Jarak (UI Scale)</label>
+                                       <span class="sigapp-scale-desc">Mengatur padding, margin, tinggi input, dan jarak antar elemen</span>
+                                   </div>
+                                   <span class="sigapp-scale-value-pill" id="sigapp-ui-scale-badge">100%</span>
+                               </div>
+                               <div class="sigapp-scale-presets" role="group" aria-label="Preset skala tata letak">
+                                   <button type="button" class="sigapp-scale-preset-btn" data-scale-target="ui" data-scale-value="0.8">80% · Sangat Padat</button>
+                                   <button type="button" class="sigapp-scale-preset-btn" data-scale-target="ui" data-scale-value="0.9">90% · Padat</button>
+                                   <button type="button" class="sigapp-scale-preset-btn is-active" data-scale-target="ui" data-scale-value="1" aria-pressed="true">100% · Normal</button>
+                                   <button type="button" class="sigapp-scale-preset-btn" data-scale-target="ui" data-scale-value="1.1">110% · Nyaman</button>
+                               </div>
+                               <div class="sigapp-scale-slider-row">
+                                   <button type="button" class="sigapp-scale-step-btn" id="sigapp-ui-scale-dec" data-scale-target="ui" data-scale-step="-0.05" aria-label="Perkecil skala tata letak">-</button>
+                                   <input type="range" class="sigapp-scale-range" id="sigapp-ui-scale-range" min="0.75" max="1.15" step="0.05" value="1">
+                                   <button type="button" class="sigapp-scale-step-btn" id="sigapp-ui-scale-inc" data-scale-target="ui" data-scale-step="0.05" aria-label="Perbesar skala tata letak">+</button>
+                               </div>
+                               <div class="sigapp-scale-ticks">
+                                   <span>75%</span>
+                                   <span>100%</span>
+                                   <span>115%</span>
+                               </div>
+                           </div>
+
+                           <div class="sigapp-scale-control">
+                               <div class="sigapp-scale-control-head">
+                                   <div>
+                                       <label class="sigapp-scale-label" for="sigapp-font-scale-range">Ukuran Font (Font Scale)</label>
+                                       <span class="sigapp-scale-desc">Mengatur ukuran teks global dan isi sel tabel DataTables</span>
+                                   </div>
+                                   <span class="sigapp-scale-value-pill" id="sigapp-font-scale-badge">100%</span>
+                               </div>
+                               <div class="sigapp-scale-presets" role="group" aria-label="Preset ukuran font">
+                                   <button type="button" class="sigapp-scale-preset-btn" data-scale-target="font" data-scale-value="0.9">90% · Kecil</button>
+                                   <button type="button" class="sigapp-scale-preset-btn is-active" data-scale-target="font" data-scale-value="1" aria-pressed="true">100% · Normal</button>
+                                   <button type="button" class="sigapp-scale-preset-btn" data-scale-target="font" data-scale-value="1.1">110% · Besar</button>
+                                   <button type="button" class="sigapp-scale-preset-btn" data-scale-target="font" data-scale-value="1.2">120% · Sangat Besar</button>
+                               </div>
+                               <div class="sigapp-scale-slider-row">
+                                   <button type="button" class="sigapp-scale-step-btn" id="sigapp-font-scale-dec" data-scale-target="font" data-scale-step="-0.05" aria-label="Perkecil ukuran font">-</button>
+                                   <input type="range" class="sigapp-scale-range" id="sigapp-font-scale-range" min="0.85" max="1.25" step="0.05" value="1">
+                                   <button type="button" class="sigapp-scale-step-btn" id="sigapp-font-scale-inc" data-scale-target="font" data-scale-step="0.05" aria-label="Perbesar ukuran font">+</button>
+                               </div>
+                               <div class="sigapp-scale-ticks">
+                                   <span>85%</span>
+                                   <span>100%</span>
+                                   <span>125%</span>
+                               </div>
+                           </div>
+                       </div>
+                   </div>
+
+                   <div class="card">
+                       <div class="card-body">
+                           <div class="divider divider-left">
+                               <div class="divider-text">Preview Langsung</div>
+                           </div>
+                           <div class="sigapp-scale-preview-box">
+                               <div class="sigapp-scale-preview-row">
+                                   <div>
+                                       <div class="sigapp-scale-preview-title">Contoh Kartu Data Kavling</div>
+                                       <div class="sigapp-scale-preview-meta">Perubahan diterapkan langsung ke halaman &amp; tersimpan otomatis di browser ini.</div>
+                                   </div>
+                                   <span class="sigapp-scale-preview-badge">Aktif</span>
+                               </div>
+                               <div class="sigapp-scale-preview-controls">
+                                   <span class="sigapp-scale-preview-label">Unit</span>
+                                   <input type="text" class="sigapp-scale-preview-input" value="Blok A-12 · Ready" readonly tabindex="-1" aria-label="Contoh input preview">
+                                   <button type="button" class="sigapp-scale-preview-btn" tabindex="-1">Simpan</button>
+                               </div>
+                           </div>
+                       </div>
+                   </div>
+               </div>
+               <div class="modal-footer">
+                   <button type="button" class="btn btn-outline-secondary" id="sigapp-display-scale-reset">
+                       <i class="mr-50" data-feather="rotate-ccw"></i>Reset Default (100% / 100%)
+                   </button>
+                   <button type="button" class="btn btn-primary" data-dismiss="modal">Selesai</button>
+               </div>
+           </div>
+       </div>
+   </div>
    <!-- BEGIN: Footer-->
    <!-- <footer class="footer footer-static footer-light">
        <p class="clearfix mb-0"><span class="float-md-left d-block d-md-inline-block mt-25">COPYRIGHT &copy; 2021<a class="ml-25" href="https://1.envato.market/pixinvent_portfolio" target="_blank">Pixinvent</a><span class="d-none d-sm-inline-block">, All rights Reserved</span></span><span class="float-md-right d-none d-md-block">Hand-crafted & Made with<i data-feather="heart"></i></span></p>
@@ -56,6 +166,11 @@
    <!-- END: Footer-->
 
    <!-- BEGIN: Page Vendor JS-->
+   <script>
+       if (typeof jQuery === 'undefined') {
+           document.write('<script src="<?= base_url('app-assets/vendors/js/vendors.min.js') ?>"><\/script>');
+       }
+   </script>
    <!-- END: Page Vendor JS-->
 
    <!-- BEGIN: Theme JS-->
@@ -64,6 +179,7 @@
    <script src="<?= base_url() ?>/app-assets/vendors/js/forms/cleave/cleave.min.js"></script>
    <script src="<?= base_url() ?>/assets/js/active-proyek.js?<?= filemtime(FCPATH . 'assets/js/active-proyek.js') ?>"></script>
    <script src="<?= base_url() ?>/assets/js/scripts.js?<?= filemtime(FCPATH . 'assets/js/scripts.js') ?>"></script>
+   <script src="<?= base_url('assets/js/display-scale.js') ?>?v=<?= filemtime(FCPATH . 'assets/js/display-scale.js') ?>"></script>
    <script>
        window.SIGAPP_PWA = {
            serviceWorkerUrl: "<?= base_url('sw.js') ?>",

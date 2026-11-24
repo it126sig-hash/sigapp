@@ -1,0 +1,490 @@
+/* ==========================================================================
+   MODUL: LAPORAN BOOKING & AKAD
+   Scope: .booking-akad-report-page, #booking_akad_detail_modal
+   Standar: SIGAPP UI Acuan (Design Tokens, 3-Tier CSS Architecture)
+   ========================================================================== */
+
+.booking-akad-report-page {
+    --booking-akad-primary: #2057a3;
+    --booking-akad-primary-dark: #163f78;
+    --booking-akad-primary-soft: #edf4ff;
+    --booking-akad-comparison: #1f7a8c;
+    --booking-akad-comparison-soft: #e8f4f5;
+    --booking-akad-border: #e5e7eb;
+    --booking-akad-muted: #6b7280;
+    --booking-akad-bg-subtle: #f3f5f7;
+}
+
+.booking-akad-report-page [hidden] {
+    display: none !important;
+}
+
+/* Card & Header Standar Modul */
+.booking-akad-filter-card,
+.booking-akad-matrix-card,
+.booking-akad-chart-card {
+    border: 1px solid var(--booking-akad-border);
+    border-radius: 8px;
+    box-shadow: none;
+}
+
+/* Divider Section */
+.booking-akad-report-page .divider.divider-left {
+    justify-content: flex-start;
+    margin: 0;
+}
+
+.booking-akad-report-page .divider.divider-left::before {
+    display: none;
+}
+
+.booking-akad-report-page .divider.divider-left::after {
+    background: var(--booking-akad-primary);
+    content: "";
+    flex: 0 0 42px;
+    height: 2px;
+    margin-left: .75rem;
+}
+
+.booking-akad-report-page .divider-text {
+    color: #111827;
+    font-size: 1.1rem;
+    font-weight: 700;
+}
+
+.booking-akad-heading-row {
+    gap: 1rem;
+}
+
+/* Filter Controls */
+.booking-akad-filter-controls,
+.booking-akad-comparison-controls {
+    align-items: flex-end;
+    display: flex;
+    flex-wrap: wrap;
+    gap: .65rem;
+}
+
+.booking-akad-filter-controls label {
+    color: var(--booking-akad-muted);
+    font-size: .75rem;
+    font-weight: 700;
+    margin-bottom: .35rem;
+}
+
+.booking-akad-filter-controls select {
+    min-width: 112px;
+}
+
+.booking-akad-versus {
+    color: var(--booking-akad-muted);
+    font-size: .78rem;
+    font-weight: 700;
+    padding-bottom: .75rem;
+    text-transform: uppercase;
+}
+
+.booking-akad-remove-comparison {
+    min-width: 40px;
+    padding-left: .75rem;
+    padding-right: .75rem;
+}
+
+/* Header Action & Spinner */
+.booking-akad-matrix-card .card-header,
+.booking-akad-chart-card .card-header {
+    align-items: center;
+    border-bottom: 1px solid var(--booking-akad-border);
+    padding: 1rem 1.25rem;
+}
+
+.booking-akad-loading {
+    color: var(--booking-akad-primary);
+    font-size: .8rem;
+    font-weight: 600;
+}
+
+.booking-akad-report-actions {
+    gap: .75rem;
+}
+
+/* Matrix Table Styling */
+.booking-akad-table-wrap,
+.booking-akad-detail-table-wrap {
+    overflow-x: auto;
+}
+
+#booking_akad_matrix {
+    min-width: 1200px;
+}
+
+#booking_akad_matrix.is-comparison {
+    min-width: 2200px;
+}
+
+#booking_akad_matrix th,
+#booking_akad_matrix td {
+    padding: .65rem .75rem;
+    vertical-align: middle;
+    white-space: nowrap;
+}
+
+#booking_akad_matrix thead th {
+    background: #f8fafc;
+    color: #374151;
+    font-size: .75rem;
+    letter-spacing: .01em;
+    text-align: right;
+}
+
+#booking_akad_matrix thead .booking-akad-year-heading {
+    color: #fff;
+    font-size: .9rem;
+    font-weight: 700;
+    letter-spacing: .02em;
+}
+
+#booking_akad_matrix thead .booking-akad-year-heading-a {
+    background: var(--booking-akad-primary);
+}
+
+#booking_akad_matrix thead .booking-akad-year-heading-b {
+    background: var(--booking-akad-comparison);
+}
+
+#booking_akad_matrix thead .booking-akad-year-subheading-a {
+    background: #edf3fb;
+    color: #1f3b64;
+    font-weight: 600;
+}
+
+#booking_akad_matrix thead .booking-akad-year-subheading-b {
+    background: #e8f4f5;
+    color: #164e56;
+    font-weight: 600;
+}
+
+#booking_akad_matrix .booking-akad-month-column,
+#booking_akad_matrix td:first-child {
+    left: 0;
+    position: sticky;
+    text-align: left;
+    z-index: 2;
+}
+
+#booking_akad_matrix .booking-akad-month-column,
+#booking_akad_matrix tfoot td:first-child {
+    background: #eef3f9;
+}
+
+#booking_akad_matrix tbody td:first-child {
+    background: #fff;
+    font-weight: 600;
+}
+
+#booking_akad_matrix tfoot td {
+    background: #f3f6fa;
+    border-top: 2px solid var(--booking-akad-primary);
+    font-weight: 700;
+    text-align: right;
+}
+
+/* Value Buttons (Drilldown) */
+.booking-akad-value-button {
+    background: transparent;
+    border: 0;
+    border-radius: 4px;
+    color: var(--booking-akad-primary);
+    cursor: pointer;
+    display: inline-block;
+    font: inherit;
+    font-weight: 700;
+    padding: .2rem .5rem;
+    text-align: right;
+    text-decoration: underline;
+    text-decoration-color: rgba(32, 87, 163, .3);
+    text-underline-offset: 3px;
+    transition: all .15s ease-in-out;
+}
+
+.booking-akad-value-button:hover,
+.booking-akad-value-button:focus {
+    background: var(--booking-akad-primary-soft);
+    color: var(--booking-akad-primary-dark);
+    outline: none;
+    text-decoration-color: currentColor;
+}
+
+.booking-akad-value-button.is-zero {
+    color: #9ca3af;
+    font-weight: 500;
+    text-decoration: none;
+}
+
+.booking-akad-value-button.is-zero:hover,
+.booking-akad-value-button.is-zero:focus {
+    background: #f3f4f6;
+    color: #4b5563;
+}
+
+/* Rasio Akad Badge */
+.booking-akad-rasio-badge {
+    border-radius: 999px;
+    display: inline-block;
+    font-size: .75rem;
+    font-weight: 700;
+    letter-spacing: .02em;
+    padding: .2rem .55rem;
+    text-align: center;
+}
+
+.booking-akad-rasio-badge.is-positive {
+    background: #ecfdf3;
+    border: 1px solid #bbf7d0;
+    color: #166534;
+}
+
+.booking-akad-rasio-badge.is-zero {
+    background: #f3f4f6;
+    border: 1px solid #e5e7eb;
+    color: #6b7280;
+}
+
+/* Booking Cell with Embedded Conversion Ratio */
+.booking-akad-report-page .booking-cell-wrapper {
+    align-items: flex-end;
+    display: inline-flex;
+    flex-direction: column;
+    gap: .25rem;
+    justify-content: center;
+    min-width: 60px;
+    vertical-align: middle;
+}
+
+.booking-akad-report-page .booking-cell-wrapper.booking-cell-total {
+    padding-right: .5rem;
+}
+
+.booking-akad-report-page .booking-konversi-sub {
+    display: block;
+    line-height: 1;
+}
+
+.booking-akad-report-page .booking-konversi-sub .booking-akad-rasio-badge {
+    font-size: .7rem;
+    padding: .15rem .45rem;
+}
+
+/* Chart Container */
+.booking-akad-chart-body {
+    height: 420px;
+    min-height: 320px;
+    position: relative;
+}
+
+/* Drilldown Modal */
+#booking_akad_detail_modal .modal-dialog {
+    margin: 1rem auto;
+    max-width: min(1200px, calc(100vw - 32px));
+}
+
+#booking_akad_detail_modal .modal-content {
+    border: 1px solid var(--booking-akad-border);
+    border-radius: 10px;
+    box-shadow: none;
+    overflow: hidden;
+}
+
+#booking_akad_detail_modal .modal-header {
+    align-items: center;
+    background: #fff;
+    border-bottom: 1px solid var(--booking-akad-border);
+    padding: 1rem 1.25rem;
+}
+
+#booking_akad_detail_modal .modal-title {
+    color: #111827;
+    font-size: 1.05rem;
+    font-weight: 700;
+}
+
+#booking_akad_detail_modal .modal-body {
+    background: var(--booking-akad-bg-subtle);
+    max-height: calc(100vh - 8rem);
+    overflow-y: auto;
+    padding: 1rem;
+}
+
+#booking_akad_detail_modal .card {
+    border: 1px solid var(--booking-akad-border);
+    border-radius: 8px;
+    box-shadow: none;
+}
+
+#booking_akad_detail_table th,
+#booking_akad_detail_table td {
+    font-size: .82rem;
+    vertical-align: middle;
+}
+
+/* Explicit Text Alignment Classes (R4) */
+#booking_akad_matrix th.text-left,
+#booking_akad_matrix td.text-left,
+#booking_akad_detail_table th.text-left,
+#booking_akad_detail_table td.text-left {
+    text-align: left !important;
+}
+
+#booking_akad_matrix th.text-right,
+#booking_akad_matrix td.text-right,
+#booking_akad_detail_table th.text-right,
+#booking_akad_detail_table td.text-right {
+    text-align: right !important;
+}
+
+#booking_akad_matrix th.text-center,
+#booking_akad_matrix td.text-center,
+#booking_akad_detail_table th.text-center,
+#booking_akad_detail_table td.text-center {
+    text-align: center !important;
+}
+
+.booking-akad-detail-meta {
+    display: flex;
+    flex-direction: column;
+    gap: .2rem;
+}
+
+.booking-akad-detail-meta small {
+    color: var(--booking-akad-muted);
+    font-size: .75rem;
+    line-height: 1.35;
+    white-space: normal;
+}
+
+/* Modal Detail Status Cell & Catatan Keterangan */
+#booking_akad_detail_modal .booking-akad-status-cell {
+    align-items: flex-start;
+    display: flex;
+    flex-direction: column;
+    gap: .3rem;
+}
+
+#booking_akad_detail_modal .booking-akad-status-date {
+    color: var(--booking-akad-muted);
+    font-size: .75rem;
+    line-height: 1.2;
+}
+
+#booking_akad_detail_modal .booking-akad-catatan-text {
+    color: #374151;
+    display: block;
+    font-size: .78rem;
+    line-height: 1.4;
+    max-width: 320px;
+    white-space: normal;
+    word-break: break-word;
+}
+
+/* Semantic Badges for Modal Table (6 Statuses per R1 & R3) */
+.booking-akad-badge-status {
+    border-radius: 999px;
+    display: inline-block;
+    font-size: .72rem;
+    font-weight: 600;
+    padding: .2rem .55rem;
+    text-align: center;
+    width: fit-content;
+}
+
+.booking-akad-badge-booking {
+    background: #eff6ff;
+    border: 1px solid #bfdbfe;
+    color: #1e40af;
+}
+
+.booking-akad-badge-wawancara {
+    background: #fffbeb;
+    border: 1px solid #fde68a;
+    color: #b45309;
+}
+
+.booking-akad-badge-sp3k {
+    background: #edf4ff;
+    border: 1px solid #b9d5fd;
+    color: #2057a3;
+}
+
+.booking-akad-badge-batal {
+    background: #fef2f2;
+    border: 1px solid #fecaca;
+    color: #991b1b;
+}
+
+.booking-akad-badge-akad-indent {
+    background: #f5f3ff;
+    border: 1px solid #ddd6fe;
+    color: #5b21b6;
+}
+
+.booking-akad-badge-akad-ajb,
+.booking-akad-badge-akad {
+    background: #f0fdf4;
+    border: 1px solid #bbf7d0;
+    color: #15803d;
+}
+
+.booking-akad-badge-aktif {
+    background: #edf4ff;
+    border: 1px solid #b9d5fd;
+    color: #2057a3;
+}
+
+/* Mobile Responsiveness */
+@media (max-width: 767.98px) {
+    .booking-akad-filter-controls {
+        align-items: stretch;
+        flex-direction: column;
+        width: 100%;
+    }
+
+    .booking-akad-filter-controls > .btn,
+    .booking-akad-filter-controls > .form-group {
+        width: 100%;
+    }
+
+    .booking-akad-comparison-controls {
+        align-items: flex-end;
+        display: grid;
+        grid-template-columns: auto 1fr auto;
+        width: 100%;
+    }
+
+    .booking-akad-filter-controls select {
+        min-width: 0;
+    }
+
+    .booking-akad-report-actions {
+        margin-top: .75rem;
+        width: 100%;
+    }
+
+    #booking_akad_toggle_chart {
+        margin-left: auto;
+    }
+
+    .booking-akad-chart-body {
+        height: 340px;
+        padding: .75rem;
+    }
+
+    #booking_akad_detail_modal .modal-dialog {
+        margin: .5rem auto;
+        max-width: calc(100vw - 16px);
+    }
+
+    #booking_akad_detail_modal .modal-body {
+        max-height: calc(100vh - 6rem);
+        padding: .65rem;
+    }
+}

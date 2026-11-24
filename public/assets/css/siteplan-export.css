@@ -1,0 +1,398 @@
+/* ==========================================================================
+   MODUL: SITEPLAN EXPORT MODAL & CROP OVERLAY BAR
+   Scope: #modal-export-siteplan, #siteplan-export-crop-bar
+   ========================================================================== */
+
+#modal-export-siteplan .modal-dialog {
+    max-width: min(980px, calc(100vw - 24px));
+    margin: 1rem auto;
+}
+
+#modal-export-siteplan .modal-content {
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+    box-shadow: 0 18px 42px rgba(15, 23, 42, .18);
+    overflow: hidden;
+}
+
+#modal-export-siteplan .modal-header {
+    align-items: center;
+    background: #ffffff;
+    border-bottom: 1px solid #e5e7eb;
+    margin-bottom: 0 !important;
+    padding: .9rem 1.2rem;
+}
+
+#modal-export-siteplan .export-title-wrap {
+    display: flex;
+    align-items: center;
+    gap: .65rem;
+    min-width: 0;
+}
+
+#modal-export-siteplan .export-title-icon {
+    width: 34px;
+    height: 34px;
+    border-radius: .65rem;
+    background: #edf4ff;
+    color: #2057a3;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 auto;
+    font-size: 1rem;
+}
+
+#modal-export-siteplan .modal-title {
+    color: #111827;
+    font-size: 1.05rem;
+    font-weight: 700;
+    margin: 0;
+}
+
+#modal-export-siteplan .export-subtitle {
+    color: #6b7280;
+    font-size: .78rem;
+    margin: .1rem 0 0;
+}
+
+#modal-export-siteplan .modal-body {
+    background: #f3f5f7;
+    max-height: calc(100vh - 10.5rem);
+    overflow-y: auto;
+    padding: 1rem;
+}
+
+#modal-export-siteplan .export-panel-card {
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    padding: .95rem 1rem;
+    height: 100%;
+    box-shadow: none;
+}
+
+#modal-export-siteplan .divider.divider-left {
+    border-left: 4px solid #2057a3;
+    margin: .1rem 0 .75rem;
+    padding-left: .65rem;
+}
+
+#modal-export-siteplan .divider .divider-text {
+    color: #111827;
+    font-size: .86rem;
+    font-weight: 700;
+}
+
+#modal-export-siteplan .export-field-label {
+    color: #6b7280;
+    display: block;
+    font-size: .76rem;
+    font-weight: 700;
+    margin-bottom: .35rem;
+}
+
+#modal-export-siteplan .export-option-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: .5rem;
+}
+
+#modal-export-siteplan .export-option-card {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: .15rem;
+    background: #f9fafb;
+    border: 1px solid #d8dde3;
+    border-radius: 8px;
+    padding: .55rem .65rem;
+    cursor: pointer;
+    margin: 0;
+    transition: border-color .15s ease, background-color .15s ease, box-shadow .15s ease;
+}
+
+#modal-export-siteplan .export-option-card:hover {
+    border-color: #2057a3;
+    background: #f5f9ff;
+}
+
+#modal-export-siteplan .export-option-card input[type="radio"] {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+}
+
+#modal-export-siteplan .export-option-card.is-selected {
+    background: #edf4ff;
+    border-color: #2057a3;
+    box-shadow: 0 0 0 1px #2057a3;
+}
+
+#modal-export-siteplan .export-option-title {
+    color: #111827;
+    font-size: .82rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: .35rem;
+}
+
+#modal-export-siteplan .export-option-card.is-selected .export-option-title {
+    color: #2057a3;
+}
+
+#modal-export-siteplan .export-option-desc {
+    color: #6b7280;
+    font-size: .72rem;
+    line-height: 1.3;
+}
+
+#modal-export-siteplan .export-format-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: .5rem;
+}
+
+#modal-export-siteplan .export-custom-crop-actions {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: .5rem;
+    flex-wrap: wrap;
+    background: #edf4ff;
+    border: 1px solid #c7daf7;
+    border-radius: 8px;
+    padding: .55rem .7rem;
+    margin-top: .55rem;
+}
+
+#modal-export-siteplan .export-custom-crop-status {
+    color: #163f78;
+    font-size: .76rem;
+    font-weight: 600;
+}
+
+#modal-export-siteplan .export-preview-stage {
+    background: #f8fafc;
+    border: 1px dashed #cbd5e1;
+    border-radius: 8px;
+    min-height: 240px;
+    max-height: 330px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: .65rem;
+    overflow: hidden;
+    position: relative;
+}
+
+#modal-export-siteplan .export-preview-img {
+    max-width: 100%;
+    max-height: 300px;
+    width: auto;
+    height: auto;
+    border-radius: 4px;
+    box-shadow: 0 6px 18px rgba(15, 23, 42, .12);
+    background: #ffffff;
+}
+
+#modal-export-siteplan .export-preview-empty {
+    color: #6b7280;
+    font-size: .82rem;
+    text-align: center;
+}
+
+#modal-export-siteplan .export-meta-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: .5rem;
+    margin-top: .75rem;
+}
+
+#modal-export-siteplan .export-meta-box {
+    background: #f9fafb;
+    border: 1px solid #edf0f2;
+    border-radius: 6px;
+    padding: .45rem .6rem;
+}
+
+#modal-export-siteplan .export-meta-label {
+    color: #6b7280;
+    font-size: .72rem;
+    font-weight: 700;
+    display: block;
+}
+
+#modal-export-siteplan .export-meta-val {
+    color: #111827;
+    font-size: .82rem;
+    font-weight: 700;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+
+#modal-export-siteplan .export-hint-note {
+    background: #f8fafc;
+    border: 1px solid #e5e7eb;
+    border-radius: 6px;
+    color: #4b5563;
+    font-size: .74rem;
+    line-height: 1.4;
+    margin-top: .7rem;
+    padding: .5rem .65rem;
+}
+
+#modal-export-siteplan .modal-footer {
+    background: #ffffff;
+    border-top: 1px solid #e5e7eb;
+    padding: .85rem 1.2rem;
+}
+
+#modal-export-siteplan .btn-primary {
+    background: #2057a3;
+    border-color: #2057a3;
+}
+
+#modal-export-siteplan .btn-primary:hover,
+#modal-export-siteplan .btn-primary:focus {
+    background: #163f78;
+    border-color: #163f78;
+}
+
+/* Floating Crop Toolbar above canvas */
+#siteplan-export-crop-bar[hidden] {
+    display: none !important;
+}
+
+#siteplan-export-crop-bar {
+    position: absolute;
+    top: 12px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 1041;
+    background: rgba(255, 255, 255, .97);
+    border: 1px solid #c7daf7;
+    border-top: 3px solid #2057a3;
+    border-radius: 10px;
+    box-shadow: 0 12px 28px rgba(15, 23, 42, .18);
+    padding: .55rem .8rem;
+    display: flex;
+    align-items: center;
+    gap: .75rem;
+    flex-wrap: wrap;
+    max-width: calc(100% - 24px);
+}
+
+#siteplan-export-crop-bar .export-crop-bar-info {
+    display: flex;
+    align-items: center;
+    gap: .5rem;
+    min-width: 0;
+}
+
+#siteplan-export-crop-bar .export-crop-bar-badge {
+    background: #edf4ff;
+    border: 1px solid #c7daf7;
+    border-radius: 6px;
+    color: #2057a3;
+    font-size: .74rem;
+    font-weight: 700;
+    padding: .2rem .45rem;
+    white-space: nowrap;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+
+#siteplan-export-crop-bar .export-crop-bar-hint {
+    color: #374151;
+    font-size: .76rem;
+    font-weight: 600;
+}
+
+#siteplan-export-crop-bar .export-crop-bar-actions {
+    display: flex;
+    align-items: center;
+    gap: .4rem;
+    margin-left: auto;
+}
+
+@media (max-width: 767.98px) {
+    #modal-export-siteplan .modal-dialog {
+        max-width: calc(100vw - 12px);
+        margin: .5rem auto;
+    }
+
+    #modal-export-siteplan .modal-body {
+        max-height: calc(100vh - 8.5rem);
+        padding: .75rem;
+    }
+
+    #modal-export-siteplan .export-option-grid {
+        grid-template-columns: 1fr;
+    }
+
+    #siteplan-export-crop-bar {
+        top: 8px;
+        width: calc(100% - 16px);
+        padding: .5rem .65rem;
+        gap: .45rem;
+    }
+
+    #siteplan-export-crop-bar .export-crop-bar-actions {
+        width: 100%;
+        justify-content: flex-end;
+    }
+}
+
+/* Dark Layout Support */
+.dark-layout #modal-export-siteplan .modal-content,
+.dark-layout #modal-export-siteplan .modal-header,
+.dark-layout #modal-export-siteplan .modal-footer,
+.dark-layout #modal-export-siteplan .export-panel-card {
+    background: #283046;
+    border-color: rgba(255, 255, 255, .08);
+}
+
+.dark-layout #modal-export-siteplan .modal-body {
+    background: #161d31;
+}
+
+.dark-layout #modal-export-siteplan .modal-title,
+.dark-layout #modal-export-siteplan .divider .divider-text,
+.dark-layout #modal-export-siteplan .export-option-title,
+.dark-layout #modal-export-siteplan .export-meta-val {
+    color: #f3f4f6;
+}
+
+.dark-layout #modal-export-siteplan .export-subtitle,
+.dark-layout #modal-export-siteplan .export-field-label,
+.dark-layout #modal-export-siteplan .export-option-desc,
+.dark-layout #modal-export-siteplan .export-meta-label,
+.dark-layout #modal-export-siteplan .export-hint-note {
+    color: #b4b7bd;
+}
+
+.dark-layout #modal-export-siteplan .export-option-card,
+.dark-layout #modal-export-siteplan .export-meta-box,
+.dark-layout #modal-export-siteplan .export-preview-stage,
+.dark-layout #modal-export-siteplan .export-hint-note {
+    background: #1e2538;
+    border-color: rgba(255, 255, 255, .08);
+}
+
+.dark-layout #modal-export-siteplan .export-option-card.is-selected {
+    background: rgba(32, 87, 163, .28);
+    border-color: #4c86d4;
+}
+
+.dark-layout #modal-export-siteplan .export-option-card.is-selected .export-option-title {
+    color: #93c5fd;
+}
+
+.dark-layout #siteplan-export-crop-bar {
+    background: rgba(40, 48, 70, .96);
+    border-color: rgba(255, 255, 255, .12);
+}
+
+.dark-layout #siteplan-export-crop-bar .export-crop-bar-hint {
+    color: #e5e7eb;
+}

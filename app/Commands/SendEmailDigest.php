@@ -4,7 +4,7 @@ namespace App\Commands;
 
 use CodeIgniter\CLI\BaseCommand;
 use CodeIgniter\CLI\CLI;
-use App\Services\EmailDigestService;
+use App\Services\Notifikasi\EmailDigestService;
 
 class SendEmailDigest extends BaseCommand
 {

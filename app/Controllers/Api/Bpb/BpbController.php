@@ -18,7 +18,8 @@ class BpbController extends BaseApiController
     public function list()
     {
         try {
-            $result = $this->service->list($this->request->getPost(), (int) user_id());
+            $input = array_merge($this->request->getGet() ?? [], $this->payload() ?: $this->request->getPost() ?: []);
+            $result = $this->service->list($input, (int) user_id());
             $result['token'] = csrf_hash();
             return $this->respond($result);
         } catch (\Throwable $e) {
@@ -34,6 +35,11 @@ class BpbController extends BaseApiController
     public function detail(int $id)
     {
         return $this->run(fn() => $this->service->detail($id, (int) user_id()));
+    }
+
+    public function shared(string $token)
+    {
+        return $this->run(fn() => $this->service->detailByToken($token, (int) user_id()));
     }
 
     public function draft()

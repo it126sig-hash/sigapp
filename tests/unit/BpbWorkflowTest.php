@@ -16,11 +16,23 @@ final class BpbWorkflowTest extends CIUnitTestCase
 
     public function testOperationalTransitionsAreForwardOnly(): void
     {
-        $this->assertTrue(BpbWorkflow::canOperationalTransition(BpbWorkflow::APPROVED, BpbWorkflow::PROCESSED));
+        $this->assertTrue(BpbWorkflow::canOperationalTransition(BpbWorkflow::APPROVED, BpbWorkflow::DISBURSED));
+        $this->assertTrue(BpbWorkflow::canOperationalTransition(BpbWorkflow::PROCESSED, BpbWorkflow::DISBURSED));
         $this->assertTrue(BpbWorkflow::canOperationalTransition(BpbWorkflow::DISBURSED, BpbWorkflow::PENDING));
+        $this->assertTrue(BpbWorkflow::canOperationalTransition(BpbWorkflow::DISBURSED, BpbWorkflow::PURCHASED));
         $this->assertTrue(BpbWorkflow::canOperationalTransition(BpbWorkflow::PENDING, BpbWorkflow::PURCHASED));
+        $this->assertFalse(BpbWorkflow::canOperationalTransition(BpbWorkflow::APPROVED, BpbWorkflow::PROCESSED));
         $this->assertFalse(BpbWorkflow::canOperationalTransition(BpbWorkflow::PENDING, BpbWorkflow::DISBURSED));
         $this->assertFalse(BpbWorkflow::canOperationalTransition(BpbWorkflow::PURCHASED, BpbWorkflow::PENDING));
+    }
+
+    public function testWorkflowLabels(): void
+    {
+        $labels = BpbWorkflow::labels();
+        $this->assertSame('Diajukan - Menunggu ACC', $labels[BpbWorkflow::WAITING_APPROVER]);
+        $this->assertSame('Disetujui (ACC)', $labels[BpbWorkflow::APPROVED]);
+        $this->assertSame('Sudah Cair', $labels[BpbWorkflow::DISBURSED]);
+        $this->assertSame('Pengeluaran Terverifikasi', $labels[BpbWorkflow::PURCHASED]);
     }
 
     public function testRejectedCancelledAndPurchasedAreTerminal(): void

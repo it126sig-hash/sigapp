@@ -1,0 +1,1402 @@
+/* ==========================================================================
+   GLOBAL: DISPLAY & FONT SCALE SYSTEM
+   Independen UI Scale (--sigapp-ui-scale) vs Font Scale (--sigapp-font-scale)
+   --sigapp-space-ratio = uiScale / fontScale (disinkronkan via JS anti-FOUC & controller)
+   Modal Scope: #sigapp-display-scale-modal
+   ========================================================================== */
+
+:root {
+    --sigapp-ui-scale: 1;
+    --sigapp-font-scale: 1;
+    --sigapp-space-ratio: 1;
+}
+
+/* Base root font-size (default 80% * 1 = 80%) */
+html {
+    font-size: calc(80% * var(--sigapp-font-scale, 1));
+}
+
+/* DataTables fixed-px font scaling when custom scale active */
+html[data-sigapp-custom-scale="1"] table.dataTable,
+html[data-sigapp-custom-scale="1"] table.dataTable th,
+html[data-sigapp-custom-scale="1"] table.dataTable td,
+html[data-sigapp-custom-scale="1"] table.dataTable tr {
+    font-size: calc(10px * var(--sigapp-font-scale, 1)) !important;
+}
+
+/* ==========================================================================
+   1. BOOTSTRAP 4 & VUEXY SPACING UTILITIES (aktif hanya saat custom scale)
+   ========================================================================== */
+
+/* Base spacing utilities */
+html[data-sigapp-custom-scale="1"] .m-0 { margin: 0 !important; }
+html[data-sigapp-custom-scale="1"] .mt-0,
+html[data-sigapp-custom-scale="1"] .my-0 { margin-top: 0 !important; }
+html[data-sigapp-custom-scale="1"] .mr-0,
+html[data-sigapp-custom-scale="1"] .mx-0 { margin-right: 0 !important; }
+html[data-sigapp-custom-scale="1"] .mb-0,
+html[data-sigapp-custom-scale="1"] .my-0 { margin-bottom: 0 !important; }
+html[data-sigapp-custom-scale="1"] .ml-0,
+html[data-sigapp-custom-scale="1"] .mx-0 { margin-left: 0 !important; }
+
+html[data-sigapp-custom-scale="1"] .m-25 { margin: calc(0.25rem * var(--sigapp-space-ratio, 1)) !important; }
+html[data-sigapp-custom-scale="1"] .mt-25,
+html[data-sigapp-custom-scale="1"] .my-25 { margin-top: calc(0.25rem * var(--sigapp-space-ratio, 1)) !important; }
+html[data-sigapp-custom-scale="1"] .mr-25,
+html[data-sigapp-custom-scale="1"] .mx-25 { margin-right: calc(0.25rem * var(--sigapp-space-ratio, 1)) !important; }
+html[data-sigapp-custom-scale="1"] .mb-25,
+html[data-sigapp-custom-scale="1"] .my-25 { margin-bottom: calc(0.25rem * var(--sigapp-space-ratio, 1)) !important; }
+html[data-sigapp-custom-scale="1"] .ml-25,
+html[data-sigapp-custom-scale="1"] .mx-25 { margin-left: calc(0.25rem * var(--sigapp-space-ratio, 1)) !important; }
+
+html[data-sigapp-custom-scale="1"] .m-50 { margin: calc(0.5rem * var(--sigapp-space-ratio, 1)) !important; }
+html[data-sigapp-custom-scale="1"] .mt-50,
+html[data-sigapp-custom-scale="1"] .my-50 { margin-top: calc(0.5rem * var(--sigapp-space-ratio, 1)) !important; }
+html[data-sigapp-custom-scale="1"] .mr-50,
+html[data-sigapp-custom-scale="1"] .mx-50 { margin-right: calc(0.5rem * var(--sigapp-space-ratio, 1)) !important; }
+html[data-sigapp-custom-scale="1"] .mb-50,
+html[data-sigapp-custom-scale="1"] .my-50 { margin-bottom: calc(0.5rem * var(--sigapp-space-ratio, 1)) !important; }
+html[data-sigapp-custom-scale="1"] .ml-50,
+html[data-sigapp-custom-scale="1"] .mx-50 { margin-left: calc(0.5rem * var(--sigapp-space-ratio, 1)) !important; }
+
+html[data-sigapp-custom-scale="1"] .m-75 { margin: calc(0.75rem * var(--sigapp-space-ratio, 1)) !important; }
+html[data-sigapp-custom-scale="1"] .mt-75,
+html[data-sigapp-custom-scale="1"] .my-75 { margin-top: calc(0.75rem * var(--sigapp-space-ratio, 1)) !important; }
+html[data-sigapp-custom-scale="1"] .mr-75,
+html[data-sigapp-custom-scale="1"] .mx-75 { margin-right: calc(0.75rem * var(--sigapp-space-ratio, 1)) !important; }
+html[data-sigapp-custom-scale="1"] .mb-75,
+html[data-sigapp-custom-scale="1"] .my-75 { margin-bottom: calc(0.75rem * var(--sigapp-space-ratio, 1)) !important; }
+html[data-sigapp-custom-scale="1"] .ml-75,
+html[data-sigapp-custom-scale="1"] .mx-75 { margin-left: calc(0.75rem * var(--sigapp-space-ratio, 1)) !important; }
+
+html[data-sigapp-custom-scale="1"] .m-1 { margin: calc(1rem * var(--sigapp-space-ratio, 1)) !important; }
+html[data-sigapp-custom-scale="1"] .mt-1,
+html[data-sigapp-custom-scale="1"] .my-1 { margin-top: calc(1rem * var(--sigapp-space-ratio, 1)) !important; }
+html[data-sigapp-custom-scale="1"] .mr-1,
+html[data-sigapp-custom-scale="1"] .mx-1 { margin-right: calc(1rem * var(--sigapp-space-ratio, 1)) !important; }
+html[data-sigapp-custom-scale="1"] .mb-1,
+html[data-sigapp-custom-scale="1"] .my-1 { margin-bottom: calc(1rem * var(--sigapp-space-ratio, 1)) !important; }
+html[data-sigapp-custom-scale="1"] .ml-1,
+html[data-sigapp-custom-scale="1"] .mx-1 { margin-left: calc(1rem * var(--sigapp-space-ratio, 1)) !important; }
+
+html[data-sigapp-custom-scale="1"] .m-2 { margin: calc(1.5rem * var(--sigapp-space-ratio, 1)) !important; }
+html[data-sigapp-custom-scale="1"] .mt-2,
+html[data-sigapp-custom-scale="1"] .my-2 { margin-top: calc(1.5rem * var(--sigapp-space-ratio, 1)) !important; }
+html[data-sigapp-custom-scale="1"] .mr-2,
+html[data-sigapp-custom-scale="1"] .mx-2 { margin-right: calc(1.5rem * var(--sigapp-space-ratio, 1)) !important; }
+html[data-sigapp-custom-scale="1"] .mb-2,
+html[data-sigapp-custom-scale="1"] .my-2 { margin-bottom: calc(1.5rem * var(--sigapp-space-ratio, 1)) !important; }
+html[data-sigapp-custom-scale="1"] .ml-2,
+html[data-sigapp-custom-scale="1"] .mx-2 { margin-left: calc(1.5rem * var(--sigapp-space-ratio, 1)) !important; }
+
+html[data-sigapp-custom-scale="1"] .m-3 { margin: calc(3rem * var(--sigapp-space-ratio, 1)) !important; }
+html[data-sigapp-custom-scale="1"] .mt-3,
+html[data-sigapp-custom-scale="1"] .my-3 { margin-top: calc(3rem * var(--sigapp-space-ratio, 1)) !important; }
+html[data-sigapp-custom-scale="1"] .mr-3,
+html[data-sigapp-custom-scale="1"] .mx-3 { margin-right: calc(3rem * var(--sigapp-space-ratio, 1)) !important; }
+html[data-sigapp-custom-scale="1"] .mb-3,
+html[data-sigapp-custom-scale="1"] .my-3 { margin-bottom: calc(3rem * var(--sigapp-space-ratio, 1)) !important; }
+html[data-sigapp-custom-scale="1"] .ml-3,
+html[data-sigapp-custom-scale="1"] .mx-3 { margin-left: calc(3rem * var(--sigapp-space-ratio, 1)) !important; }
+
+html[data-sigapp-custom-scale="1"] .m-4 { margin: calc(3.5rem * var(--sigapp-space-ratio, 1)) !important; }
+html[data-sigapp-custom-scale="1"] .mt-4,
+html[data-sigapp-custom-scale="1"] .my-4 { margin-top: calc(3.5rem * var(--sigapp-space-ratio, 1)) !important; }
+html[data-sigapp-custom-scale="1"] .mr-4,
+html[data-sigapp-custom-scale="1"] .mx-4 { margin-right: calc(3.5rem * var(--sigapp-space-ratio, 1)) !important; }
+html[data-sigapp-custom-scale="1"] .mb-4,
+html[data-sigapp-custom-scale="1"] .my-4 { margin-bottom: calc(3.5rem * var(--sigapp-space-ratio, 1)) !important; }
+html[data-sigapp-custom-scale="1"] .ml-4,
+html[data-sigapp-custom-scale="1"] .mx-4 { margin-left: calc(3.5rem * var(--sigapp-space-ratio, 1)) !important; }
+
+html[data-sigapp-custom-scale="1"] .m-5 { margin: calc(4rem * var(--sigapp-space-ratio, 1)) !important; }
+html[data-sigapp-custom-scale="1"] .mt-5,
+html[data-sigapp-custom-scale="1"] .my-5 { margin-top: calc(4rem * var(--sigapp-space-ratio, 1)) !important; }
+html[data-sigapp-custom-scale="1"] .mr-5,
+html[data-sigapp-custom-scale="1"] .mx-5 { margin-right: calc(4rem * var(--sigapp-space-ratio, 1)) !important; }
+html[data-sigapp-custom-scale="1"] .mb-5,
+html[data-sigapp-custom-scale="1"] .my-5 { margin-bottom: calc(4rem * var(--sigapp-space-ratio, 1)) !important; }
+html[data-sigapp-custom-scale="1"] .ml-5,
+html[data-sigapp-custom-scale="1"] .mx-5 { margin-left: calc(4rem * var(--sigapp-space-ratio, 1)) !important; }
+
+html[data-sigapp-custom-scale="1"] .m-n25 { margin: calc(-0.25rem * var(--sigapp-space-ratio, 1)) !important; }
+html[data-sigapp-custom-scale="1"] .mt-n25,
+html[data-sigapp-custom-scale="1"] .my-n25 { margin-top: calc(-0.25rem * var(--sigapp-space-ratio, 1)) !important; }
+html[data-sigapp-custom-scale="1"] .mr-n25,
+html[data-sigapp-custom-scale="1"] .mx-n25 { margin-right: calc(-0.25rem * var(--sigapp-space-ratio, 1)) !important; }
+html[data-sigapp-custom-scale="1"] .mb-n25,
+html[data-sigapp-custom-scale="1"] .my-n25 { margin-bottom: calc(-0.25rem * var(--sigapp-space-ratio, 1)) !important; }
+html[data-sigapp-custom-scale="1"] .ml-n25,
+html[data-sigapp-custom-scale="1"] .mx-n25 { margin-left: calc(-0.25rem * var(--sigapp-space-ratio, 1)) !important; }
+
+html[data-sigapp-custom-scale="1"] .m-n50 { margin: calc(-0.5rem * var(--sigapp-space-ratio, 1)) !important; }
+html[data-sigapp-custom-scale="1"] .mt-n50,
+html[data-sigapp-custom-scale="1"] .my-n50 { margin-top: calc(-0.5rem * var(--sigapp-space-ratio, 1)) !important; }
+html[data-sigapp-custom-scale="1"] .mr-n50,
+html[data-sigapp-custom-scale="1"] .mx-n50 { margin-right: calc(-0.5rem * var(--sigapp-space-ratio, 1)) !important; }
+html[data-sigapp-custom-scale="1"] .mb-n50,
+html[data-sigapp-custom-scale="1"] .my-n50 { margin-bottom: calc(-0.5rem * var(--sigapp-space-ratio, 1)) !important; }
+html[data-sigapp-custom-scale="1"] .ml-n50,
+html[data-sigapp-custom-scale="1"] .mx-n50 { margin-left: calc(-0.5rem * var(--sigapp-space-ratio, 1)) !important; }
+
+html[data-sigapp-custom-scale="1"] .m-n75 { margin: calc(-0.75rem * var(--sigapp-space-ratio, 1)) !important; }
+html[data-sigapp-custom-scale="1"] .mt-n75,
+html[data-sigapp-custom-scale="1"] .my-n75 { margin-top: calc(-0.75rem * var(--sigapp-space-ratio, 1)) !important; }
+html[data-sigapp-custom-scale="1"] .mr-n75,
+html[data-sigapp-custom-scale="1"] .mx-n75 { margin-right: calc(-0.75rem * var(--sigapp-space-ratio, 1)) !important; }
+html[data-sigapp-custom-scale="1"] .mb-n75,
+html[data-sigapp-custom-scale="1"] .my-n75 { margin-bottom: calc(-0.75rem * var(--sigapp-space-ratio, 1)) !important; }
+html[data-sigapp-custom-scale="1"] .ml-n75,
+html[data-sigapp-custom-scale="1"] .mx-n75 { margin-left: calc(-0.75rem * var(--sigapp-space-ratio, 1)) !important; }
+
+html[data-sigapp-custom-scale="1"] .m-n1 { margin: calc(-1rem * var(--sigapp-space-ratio, 1)) !important; }
+html[data-sigapp-custom-scale="1"] .mt-n1,
+html[data-sigapp-custom-scale="1"] .my-n1 { margin-top: calc(-1rem * var(--sigapp-space-ratio, 1)) !important; }
+html[data-sigapp-custom-scale="1"] .mr-n1,
+html[data-sigapp-custom-scale="1"] .mx-n1 { margin-right: calc(-1rem * var(--sigapp-space-ratio, 1)) !important; }
+html[data-sigapp-custom-scale="1"] .mb-n1,
+html[data-sigapp-custom-scale="1"] .my-n1 { margin-bottom: calc(-1rem * var(--sigapp-space-ratio, 1)) !important; }
+html[data-sigapp-custom-scale="1"] .ml-n1,
+html[data-sigapp-custom-scale="1"] .mx-n1 { margin-left: calc(-1rem * var(--sigapp-space-ratio, 1)) !important; }
+
+html[data-sigapp-custom-scale="1"] .m-n2 { margin: calc(-1.5rem * var(--sigapp-space-ratio, 1)) !important; }
+html[data-sigapp-custom-scale="1"] .mt-n2,
+html[data-sigapp-custom-scale="1"] .my-n2 { margin-top: calc(-1.5rem * var(--sigapp-space-ratio, 1)) !important; }
+html[data-sigapp-custom-scale="1"] .mr-n2,
+html[data-sigapp-custom-scale="1"] .mx-n2 { margin-right: calc(-1.5rem * var(--sigapp-space-ratio, 1)) !important; }
+html[data-sigapp-custom-scale="1"] .mb-n2,
+html[data-sigapp-custom-scale="1"] .my-n2 { margin-bottom: calc(-1.5rem * var(--sigapp-space-ratio, 1)) !important; }
+html[data-sigapp-custom-scale="1"] .ml-n2,
+html[data-sigapp-custom-scale="1"] .mx-n2 { margin-left: calc(-1.5rem * var(--sigapp-space-ratio, 1)) !important; }
+
+html[data-sigapp-custom-scale="1"] .m-n3 { margin: calc(-3rem * var(--sigapp-space-ratio, 1)) !important; }
+html[data-sigapp-custom-scale="1"] .mt-n3,
+html[data-sigapp-custom-scale="1"] .my-n3 { margin-top: calc(-3rem * var(--sigapp-space-ratio, 1)) !important; }
+html[data-sigapp-custom-scale="1"] .mr-n3,
+html[data-sigapp-custom-scale="1"] .mx-n3 { margin-right: calc(-3rem * var(--sigapp-space-ratio, 1)) !important; }
+html[data-sigapp-custom-scale="1"] .mb-n3,
+html[data-sigapp-custom-scale="1"] .my-n3 { margin-bottom: calc(-3rem * var(--sigapp-space-ratio, 1)) !important; }
+html[data-sigapp-custom-scale="1"] .ml-n3,
+html[data-sigapp-custom-scale="1"] .mx-n3 { margin-left: calc(-3rem * var(--sigapp-space-ratio, 1)) !important; }
+
+html[data-sigapp-custom-scale="1"] .m-n4 { margin: calc(-3.5rem * var(--sigapp-space-ratio, 1)) !important; }
+html[data-sigapp-custom-scale="1"] .mt-n4,
+html[data-sigapp-custom-scale="1"] .my-n4 { margin-top: calc(-3.5rem * var(--sigapp-space-ratio, 1)) !important; }
+html[data-sigapp-custom-scale="1"] .mr-n4,
+html[data-sigapp-custom-scale="1"] .mx-n4 { margin-right: calc(-3.5rem * var(--sigapp-space-ratio, 1)) !important; }
+html[data-sigapp-custom-scale="1"] .mb-n4,
+html[data-sigapp-custom-scale="1"] .my-n4 { margin-bottom: calc(-3.5rem * var(--sigapp-space-ratio, 1)) !important; }
+html[data-sigapp-custom-scale="1"] .ml-n4,
+html[data-sigapp-custom-scale="1"] .mx-n4 { margin-left: calc(-3.5rem * var(--sigapp-space-ratio, 1)) !important; }
+
+html[data-sigapp-custom-scale="1"] .m-n5 { margin: calc(-4rem * var(--sigapp-space-ratio, 1)) !important; }
+html[data-sigapp-custom-scale="1"] .mt-n5,
+html[data-sigapp-custom-scale="1"] .my-n5 { margin-top: calc(-4rem * var(--sigapp-space-ratio, 1)) !important; }
+html[data-sigapp-custom-scale="1"] .mr-n5,
+html[data-sigapp-custom-scale="1"] .mx-n5 { margin-right: calc(-4rem * var(--sigapp-space-ratio, 1)) !important; }
+html[data-sigapp-custom-scale="1"] .mb-n5,
+html[data-sigapp-custom-scale="1"] .my-n5 { margin-bottom: calc(-4rem * var(--sigapp-space-ratio, 1)) !important; }
+html[data-sigapp-custom-scale="1"] .ml-n5,
+html[data-sigapp-custom-scale="1"] .mx-n5 { margin-left: calc(-4rem * var(--sigapp-space-ratio, 1)) !important; }
+
+html[data-sigapp-custom-scale="1"] .p-0 { padding: 0 !important; }
+html[data-sigapp-custom-scale="1"] .pt-0,
+html[data-sigapp-custom-scale="1"] .py-0 { padding-top: 0 !important; }
+html[data-sigapp-custom-scale="1"] .pr-0,
+html[data-sigapp-custom-scale="1"] .px-0 { padding-right: 0 !important; }
+html[data-sigapp-custom-scale="1"] .pb-0,
+html[data-sigapp-custom-scale="1"] .py-0 { padding-bottom: 0 !important; }
+html[data-sigapp-custom-scale="1"] .pl-0,
+html[data-sigapp-custom-scale="1"] .px-0 { padding-left: 0 !important; }
+
+html[data-sigapp-custom-scale="1"] .p-25 { padding: calc(0.25rem * var(--sigapp-space-ratio, 1)) !important; }
+html[data-sigapp-custom-scale="1"] .pt-25,
+html[data-sigapp-custom-scale="1"] .py-25 { padding-top: calc(0.25rem * var(--sigapp-space-ratio, 1)) !important; }
+html[data-sigapp-custom-scale="1"] .pr-25,
+html[data-sigapp-custom-scale="1"] .px-25 { padding-right: calc(0.25rem * var(--sigapp-space-ratio, 1)) !important; }
+html[data-sigapp-custom-scale="1"] .pb-25,
+html[data-sigapp-custom-scale="1"] .py-25 { padding-bottom: calc(0.25rem * var(--sigapp-space-ratio, 1)) !important; }
+html[data-sigapp-custom-scale="1"] .pl-25,
+html[data-sigapp-custom-scale="1"] .px-25 { padding-left: calc(0.25rem * var(--sigapp-space-ratio, 1)) !important; }
+
+html[data-sigapp-custom-scale="1"] .p-50 { padding: calc(0.5rem * var(--sigapp-space-ratio, 1)) !important; }
+html[data-sigapp-custom-scale="1"] .pt-50,
+html[data-sigapp-custom-scale="1"] .py-50 { padding-top: calc(0.5rem * var(--sigapp-space-ratio, 1)) !important; }
+html[data-sigapp-custom-scale="1"] .pr-50,
+html[data-sigapp-custom-scale="1"] .px-50 { padding-right: calc(0.5rem * var(--sigapp-space-ratio, 1)) !important; }
+html[data-sigapp-custom-scale="1"] .pb-50,
+html[data-sigapp-custom-scale="1"] .py-50 { padding-bottom: calc(0.5rem * var(--sigapp-space-ratio, 1)) !important; }
+html[data-sigapp-custom-scale="1"] .pl-50,
+html[data-sigapp-custom-scale="1"] .px-50 { padding-left: calc(0.5rem * var(--sigapp-space-ratio, 1)) !important; }
+
+html[data-sigapp-custom-scale="1"] .p-75 { padding: calc(0.75rem * var(--sigapp-space-ratio, 1)) !important; }
+html[data-sigapp-custom-scale="1"] .pt-75,
+html[data-sigapp-custom-scale="1"] .py-75 { padding-top: calc(0.75rem * var(--sigapp-space-ratio, 1)) !important; }
+html[data-sigapp-custom-scale="1"] .pr-75,
+html[data-sigapp-custom-scale="1"] .px-75 { padding-right: calc(0.75rem * var(--sigapp-space-ratio, 1)) !important; }
+html[data-sigapp-custom-scale="1"] .pb-75,
+html[data-sigapp-custom-scale="1"] .py-75 { padding-bottom: calc(0.75rem * var(--sigapp-space-ratio, 1)) !important; }
+html[data-sigapp-custom-scale="1"] .pl-75,
+html[data-sigapp-custom-scale="1"] .px-75 { padding-left: calc(0.75rem * var(--sigapp-space-ratio, 1)) !important; }
+
+html[data-sigapp-custom-scale="1"] .p-1 { padding: calc(1rem * var(--sigapp-space-ratio, 1)) !important; }
+html[data-sigapp-custom-scale="1"] .pt-1,
+html[data-sigapp-custom-scale="1"] .py-1 { padding-top: calc(1rem * var(--sigapp-space-ratio, 1)) !important; }
+html[data-sigapp-custom-scale="1"] .pr-1,
+html[data-sigapp-custom-scale="1"] .px-1 { padding-right: calc(1rem * var(--sigapp-space-ratio, 1)) !important; }
+html[data-sigapp-custom-scale="1"] .pb-1,
+html[data-sigapp-custom-scale="1"] .py-1 { padding-bottom: calc(1rem * var(--sigapp-space-ratio, 1)) !important; }
+html[data-sigapp-custom-scale="1"] .pl-1,
+html[data-sigapp-custom-scale="1"] .px-1 { padding-left: calc(1rem * var(--sigapp-space-ratio, 1)) !important; }
+
+html[data-sigapp-custom-scale="1"] .p-2 { padding: calc(1.5rem * var(--sigapp-space-ratio, 1)) !important; }
+html[data-sigapp-custom-scale="1"] .pt-2,
+html[data-sigapp-custom-scale="1"] .py-2 { padding-top: calc(1.5rem * var(--sigapp-space-ratio, 1)) !important; }
+html[data-sigapp-custom-scale="1"] .pr-2,
+html[data-sigapp-custom-scale="1"] .px-2 { padding-right: calc(1.5rem * var(--sigapp-space-ratio, 1)) !important; }
+html[data-sigapp-custom-scale="1"] .pb-2,
+html[data-sigapp-custom-scale="1"] .py-2 { padding-bottom: calc(1.5rem * var(--sigapp-space-ratio, 1)) !important; }
+html[data-sigapp-custom-scale="1"] .pl-2,
+html[data-sigapp-custom-scale="1"] .px-2 { padding-left: calc(1.5rem * var(--sigapp-space-ratio, 1)) !important; }
+
+html[data-sigapp-custom-scale="1"] .p-3 { padding: calc(3rem * var(--sigapp-space-ratio, 1)) !important; }
+html[data-sigapp-custom-scale="1"] .pt-3,
+html[data-sigapp-custom-scale="1"] .py-3 { padding-top: calc(3rem * var(--sigapp-space-ratio, 1)) !important; }
+html[data-sigapp-custom-scale="1"] .pr-3,
+html[data-sigapp-custom-scale="1"] .px-3 { padding-right: calc(3rem * var(--sigapp-space-ratio, 1)) !important; }
+html[data-sigapp-custom-scale="1"] .pb-3,
+html[data-sigapp-custom-scale="1"] .py-3 { padding-bottom: calc(3rem * var(--sigapp-space-ratio, 1)) !important; }
+html[data-sigapp-custom-scale="1"] .pl-3,
+html[data-sigapp-custom-scale="1"] .px-3 { padding-left: calc(3rem * var(--sigapp-space-ratio, 1)) !important; }
+
+html[data-sigapp-custom-scale="1"] .p-4 { padding: calc(3.5rem * var(--sigapp-space-ratio, 1)) !important; }
+html[data-sigapp-custom-scale="1"] .pt-4,
+html[data-sigapp-custom-scale="1"] .py-4 { padding-top: calc(3.5rem * var(--sigapp-space-ratio, 1)) !important; }
+html[data-sigapp-custom-scale="1"] .pr-4,
+html[data-sigapp-custom-scale="1"] .px-4 { padding-right: calc(3.5rem * var(--sigapp-space-ratio, 1)) !important; }
+html[data-sigapp-custom-scale="1"] .pb-4,
+html[data-sigapp-custom-scale="1"] .py-4 { padding-bottom: calc(3.5rem * var(--sigapp-space-ratio, 1)) !important; }
+html[data-sigapp-custom-scale="1"] .pl-4,
+html[data-sigapp-custom-scale="1"] .px-4 { padding-left: calc(3.5rem * var(--sigapp-space-ratio, 1)) !important; }
+
+html[data-sigapp-custom-scale="1"] .p-5 { padding: calc(4rem * var(--sigapp-space-ratio, 1)) !important; }
+html[data-sigapp-custom-scale="1"] .pt-5,
+html[data-sigapp-custom-scale="1"] .py-5 { padding-top: calc(4rem * var(--sigapp-space-ratio, 1)) !important; }
+html[data-sigapp-custom-scale="1"] .pr-5,
+html[data-sigapp-custom-scale="1"] .px-5 { padding-right: calc(4rem * var(--sigapp-space-ratio, 1)) !important; }
+html[data-sigapp-custom-scale="1"] .pb-5,
+html[data-sigapp-custom-scale="1"] .py-5 { padding-bottom: calc(4rem * var(--sigapp-space-ratio, 1)) !important; }
+html[data-sigapp-custom-scale="1"] .pl-5,
+html[data-sigapp-custom-scale="1"] .px-5 { padding-left: calc(4rem * var(--sigapp-space-ratio, 1)) !important; }
+
+/* Responsive spacing utilities (preserve Bootstrap breakpoint cascade: sm, md, lg, xl) */
+@media (min-width: 576px) {
+    html[data-sigapp-custom-scale="1"] .m-sm-0 { margin: 0 !important; }
+    html[data-sigapp-custom-scale="1"] .mt-sm-0, html[data-sigapp-custom-scale="1"] .my-sm-0 { margin-top: 0 !important; }
+    html[data-sigapp-custom-scale="1"] .mr-sm-0, html[data-sigapp-custom-scale="1"] .mx-sm-0 { margin-right: 0 !important; }
+    html[data-sigapp-custom-scale="1"] .mb-sm-0, html[data-sigapp-custom-scale="1"] .my-sm-0 { margin-bottom: 0 !important; }
+    html[data-sigapp-custom-scale="1"] .ml-sm-0, html[data-sigapp-custom-scale="1"] .mx-sm-0 { margin-left: 0 !important; }
+    html[data-sigapp-custom-scale="1"] .m-sm-25 { margin: calc(0.25rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .mt-sm-25, html[data-sigapp-custom-scale="1"] .my-sm-25 { margin-top: calc(0.25rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .mr-sm-25, html[data-sigapp-custom-scale="1"] .mx-sm-25 { margin-right: calc(0.25rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .mb-sm-25, html[data-sigapp-custom-scale="1"] .my-sm-25 { margin-bottom: calc(0.25rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .ml-sm-25, html[data-sigapp-custom-scale="1"] .mx-sm-25 { margin-left: calc(0.25rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .m-sm-50 { margin: calc(0.5rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .mt-sm-50, html[data-sigapp-custom-scale="1"] .my-sm-50 { margin-top: calc(0.5rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .mr-sm-50, html[data-sigapp-custom-scale="1"] .mx-sm-50 { margin-right: calc(0.5rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .mb-sm-50, html[data-sigapp-custom-scale="1"] .my-sm-50 { margin-bottom: calc(0.5rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .ml-sm-50, html[data-sigapp-custom-scale="1"] .mx-sm-50 { margin-left: calc(0.5rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .m-sm-75 { margin: calc(0.75rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .mt-sm-75, html[data-sigapp-custom-scale="1"] .my-sm-75 { margin-top: calc(0.75rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .mr-sm-75, html[data-sigapp-custom-scale="1"] .mx-sm-75 { margin-right: calc(0.75rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .mb-sm-75, html[data-sigapp-custom-scale="1"] .my-sm-75 { margin-bottom: calc(0.75rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .ml-sm-75, html[data-sigapp-custom-scale="1"] .mx-sm-75 { margin-left: calc(0.75rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .m-sm-1 { margin: calc(1rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .mt-sm-1, html[data-sigapp-custom-scale="1"] .my-sm-1 { margin-top: calc(1rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .mr-sm-1, html[data-sigapp-custom-scale="1"] .mx-sm-1 { margin-right: calc(1rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .mb-sm-1, html[data-sigapp-custom-scale="1"] .my-sm-1 { margin-bottom: calc(1rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .ml-sm-1, html[data-sigapp-custom-scale="1"] .mx-sm-1 { margin-left: calc(1rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .m-sm-2 { margin: calc(1.5rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .mt-sm-2, html[data-sigapp-custom-scale="1"] .my-sm-2 { margin-top: calc(1.5rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .mr-sm-2, html[data-sigapp-custom-scale="1"] .mx-sm-2 { margin-right: calc(1.5rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .mb-sm-2, html[data-sigapp-custom-scale="1"] .my-sm-2 { margin-bottom: calc(1.5rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .ml-sm-2, html[data-sigapp-custom-scale="1"] .mx-sm-2 { margin-left: calc(1.5rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .m-sm-3 { margin: calc(3rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .mt-sm-3, html[data-sigapp-custom-scale="1"] .my-sm-3 { margin-top: calc(3rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .mr-sm-3, html[data-sigapp-custom-scale="1"] .mx-sm-3 { margin-right: calc(3rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .mb-sm-3, html[data-sigapp-custom-scale="1"] .my-sm-3 { margin-bottom: calc(3rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .ml-sm-3, html[data-sigapp-custom-scale="1"] .mx-sm-3 { margin-left: calc(3rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .m-sm-4 { margin: calc(3.5rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .mt-sm-4, html[data-sigapp-custom-scale="1"] .my-sm-4 { margin-top: calc(3.5rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .mr-sm-4, html[data-sigapp-custom-scale="1"] .mx-sm-4 { margin-right: calc(3.5rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .mb-sm-4, html[data-sigapp-custom-scale="1"] .my-sm-4 { margin-bottom: calc(3.5rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .ml-sm-4, html[data-sigapp-custom-scale="1"] .mx-sm-4 { margin-left: calc(3.5rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .m-sm-5 { margin: calc(4rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .mt-sm-5, html[data-sigapp-custom-scale="1"] .my-sm-5 { margin-top: calc(4rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .mr-sm-5, html[data-sigapp-custom-scale="1"] .mx-sm-5 { margin-right: calc(4rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .mb-sm-5, html[data-sigapp-custom-scale="1"] .my-sm-5 { margin-bottom: calc(4rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .ml-sm-5, html[data-sigapp-custom-scale="1"] .mx-sm-5 { margin-left: calc(4rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .p-sm-0 { padding: 0 !important; }
+    html[data-sigapp-custom-scale="1"] .pt-sm-0, html[data-sigapp-custom-scale="1"] .py-sm-0 { padding-top: 0 !important; }
+    html[data-sigapp-custom-scale="1"] .pr-sm-0, html[data-sigapp-custom-scale="1"] .px-sm-0 { padding-right: 0 !important; }
+    html[data-sigapp-custom-scale="1"] .pb-sm-0, html[data-sigapp-custom-scale="1"] .py-sm-0 { padding-bottom: 0 !important; }
+    html[data-sigapp-custom-scale="1"] .pl-sm-0, html[data-sigapp-custom-scale="1"] .px-sm-0 { padding-left: 0 !important; }
+    html[data-sigapp-custom-scale="1"] .p-sm-25 { padding: calc(0.25rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .pt-sm-25, html[data-sigapp-custom-scale="1"] .py-sm-25 { padding-top: calc(0.25rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .pr-sm-25, html[data-sigapp-custom-scale="1"] .px-sm-25 { padding-right: calc(0.25rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .pb-sm-25, html[data-sigapp-custom-scale="1"] .py-sm-25 { padding-bottom: calc(0.25rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .pl-sm-25, html[data-sigapp-custom-scale="1"] .px-sm-25 { padding-left: calc(0.25rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .p-sm-50 { padding: calc(0.5rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .pt-sm-50, html[data-sigapp-custom-scale="1"] .py-sm-50 { padding-top: calc(0.5rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .pr-sm-50, html[data-sigapp-custom-scale="1"] .px-sm-50 { padding-right: calc(0.5rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .pb-sm-50, html[data-sigapp-custom-scale="1"] .py-sm-50 { padding-bottom: calc(0.5rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .pl-sm-50, html[data-sigapp-custom-scale="1"] .px-sm-50 { padding-left: calc(0.5rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .p-sm-75 { padding: calc(0.75rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .pt-sm-75, html[data-sigapp-custom-scale="1"] .py-sm-75 { padding-top: calc(0.75rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .pr-sm-75, html[data-sigapp-custom-scale="1"] .px-sm-75 { padding-right: calc(0.75rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .pb-sm-75, html[data-sigapp-custom-scale="1"] .py-sm-75 { padding-bottom: calc(0.75rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .pl-sm-75, html[data-sigapp-custom-scale="1"] .px-sm-75 { padding-left: calc(0.75rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .p-sm-1 { padding: calc(1rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .pt-sm-1, html[data-sigapp-custom-scale="1"] .py-sm-1 { padding-top: calc(1rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .pr-sm-1, html[data-sigapp-custom-scale="1"] .px-sm-1 { padding-right: calc(1rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .pb-sm-1, html[data-sigapp-custom-scale="1"] .py-sm-1 { padding-bottom: calc(1rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .pl-sm-1, html[data-sigapp-custom-scale="1"] .px-sm-1 { padding-left: calc(1rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .p-sm-2 { padding: calc(1.5rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .pt-sm-2, html[data-sigapp-custom-scale="1"] .py-sm-2 { padding-top: calc(1.5rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .pr-sm-2, html[data-sigapp-custom-scale="1"] .px-sm-2 { padding-right: calc(1.5rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .pb-sm-2, html[data-sigapp-custom-scale="1"] .py-sm-2 { padding-bottom: calc(1.5rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .pl-sm-2, html[data-sigapp-custom-scale="1"] .px-sm-2 { padding-left: calc(1.5rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .p-sm-3 { padding: calc(3rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .pt-sm-3, html[data-sigapp-custom-scale="1"] .py-sm-3 { padding-top: calc(3rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .pr-sm-3, html[data-sigapp-custom-scale="1"] .px-sm-3 { padding-right: calc(3rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .pb-sm-3, html[data-sigapp-custom-scale="1"] .py-sm-3 { padding-bottom: calc(3rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .pl-sm-3, html[data-sigapp-custom-scale="1"] .px-sm-3 { padding-left: calc(3rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .p-sm-4 { padding: calc(3.5rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .pt-sm-4, html[data-sigapp-custom-scale="1"] .py-sm-4 { padding-top: calc(3.5rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .pr-sm-4, html[data-sigapp-custom-scale="1"] .px-sm-4 { padding-right: calc(3.5rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .pb-sm-4, html[data-sigapp-custom-scale="1"] .py-sm-4 { padding-bottom: calc(3.5rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .pl-sm-4, html[data-sigapp-custom-scale="1"] .px-sm-4 { padding-left: calc(3.5rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .p-sm-5 { padding: calc(4rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .pt-sm-5, html[data-sigapp-custom-scale="1"] .py-sm-5 { padding-top: calc(4rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .pr-sm-5, html[data-sigapp-custom-scale="1"] .px-sm-5 { padding-right: calc(4rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .pb-sm-5, html[data-sigapp-custom-scale="1"] .py-sm-5 { padding-bottom: calc(4rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .pl-sm-5, html[data-sigapp-custom-scale="1"] .px-sm-5 { padding-left: calc(4rem * var(--sigapp-space-ratio, 1)) !important; }
+}
+
+@media (min-width: 768px) {
+    html[data-sigapp-custom-scale="1"] .m-md-0 { margin: 0 !important; }
+    html[data-sigapp-custom-scale="1"] .mt-md-0, html[data-sigapp-custom-scale="1"] .my-md-0 { margin-top: 0 !important; }
+    html[data-sigapp-custom-scale="1"] .mr-md-0, html[data-sigapp-custom-scale="1"] .mx-md-0 { margin-right: 0 !important; }
+    html[data-sigapp-custom-scale="1"] .mb-md-0, html[data-sigapp-custom-scale="1"] .my-md-0 { margin-bottom: 0 !important; }
+    html[data-sigapp-custom-scale="1"] .ml-md-0, html[data-sigapp-custom-scale="1"] .mx-md-0 { margin-left: 0 !important; }
+    html[data-sigapp-custom-scale="1"] .m-md-25 { margin: calc(0.25rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .mt-md-25, html[data-sigapp-custom-scale="1"] .my-md-25 { margin-top: calc(0.25rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .mr-md-25, html[data-sigapp-custom-scale="1"] .mx-md-25 { margin-right: calc(0.25rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .mb-md-25, html[data-sigapp-custom-scale="1"] .my-md-25 { margin-bottom: calc(0.25rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .ml-md-25, html[data-sigapp-custom-scale="1"] .mx-md-25 { margin-left: calc(0.25rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .m-md-50 { margin: calc(0.5rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .mt-md-50, html[data-sigapp-custom-scale="1"] .my-md-50 { margin-top: calc(0.5rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .mr-md-50, html[data-sigapp-custom-scale="1"] .mx-md-50 { margin-right: calc(0.5rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .mb-md-50, html[data-sigapp-custom-scale="1"] .my-md-50 { margin-bottom: calc(0.5rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .ml-md-50, html[data-sigapp-custom-scale="1"] .mx-md-50 { margin-left: calc(0.5rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .m-md-75 { margin: calc(0.75rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .mt-md-75, html[data-sigapp-custom-scale="1"] .my-md-75 { margin-top: calc(0.75rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .mr-md-75, html[data-sigapp-custom-scale="1"] .mx-md-75 { margin-right: calc(0.75rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .mb-md-75, html[data-sigapp-custom-scale="1"] .my-md-75 { margin-bottom: calc(0.75rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .ml-md-75, html[data-sigapp-custom-scale="1"] .mx-md-75 { margin-left: calc(0.75rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .m-md-1 { margin: calc(1rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .mt-md-1, html[data-sigapp-custom-scale="1"] .my-md-1 { margin-top: calc(1rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .mr-md-1, html[data-sigapp-custom-scale="1"] .mx-md-1 { margin-right: calc(1rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .mb-md-1, html[data-sigapp-custom-scale="1"] .my-md-1 { margin-bottom: calc(1rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .ml-md-1, html[data-sigapp-custom-scale="1"] .mx-md-1 { margin-left: calc(1rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .m-md-2 { margin: calc(1.5rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .mt-md-2, html[data-sigapp-custom-scale="1"] .my-md-2 { margin-top: calc(1.5rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .mr-md-2, html[data-sigapp-custom-scale="1"] .mx-md-2 { margin-right: calc(1.5rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .mb-md-2, html[data-sigapp-custom-scale="1"] .my-md-2 { margin-bottom: calc(1.5rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .ml-md-2, html[data-sigapp-custom-scale="1"] .mx-md-2 { margin-left: calc(1.5rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .m-md-3 { margin: calc(3rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .mt-md-3, html[data-sigapp-custom-scale="1"] .my-md-3 { margin-top: calc(3rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .mr-md-3, html[data-sigapp-custom-scale="1"] .mx-md-3 { margin-right: calc(3rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .mb-md-3, html[data-sigapp-custom-scale="1"] .my-md-3 { margin-bottom: calc(3rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .ml-md-3, html[data-sigapp-custom-scale="1"] .mx-md-3 { margin-left: calc(3rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .m-md-4 { margin: calc(3.5rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .mt-md-4, html[data-sigapp-custom-scale="1"] .my-md-4 { margin-top: calc(3.5rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .mr-md-4, html[data-sigapp-custom-scale="1"] .mx-md-4 { margin-right: calc(3.5rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .mb-md-4, html[data-sigapp-custom-scale="1"] .my-md-4 { margin-bottom: calc(3.5rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .ml-md-4, html[data-sigapp-custom-scale="1"] .mx-md-4 { margin-left: calc(3.5rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .m-md-5 { margin: calc(4rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .mt-md-5, html[data-sigapp-custom-scale="1"] .my-md-5 { margin-top: calc(4rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .mr-md-5, html[data-sigapp-custom-scale="1"] .mx-md-5 { margin-right: calc(4rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .mb-md-5, html[data-sigapp-custom-scale="1"] .my-md-5 { margin-bottom: calc(4rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .ml-md-5, html[data-sigapp-custom-scale="1"] .mx-md-5 { margin-left: calc(4rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .p-md-0 { padding: 0 !important; }
+    html[data-sigapp-custom-scale="1"] .pt-md-0, html[data-sigapp-custom-scale="1"] .py-md-0 { padding-top: 0 !important; }
+    html[data-sigapp-custom-scale="1"] .pr-md-0, html[data-sigapp-custom-scale="1"] .px-md-0 { padding-right: 0 !important; }
+    html[data-sigapp-custom-scale="1"] .pb-md-0, html[data-sigapp-custom-scale="1"] .py-md-0 { padding-bottom: 0 !important; }
+    html[data-sigapp-custom-scale="1"] .pl-md-0, html[data-sigapp-custom-scale="1"] .px-md-0 { padding-left: 0 !important; }
+    html[data-sigapp-custom-scale="1"] .p-md-25 { padding: calc(0.25rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .pt-md-25, html[data-sigapp-custom-scale="1"] .py-md-25 { padding-top: calc(0.25rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .pr-md-25, html[data-sigapp-custom-scale="1"] .px-md-25 { padding-right: calc(0.25rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .pb-md-25, html[data-sigapp-custom-scale="1"] .py-md-25 { padding-bottom: calc(0.25rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .pl-md-25, html[data-sigapp-custom-scale="1"] .px-md-25 { padding-left: calc(0.25rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .p-md-50 { padding: calc(0.5rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .pt-md-50, html[data-sigapp-custom-scale="1"] .py-md-50 { padding-top: calc(0.5rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .pr-md-50, html[data-sigapp-custom-scale="1"] .px-md-50 { padding-right: calc(0.5rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .pb-md-50, html[data-sigapp-custom-scale="1"] .py-md-50 { padding-bottom: calc(0.5rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .pl-md-50, html[data-sigapp-custom-scale="1"] .px-md-50 { padding-left: calc(0.5rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .p-md-75 { padding: calc(0.75rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .pt-md-75, html[data-sigapp-custom-scale="1"] .py-md-75 { padding-top: calc(0.75rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .pr-md-75, html[data-sigapp-custom-scale="1"] .px-md-75 { padding-right: calc(0.75rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .pb-md-75, html[data-sigapp-custom-scale="1"] .py-md-75 { padding-bottom: calc(0.75rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .pl-md-75, html[data-sigapp-custom-scale="1"] .px-md-75 { padding-left: calc(0.75rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .p-md-1 { padding: calc(1rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .pt-md-1, html[data-sigapp-custom-scale="1"] .py-md-1 { padding-top: calc(1rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .pr-md-1, html[data-sigapp-custom-scale="1"] .px-md-1 { padding-right: calc(1rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .pb-md-1, html[data-sigapp-custom-scale="1"] .py-md-1 { padding-bottom: calc(1rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .pl-md-1, html[data-sigapp-custom-scale="1"] .px-md-1 { padding-left: calc(1rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .p-md-2 { padding: calc(1.5rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .pt-md-2, html[data-sigapp-custom-scale="1"] .py-md-2 { padding-top: calc(1.5rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .pr-md-2, html[data-sigapp-custom-scale="1"] .px-md-2 { padding-right: calc(1.5rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .pb-md-2, html[data-sigapp-custom-scale="1"] .py-md-2 { padding-bottom: calc(1.5rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .pl-md-2, html[data-sigapp-custom-scale="1"] .px-md-2 { padding-left: calc(1.5rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .p-md-3 { padding: calc(3rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .pt-md-3, html[data-sigapp-custom-scale="1"] .py-md-3 { padding-top: calc(3rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .pr-md-3, html[data-sigapp-custom-scale="1"] .px-md-3 { padding-right: calc(3rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .pb-md-3, html[data-sigapp-custom-scale="1"] .py-md-3 { padding-bottom: calc(3rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .pl-md-3, html[data-sigapp-custom-scale="1"] .px-md-3 { padding-left: calc(3rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .p-md-4 { padding: calc(3.5rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .pt-md-4, html[data-sigapp-custom-scale="1"] .py-md-4 { padding-top: calc(3.5rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .pr-md-4, html[data-sigapp-custom-scale="1"] .px-md-4 { padding-right: calc(3.5rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .pb-md-4, html[data-sigapp-custom-scale="1"] .py-md-4 { padding-bottom: calc(3.5rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .pl-md-4, html[data-sigapp-custom-scale="1"] .px-md-4 { padding-left: calc(3.5rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .p-md-5 { padding: calc(4rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .pt-md-5, html[data-sigapp-custom-scale="1"] .py-md-5 { padding-top: calc(4rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .pr-md-5, html[data-sigapp-custom-scale="1"] .px-md-5 { padding-right: calc(4rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .pb-md-5, html[data-sigapp-custom-scale="1"] .py-md-5 { padding-bottom: calc(4rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .pl-md-5, html[data-sigapp-custom-scale="1"] .px-md-5 { padding-left: calc(4rem * var(--sigapp-space-ratio, 1)) !important; }
+}
+
+@media (min-width: 992px) {
+    html[data-sigapp-custom-scale="1"] .m-lg-0 { margin: 0 !important; }
+    html[data-sigapp-custom-scale="1"] .mt-lg-0, html[data-sigapp-custom-scale="1"] .my-lg-0 { margin-top: 0 !important; }
+    html[data-sigapp-custom-scale="1"] .mr-lg-0, html[data-sigapp-custom-scale="1"] .mx-lg-0 { margin-right: 0 !important; }
+    html[data-sigapp-custom-scale="1"] .mb-lg-0, html[data-sigapp-custom-scale="1"] .my-lg-0 { margin-bottom: 0 !important; }
+    html[data-sigapp-custom-scale="1"] .ml-lg-0, html[data-sigapp-custom-scale="1"] .mx-lg-0 { margin-left: 0 !important; }
+    html[data-sigapp-custom-scale="1"] .m-lg-25 { margin: calc(0.25rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .mt-lg-25, html[data-sigapp-custom-scale="1"] .my-lg-25 { margin-top: calc(0.25rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .mr-lg-25, html[data-sigapp-custom-scale="1"] .mx-lg-25 { margin-right: calc(0.25rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .mb-lg-25, html[data-sigapp-custom-scale="1"] .my-lg-25 { margin-bottom: calc(0.25rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .ml-lg-25, html[data-sigapp-custom-scale="1"] .mx-lg-25 { margin-left: calc(0.25rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .m-lg-50 { margin: calc(0.5rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .mt-lg-50, html[data-sigapp-custom-scale="1"] .my-lg-50 { margin-top: calc(0.5rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .mr-lg-50, html[data-sigapp-custom-scale="1"] .mx-lg-50 { margin-right: calc(0.5rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .mb-lg-50, html[data-sigapp-custom-scale="1"] .my-lg-50 { margin-bottom: calc(0.5rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .ml-lg-50, html[data-sigapp-custom-scale="1"] .mx-lg-50 { margin-left: calc(0.5rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .m-lg-75 { margin: calc(0.75rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .mt-lg-75, html[data-sigapp-custom-scale="1"] .my-lg-75 { margin-top: calc(0.75rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .mr-lg-75, html[data-sigapp-custom-scale="1"] .mx-lg-75 { margin-right: calc(0.75rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .mb-lg-75, html[data-sigapp-custom-scale="1"] .my-lg-75 { margin-bottom: calc(0.75rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .ml-lg-75, html[data-sigapp-custom-scale="1"] .mx-lg-75 { margin-left: calc(0.75rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .m-lg-1 { margin: calc(1rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .mt-lg-1, html[data-sigapp-custom-scale="1"] .my-lg-1 { margin-top: calc(1rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .mr-lg-1, html[data-sigapp-custom-scale="1"] .mx-lg-1 { margin-right: calc(1rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .mb-lg-1, html[data-sigapp-custom-scale="1"] .my-lg-1 { margin-bottom: calc(1rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .ml-lg-1, html[data-sigapp-custom-scale="1"] .mx-lg-1 { margin-left: calc(1rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .m-lg-2 { margin: calc(1.5rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .mt-lg-2, html[data-sigapp-custom-scale="1"] .my-lg-2 { margin-top: calc(1.5rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .mr-lg-2, html[data-sigapp-custom-scale="1"] .mx-lg-2 { margin-right: calc(1.5rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .mb-lg-2, html[data-sigapp-custom-scale="1"] .my-lg-2 { margin-bottom: calc(1.5rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .ml-lg-2, html[data-sigapp-custom-scale="1"] .mx-lg-2 { margin-left: calc(1.5rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .m-lg-3 { margin: calc(3rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .mt-lg-3, html[data-sigapp-custom-scale="1"] .my-lg-3 { margin-top: calc(3rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .mr-lg-3, html[data-sigapp-custom-scale="1"] .mx-lg-3 { margin-right: calc(3rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .mb-lg-3, html[data-sigapp-custom-scale="1"] .my-lg-3 { margin-bottom: calc(3rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .ml-lg-3, html[data-sigapp-custom-scale="1"] .mx-lg-3 { margin-left: calc(3rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .m-lg-4 { margin: calc(3.5rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .mt-lg-4, html[data-sigapp-custom-scale="1"] .my-lg-4 { margin-top: calc(3.5rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .mr-lg-4, html[data-sigapp-custom-scale="1"] .mx-lg-4 { margin-right: calc(3.5rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .mb-lg-4, html[data-sigapp-custom-scale="1"] .my-lg-4 { margin-bottom: calc(3.5rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .ml-lg-4, html[data-sigapp-custom-scale="1"] .mx-lg-4 { margin-left: calc(3.5rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .m-lg-5 { margin: calc(4rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .mt-lg-5, html[data-sigapp-custom-scale="1"] .my-lg-5 { margin-top: calc(4rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .mr-lg-5, html[data-sigapp-custom-scale="1"] .mx-lg-5 { margin-right: calc(4rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .mb-lg-5, html[data-sigapp-custom-scale="1"] .my-lg-5 { margin-bottom: calc(4rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .ml-lg-5, html[data-sigapp-custom-scale="1"] .mx-lg-5 { margin-left: calc(4rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .p-lg-0 { padding: 0 !important; }
+    html[data-sigapp-custom-scale="1"] .pt-lg-0, html[data-sigapp-custom-scale="1"] .py-lg-0 { padding-top: 0 !important; }
+    html[data-sigapp-custom-scale="1"] .pr-lg-0, html[data-sigapp-custom-scale="1"] .px-lg-0 { padding-right: 0 !important; }
+    html[data-sigapp-custom-scale="1"] .pb-lg-0, html[data-sigapp-custom-scale="1"] .py-lg-0 { padding-bottom: 0 !important; }
+    html[data-sigapp-custom-scale="1"] .pl-lg-0, html[data-sigapp-custom-scale="1"] .px-lg-0 { padding-left: 0 !important; }
+    html[data-sigapp-custom-scale="1"] .p-lg-25 { padding: calc(0.25rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .pt-lg-25, html[data-sigapp-custom-scale="1"] .py-lg-25 { padding-top: calc(0.25rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .pr-lg-25, html[data-sigapp-custom-scale="1"] .px-lg-25 { padding-right: calc(0.25rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .pb-lg-25, html[data-sigapp-custom-scale="1"] .py-lg-25 { padding-bottom: calc(0.25rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .pl-lg-25, html[data-sigapp-custom-scale="1"] .px-lg-25 { padding-left: calc(0.25rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .p-lg-50 { padding: calc(0.5rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .pt-lg-50, html[data-sigapp-custom-scale="1"] .py-lg-50 { padding-top: calc(0.5rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .pr-lg-50, html[data-sigapp-custom-scale="1"] .px-lg-50 { padding-right: calc(0.5rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .pb-lg-50, html[data-sigapp-custom-scale="1"] .py-lg-50 { padding-bottom: calc(0.5rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .pl-lg-50, html[data-sigapp-custom-scale="1"] .px-lg-50 { padding-left: calc(0.5rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .p-lg-75 { padding: calc(0.75rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .pt-lg-75, html[data-sigapp-custom-scale="1"] .py-lg-75 { padding-top: calc(0.75rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .pr-lg-75, html[data-sigapp-custom-scale="1"] .px-lg-75 { padding-right: calc(0.75rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .pb-lg-75, html[data-sigapp-custom-scale="1"] .py-lg-75 { padding-bottom: calc(0.75rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .pl-lg-75, html[data-sigapp-custom-scale="1"] .px-lg-75 { padding-left: calc(0.75rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .p-lg-1 { padding: calc(1rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .pt-lg-1, html[data-sigapp-custom-scale="1"] .py-lg-1 { padding-top: calc(1rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .pr-lg-1, html[data-sigapp-custom-scale="1"] .px-lg-1 { padding-right: calc(1rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .pb-lg-1, html[data-sigapp-custom-scale="1"] .py-lg-1 { padding-bottom: calc(1rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .pl-lg-1, html[data-sigapp-custom-scale="1"] .px-lg-1 { padding-left: calc(1rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .p-lg-2 { padding: calc(1.5rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .pt-lg-2, html[data-sigapp-custom-scale="1"] .py-lg-2 { padding-top: calc(1.5rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .pr-lg-2, html[data-sigapp-custom-scale="1"] .px-lg-2 { padding-right: calc(1.5rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .pb-lg-2, html[data-sigapp-custom-scale="1"] .py-lg-2 { padding-bottom: calc(1.5rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .pl-lg-2, html[data-sigapp-custom-scale="1"] .px-lg-2 { padding-left: calc(1.5rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .p-lg-3 { padding: calc(3rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .pt-lg-3, html[data-sigapp-custom-scale="1"] .py-lg-3 { padding-top: calc(3rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .pr-lg-3, html[data-sigapp-custom-scale="1"] .px-lg-3 { padding-right: calc(3rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .pb-lg-3, html[data-sigapp-custom-scale="1"] .py-lg-3 { padding-bottom: calc(3rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .pl-lg-3, html[data-sigapp-custom-scale="1"] .px-lg-3 { padding-left: calc(3rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .p-lg-4 { padding: calc(3.5rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .pt-lg-4, html[data-sigapp-custom-scale="1"] .py-lg-4 { padding-top: calc(3.5rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .pr-lg-4, html[data-sigapp-custom-scale="1"] .px-lg-4 { padding-right: calc(3.5rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .pb-lg-4, html[data-sigapp-custom-scale="1"] .py-lg-4 { padding-bottom: calc(3.5rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .pl-lg-4, html[data-sigapp-custom-scale="1"] .px-lg-4 { padding-left: calc(3.5rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .p-lg-5 { padding: calc(4rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .pt-lg-5, html[data-sigapp-custom-scale="1"] .py-lg-5 { padding-top: calc(4rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .pr-lg-5, html[data-sigapp-custom-scale="1"] .px-lg-5 { padding-right: calc(4rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .pb-lg-5, html[data-sigapp-custom-scale="1"] .py-lg-5 { padding-bottom: calc(4rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .pl-lg-5, html[data-sigapp-custom-scale="1"] .px-lg-5 { padding-left: calc(4rem * var(--sigapp-space-ratio, 1)) !important; }
+}
+
+@media (min-width: 1200px) {
+    html[data-sigapp-custom-scale="1"] .m-xl-0 { margin: 0 !important; }
+    html[data-sigapp-custom-scale="1"] .mt-xl-0, html[data-sigapp-custom-scale="1"] .my-xl-0 { margin-top: 0 !important; }
+    html[data-sigapp-custom-scale="1"] .mr-xl-0, html[data-sigapp-custom-scale="1"] .mx-xl-0 { margin-right: 0 !important; }
+    html[data-sigapp-custom-scale="1"] .mb-xl-0, html[data-sigapp-custom-scale="1"] .my-xl-0 { margin-bottom: 0 !important; }
+    html[data-sigapp-custom-scale="1"] .ml-xl-0, html[data-sigapp-custom-scale="1"] .mx-xl-0 { margin-left: 0 !important; }
+    html[data-sigapp-custom-scale="1"] .m-xl-25 { margin: calc(0.25rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .mt-xl-25, html[data-sigapp-custom-scale="1"] .my-xl-25 { margin-top: calc(0.25rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .mr-xl-25, html[data-sigapp-custom-scale="1"] .mx-xl-25 { margin-right: calc(0.25rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .mb-xl-25, html[data-sigapp-custom-scale="1"] .my-xl-25 { margin-bottom: calc(0.25rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .ml-xl-25, html[data-sigapp-custom-scale="1"] .mx-xl-25 { margin-left: calc(0.25rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .m-xl-50 { margin: calc(0.5rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .mt-xl-50, html[data-sigapp-custom-scale="1"] .my-xl-50 { margin-top: calc(0.5rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .mr-xl-50, html[data-sigapp-custom-scale="1"] .mx-xl-50 { margin-right: calc(0.5rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .mb-xl-50, html[data-sigapp-custom-scale="1"] .my-xl-50 { margin-bottom: calc(0.5rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .ml-xl-50, html[data-sigapp-custom-scale="1"] .mx-xl-50 { margin-left: calc(0.5rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .m-xl-75 { margin: calc(0.75rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .mt-xl-75, html[data-sigapp-custom-scale="1"] .my-xl-75 { margin-top: calc(0.75rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .mr-xl-75, html[data-sigapp-custom-scale="1"] .mx-xl-75 { margin-right: calc(0.75rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .mb-xl-75, html[data-sigapp-custom-scale="1"] .my-xl-75 { margin-bottom: calc(0.75rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .ml-xl-75, html[data-sigapp-custom-scale="1"] .mx-xl-75 { margin-left: calc(0.75rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .m-xl-1 { margin: calc(1rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .mt-xl-1, html[data-sigapp-custom-scale="1"] .my-xl-1 { margin-top: calc(1rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .mr-xl-1, html[data-sigapp-custom-scale="1"] .mx-xl-1 { margin-right: calc(1rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .mb-xl-1, html[data-sigapp-custom-scale="1"] .my-xl-1 { margin-bottom: calc(1rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .ml-xl-1, html[data-sigapp-custom-scale="1"] .mx-xl-1 { margin-left: calc(1rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .m-xl-2 { margin: calc(1.5rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .mt-xl-2, html[data-sigapp-custom-scale="1"] .my-xl-2 { margin-top: calc(1.5rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .mr-xl-2, html[data-sigapp-custom-scale="1"] .mx-xl-2 { margin-right: calc(1.5rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .mb-xl-2, html[data-sigapp-custom-scale="1"] .my-xl-2 { margin-bottom: calc(1.5rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .ml-xl-2, html[data-sigapp-custom-scale="1"] .mx-xl-2 { margin-left: calc(1.5rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .m-xl-3 { margin: calc(3rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .mt-xl-3, html[data-sigapp-custom-scale="1"] .my-xl-3 { margin-top: calc(3rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .mr-xl-3, html[data-sigapp-custom-scale="1"] .mx-xl-3 { margin-right: calc(3rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .mb-xl-3, html[data-sigapp-custom-scale="1"] .my-xl-3 { margin-bottom: calc(3rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .ml-xl-3, html[data-sigapp-custom-scale="1"] .mx-xl-3 { margin-left: calc(3rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .m-xl-4 { margin: calc(3.5rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .mt-xl-4, html[data-sigapp-custom-scale="1"] .my-xl-4 { margin-top: calc(3.5rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .mr-xl-4, html[data-sigapp-custom-scale="1"] .mx-xl-4 { margin-right: calc(3.5rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .mb-xl-4, html[data-sigapp-custom-scale="1"] .my-xl-4 { margin-bottom: calc(3.5rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .ml-xl-4, html[data-sigapp-custom-scale="1"] .mx-xl-4 { margin-left: calc(3.5rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .m-xl-5 { margin: calc(4rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .mt-xl-5, html[data-sigapp-custom-scale="1"] .my-xl-5 { margin-top: calc(4rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .mr-xl-5, html[data-sigapp-custom-scale="1"] .mx-xl-5 { margin-right: calc(4rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .mb-xl-5, html[data-sigapp-custom-scale="1"] .my-xl-5 { margin-bottom: calc(4rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .ml-xl-5, html[data-sigapp-custom-scale="1"] .mx-xl-5 { margin-left: calc(4rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .p-xl-0 { padding: 0 !important; }
+    html[data-sigapp-custom-scale="1"] .pt-xl-0, html[data-sigapp-custom-scale="1"] .py-xl-0 { padding-top: 0 !important; }
+    html[data-sigapp-custom-scale="1"] .pr-xl-0, html[data-sigapp-custom-scale="1"] .px-xl-0 { padding-right: 0 !important; }
+    html[data-sigapp-custom-scale="1"] .pb-xl-0, html[data-sigapp-custom-scale="1"] .py-xl-0 { padding-bottom: 0 !important; }
+    html[data-sigapp-custom-scale="1"] .pl-xl-0, html[data-sigapp-custom-scale="1"] .px-xl-0 { padding-left: 0 !important; }
+    html[data-sigapp-custom-scale="1"] .p-xl-25 { padding: calc(0.25rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .pt-xl-25, html[data-sigapp-custom-scale="1"] .py-xl-25 { padding-top: calc(0.25rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .pr-xl-25, html[data-sigapp-custom-scale="1"] .px-xl-25 { padding-right: calc(0.25rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .pb-xl-25, html[data-sigapp-custom-scale="1"] .py-xl-25 { padding-bottom: calc(0.25rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .pl-xl-25, html[data-sigapp-custom-scale="1"] .px-xl-25 { padding-left: calc(0.25rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .p-xl-50 { padding: calc(0.5rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .pt-xl-50, html[data-sigapp-custom-scale="1"] .py-xl-50 { padding-top: calc(0.5rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .pr-xl-50, html[data-sigapp-custom-scale="1"] .px-xl-50 { padding-right: calc(0.5rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .pb-xl-50, html[data-sigapp-custom-scale="1"] .py-xl-50 { padding-bottom: calc(0.5rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .pl-xl-50, html[data-sigapp-custom-scale="1"] .px-xl-50 { padding-left: calc(0.5rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .p-xl-75 { padding: calc(0.75rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .pt-xl-75, html[data-sigapp-custom-scale="1"] .py-xl-75 { padding-top: calc(0.75rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .pr-xl-75, html[data-sigapp-custom-scale="1"] .px-xl-75 { padding-right: calc(0.75rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .pb-xl-75, html[data-sigapp-custom-scale="1"] .py-xl-75 { padding-bottom: calc(0.75rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .pl-xl-75, html[data-sigapp-custom-scale="1"] .px-xl-75 { padding-left: calc(0.75rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .p-xl-1 { padding: calc(1rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .pt-xl-1, html[data-sigapp-custom-scale="1"] .py-xl-1 { padding-top: calc(1rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .pr-xl-1, html[data-sigapp-custom-scale="1"] .px-xl-1 { padding-right: calc(1rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .pb-xl-1, html[data-sigapp-custom-scale="1"] .py-xl-1 { padding-bottom: calc(1rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .pl-xl-1, html[data-sigapp-custom-scale="1"] .px-xl-1 { padding-left: calc(1rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .p-xl-2 { padding: calc(1.5rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .pt-xl-2, html[data-sigapp-custom-scale="1"] .py-xl-2 { padding-top: calc(1.5rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .pr-xl-2, html[data-sigapp-custom-scale="1"] .px-xl-2 { padding-right: calc(1.5rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .pb-xl-2, html[data-sigapp-custom-scale="1"] .py-xl-2 { padding-bottom: calc(1.5rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .pl-xl-2, html[data-sigapp-custom-scale="1"] .px-xl-2 { padding-left: calc(1.5rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .p-xl-3 { padding: calc(3rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .pt-xl-3, html[data-sigapp-custom-scale="1"] .py-xl-3 { padding-top: calc(3rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .pr-xl-3, html[data-sigapp-custom-scale="1"] .px-xl-3 { padding-right: calc(3rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .pb-xl-3, html[data-sigapp-custom-scale="1"] .py-xl-3 { padding-bottom: calc(3rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .pl-xl-3, html[data-sigapp-custom-scale="1"] .px-xl-3 { padding-left: calc(3rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .p-xl-4 { padding: calc(3.5rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .pt-xl-4, html[data-sigapp-custom-scale="1"] .py-xl-4 { padding-top: calc(3.5rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .pr-xl-4, html[data-sigapp-custom-scale="1"] .px-xl-4 { padding-right: calc(3.5rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .pb-xl-4, html[data-sigapp-custom-scale="1"] .py-xl-4 { padding-bottom: calc(3.5rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .pl-xl-4, html[data-sigapp-custom-scale="1"] .px-xl-4 { padding-left: calc(3.5rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .p-xl-5 { padding: calc(4rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .pt-xl-5, html[data-sigapp-custom-scale="1"] .py-xl-5 { padding-top: calc(4rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .pr-xl-5, html[data-sigapp-custom-scale="1"] .px-xl-5 { padding-right: calc(4rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .pb-xl-5, html[data-sigapp-custom-scale="1"] .py-xl-5 { padding-bottom: calc(4rem * var(--sigapp-space-ratio, 1)) !important; }
+    html[data-sigapp-custom-scale="1"] .pl-xl-5, html[data-sigapp-custom-scale="1"] .px-xl-5 { padding-left: calc(4rem * var(--sigapp-space-ratio, 1)) !important; }
+}
+
+/* ==========================================================================
+   2. KOMPONEN GLOBAL REM-BASED (dikali --sigapp-space-ratio)
+   ========================================================================== */
+
+html[data-sigapp-custom-scale="1"] .card {
+    margin-bottom: calc(2rem * var(--sigapp-space-ratio, 1));
+}
+
+html[data-sigapp-custom-scale="1"] .card-header,
+html[data-sigapp-custom-scale="1"] .card .card-header {
+    padding: calc(1.5rem * var(--sigapp-space-ratio, 1));
+}
+
+html[data-sigapp-custom-scale="1"] .card-body {
+    padding: calc(1.5rem * var(--sigapp-space-ratio, 1));
+}
+
+html[data-sigapp-custom-scale="1"] .card-footer {
+    padding: calc(1.5rem * var(--sigapp-space-ratio, 1));
+}
+
+html[data-sigapp-custom-scale="1"] .modal-header {
+    padding: calc(0.8rem * var(--sigapp-space-ratio, 1)) calc(1.4rem * var(--sigapp-space-ratio, 1));
+}
+
+html[data-sigapp-custom-scale="1"] .modal-body {
+    padding: calc(0.8rem * var(--sigapp-space-ratio, 1)) calc(1.4rem * var(--sigapp-space-ratio, 1));
+}
+
+html[data-sigapp-custom-scale="1"] .modal-footer {
+    padding: calc(0.8rem * var(--sigapp-space-ratio, 1)) calc(1.15rem * var(--sigapp-space-ratio, 1));
+}
+
+html[data-sigapp-custom-scale="1"] .modal .modal-footer {
+    padding: calc(0.8rem * var(--sigapp-space-ratio, 1)) calc(1.4rem * var(--sigapp-space-ratio, 1));
+}
+
+html[data-sigapp-custom-scale="1"] .btn {
+    padding: calc(0.786rem * var(--sigapp-space-ratio, 1)) calc(1.5rem * var(--sigapp-space-ratio, 1));
+}
+
+html[data-sigapp-custom-scale="1"] .btn-sm {
+    padding: calc(0.486rem * var(--sigapp-space-ratio, 1)) calc(1rem * var(--sigapp-space-ratio, 1));
+}
+
+html[data-sigapp-custom-scale="1"] .btn-lg {
+    padding: calc(0.8rem * var(--sigapp-space-ratio, 1)) calc(2rem * var(--sigapp-space-ratio, 1));
+}
+
+html[data-sigapp-custom-scale="1"] .btn.btn-icon {
+    padding: calc(0.715rem * var(--sigapp-space-ratio, 1)) calc(0.736rem * var(--sigapp-space-ratio, 1));
+}
+
+html[data-sigapp-custom-scale="1"] .btn.btn-sm.btn-icon {
+    padding: calc(0.5rem * var(--sigapp-space-ratio, 1));
+}
+
+html[data-sigapp-custom-scale="1"] .btn.btn-lg.btn-icon {
+    padding: calc(1rem * var(--sigapp-space-ratio, 1));
+}
+
+html[data-sigapp-custom-scale="1"] .form-control {
+    height: calc(2.714rem * var(--sigapp-space-ratio, 1));
+    padding: calc(0.438rem * var(--sigapp-space-ratio, 1)) calc(1rem * var(--sigapp-space-ratio, 1));
+}
+
+html[data-sigapp-custom-scale="1"] .form-control-sm {
+    height: calc(2.142rem * var(--sigapp-space-ratio, 1));
+    padding: calc(0.188rem * var(--sigapp-space-ratio, 1)) calc(0.857rem * var(--sigapp-space-ratio, 1));
+}
+
+html[data-sigapp-custom-scale="1"] .form-control-lg {
+    height: calc(3.2857rem * var(--sigapp-space-ratio, 1));
+    padding: calc(0.75rem * var(--sigapp-space-ratio, 1)) calc(1.143rem * var(--sigapp-space-ratio, 1));
+}
+
+html[data-sigapp-custom-scale="1"] textarea.form-control {
+    height: auto;
+    padding: calc(0.8rem * var(--sigapp-space-ratio, 1)) calc(1rem * var(--sigapp-space-ratio, 1)) !important;
+}
+
+html[data-sigapp-custom-scale="1"] select.form-control[multiple],
+html[data-sigapp-custom-scale="1"] select.form-control[size] {
+    height: auto;
+}
+
+html[data-sigapp-custom-scale="1"] textarea.form-control-sm {
+    padding: calc(0.4rem * var(--sigapp-space-ratio, 1)) calc(0.857rem * var(--sigapp-space-ratio, 1)) !important;
+}
+
+html[data-sigapp-custom-scale="1"] textarea.form-control-lg {
+    padding: calc(1rem * var(--sigapp-space-ratio, 1)) calc(1.143rem * var(--sigapp-space-ratio, 1)) !important;
+}
+
+html[data-sigapp-custom-scale="1"] .form-group {
+    margin-bottom: calc(1rem * var(--sigapp-space-ratio, 1));
+}
+
+html[data-sigapp-custom-scale="1"] .form-inline .form-group {
+    margin-bottom: 0;
+}
+
+html[data-sigapp-custom-scale="1"] .table th,
+html[data-sigapp-custom-scale="1"] .table td {
+    padding: calc(0.72rem * var(--sigapp-space-ratio, 1)) calc(2rem * var(--sigapp-space-ratio, 1));
+}
+
+html[data-sigapp-custom-scale="1"] .table-sm th,
+html[data-sigapp-custom-scale="1"] .table-sm td {
+    padding: calc(0.3rem * var(--sigapp-space-ratio, 1));
+}
+
+html[data-sigapp-custom-scale="1"] .table.table-sm th,
+html[data-sigapp-custom-scale="1"] .table.table-sm td {
+    padding: calc(0.3rem * var(--sigapp-space-ratio, 1)) calc(0.5rem * var(--sigapp-space-ratio, 1));
+}
+
+html[data-sigapp-custom-scale="1"] .table.table-sm th:first-child,
+html[data-sigapp-custom-scale="1"] .table.table-sm td:first-child {
+    padding-left: calc(0.75rem * var(--sigapp-space-ratio, 1));
+}
+
+html[data-sigapp-custom-scale="1"] .nav-link {
+    padding: calc(0.358rem * var(--sigapp-space-ratio, 1)) calc(0.5rem * var(--sigapp-space-ratio, 1));
+}
+
+html[data-sigapp-custom-scale="1"] .nav-pills .nav-link {
+    padding: calc(0.786rem * var(--sigapp-space-ratio, 1)) calc(1.5rem * var(--sigapp-space-ratio, 1));
+}
+
+html[data-sigapp-custom-scale="1"] .nav-tabs .nav-link {
+    padding: calc(0.61rem * var(--sigapp-space-ratio, 1)) calc(1.2rem * var(--sigapp-space-ratio, 1));
+}
+
+html[data-sigapp-custom-scale="1"] .header-navbar .navbar-container ul.navbar-nav li > a.nav-link {
+    padding: 0 calc(0.5rem * var(--sigapp-space-ratio, 1));
+}
+
+html[data-sigapp-custom-scale="1"] .dropdown-item {
+    padding: calc(0.65rem * var(--sigapp-space-ratio, 1)) calc(1.28rem * var(--sigapp-space-ratio, 1));
+}
+
+html[data-sigapp-custom-scale="1"] .alert {
+    margin-bottom: calc(1rem * var(--sigapp-space-ratio, 1));
+}
+
+html[data-sigapp-custom-scale="1"] .alert .alert-body,
+html[data-sigapp-custom-scale="1"] .alert .alert-heading {
+    padding: calc(0.71rem * var(--sigapp-space-ratio, 1)) calc(1rem * var(--sigapp-space-ratio, 1));
+}
+
+html[data-sigapp-custom-scale="1"] .alert.alert-dismissible .alert-body {
+    padding: calc(0.71rem * var(--sigapp-space-ratio, 1)) calc(2rem * var(--sigapp-space-ratio, 1)) calc(0.71rem * var(--sigapp-space-ratio, 1)) calc(1rem * var(--sigapp-space-ratio, 1));
+}
+
+html[data-sigapp-custom-scale="1"] .badge {
+    padding: calc(0.3rem * var(--sigapp-space-ratio, 1)) calc(0.5rem * var(--sigapp-space-ratio, 1));
+}
+
+html[data-sigapp-custom-scale="1"] .divider {
+    margin: calc(1rem * var(--sigapp-space-ratio, 1)) 0;
+}
+
+html[data-sigapp-custom-scale="1"] .divider .divider-text {
+    padding: 0 calc(1rem * var(--sigapp-space-ratio, 1));
+}
+
+html[data-sigapp-custom-scale="1"] .divider.divider-left .divider-text {
+    padding-left: 0;
+}
+
+html[data-sigapp-custom-scale="1"] .divider.divider-right .divider-text {
+    padding-right: 0;
+}
+
+/* ==========================================================================
+   3. GLOBAL PX-BASED SPACING (style.css & header.php -> dikali --sigapp-ui-scale)
+   ========================================================================== */
+
+html[data-sigapp-custom-scale="1"] table.dataTable.compact tbody th,
+html[data-sigapp-custom-scale="1"] table.dataTable.compact tbody td {
+    padding: calc(4px * var(--sigapp-ui-scale, 1)) calc(6px * var(--sigapp-ui-scale, 1)) !important;
+}
+
+html[data-sigapp-custom-scale="1"] .modal-header-custom {
+    padding: calc(20px * var(--sigapp-ui-scale, 1)) calc(28px * var(--sigapp-ui-scale, 1)) calc(18px * var(--sigapp-ui-scale, 1)) !important;
+}
+
+html[data-sigapp-custom-scale="1"] .modal-main {
+    padding: calc(22px * var(--sigapp-ui-scale, 1)) calc(24px * var(--sigapp-ui-scale, 1));
+}
+
+html[data-sigapp-custom-scale="1"] .section-card-header {
+    gap: calc(10px * var(--sigapp-ui-scale, 1));
+    padding: calc(13px * var(--sigapp-ui-scale, 1)) calc(18px * var(--sigapp-ui-scale, 1));
+}
+
+html[data-sigapp-custom-scale="1"] .section-card-body {
+    padding: calc(16px * var(--sigapp-ui-scale, 1)) calc(18px * var(--sigapp-ui-scale, 1));
+}
+
+html[data-sigapp-custom-scale="1"] .modal-footer-custom {
+    gap: calc(10px * var(--sigapp-ui-scale, 1)) !important;
+    padding: calc(14px * var(--sigapp-ui-scale, 1)) calc(24px * var(--sigapp-ui-scale, 1)) !important;
+}
+
+html[data-sigapp-custom-scale="1"] .btn-cancel {
+    padding: calc(9px * var(--sigapp-ui-scale, 1)) calc(22px * var(--sigapp-ui-scale, 1)) !important;
+}
+
+html[data-sigapp-custom-scale="1"] .btn-save {
+    gap: calc(7px * var(--sigapp-ui-scale, 1)) !important;
+    padding: calc(9px * var(--sigapp-ui-scale, 1)) calc(28px * var(--sigapp-ui-scale, 1)) !important;
+}
+
+html[data-sigapp-custom-scale="1"] .btn-outline-custom {
+    padding: calc(9px * var(--sigapp-ui-scale, 1)) calc(22px * var(--sigapp-ui-scale, 1)) !important;
+}
+
+html[data-sigapp-custom-scale="1"] .select2-container--default .select2-selection--single {
+    height: calc(38px * var(--sigapp-ui-scale, 1)) !important;
+    min-height: calc(38px * var(--sigapp-ui-scale, 1)) !important;
+}
+
+html[data-sigapp-custom-scale="1"] .select2-container--default .select2-selection--single .select2-selection__rendered {
+    line-height: calc(38px * var(--sigapp-ui-scale, 1)) !important;
+}
+
+html[data-sigapp-custom-scale="1"] .select2-container--default .select2-selection--multiple {
+    min-height: calc(38px * var(--sigapp-ui-scale, 1)) !important;
+    padding: calc(4px * var(--sigapp-ui-scale, 1)) calc(6px * var(--sigapp-ui-scale, 1)) !important;
+}
+
+/* .app-content padding from header.php inline <style> (sidebar desktop width 260px/80px tetap utuh) */
+@media (min-width: 1201px) {
+    html[data-sigapp-custom-scale="1"] .app-content {
+        padding-top: calc(100px * var(--sigapp-ui-scale, 1)) !important;
+    }
+}
+
+@media (max-width: 1200px) {
+    html[data-sigapp-custom-scale="1"] .app-content {
+        padding-top: calc(80px * var(--sigapp-ui-scale, 1)) !important;
+        padding-left: calc(10px * var(--sigapp-ui-scale, 1)) !important;
+        padding-right: calc(10px * var(--sigapp-ui-scale, 1)) !important;
+    }
+}
+
+/* ==========================================================================
+   4. MODAL: #sigapp-display-scale-modal
+   Baseline #modal_detail / sigapp-ui-acuan + proteksi skala ekstrem (fixed px)
+   ========================================================================== */
+
+#sigapp-display-scale-modal .modal-dialog {
+    max-width: min(620px, calc(100vw - 24px));
+    margin: 16px auto;
+}
+
+#sigapp-display-scale-modal .modal-content {
+    border: 1px solid #e5e7eb;
+    border-radius: 10px !important;
+    box-shadow: 0 18px 42px rgba(15, 23, 42, .18);
+    overflow: hidden;
+    font-size: 13px;
+    line-height: 1.45;
+}
+
+#sigapp-display-scale-modal .modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    background: #ffffff;
+    border-bottom: 1px solid #e5e7eb;
+    padding: 14px 18px;
+}
+
+#sigapp-display-scale-modal .modal-title {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: #111827;
+    font-size: 15px;
+    font-weight: 700;
+    line-height: 1.3;
+    margin: 0;
+}
+
+#sigapp-display-scale-modal .detail-title-icon {
+    display: inline-flex;
+    width: 34px;
+    height: 34px;
+    flex: 0 0 34px;
+    align-items: center;
+    justify-content: center;
+    background: #edf4ff;
+    color: #2057a3;
+    border: 1px solid #dbe8ff;
+    border-radius: 8px;
+    font-size: 15px;
+}
+
+#sigapp-display-scale-modal .detail-title-icon svg {
+    width: 16px;
+    height: 16px;
+}
+
+#sigapp-display-scale-modal .sigapp-scale-subtitle {
+    display: block;
+    color: #6b7280;
+    font-size: 12px;
+    font-weight: 500;
+    margin-top: 2px;
+}
+
+#sigapp-display-scale-modal .close {
+    margin: 0;
+    padding: 4px 8px;
+    min-width: 32px;
+    min-height: 32px;
+    font-size: 20px;
+    line-height: 1;
+    color: #6b7280;
+    opacity: 1;
+}
+
+#sigapp-display-scale-modal .modal-body {
+    background: #f3f5f7;
+    max-height: calc(100vh - 150px);
+    overflow-y: auto;
+    padding: 14px 16px;
+}
+
+#sigapp-display-scale-modal .card {
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px !important;
+    box-shadow: none;
+    margin-bottom: 12px;
+}
+
+#sigapp-display-scale-modal .card:last-child {
+    margin-bottom: 0;
+}
+
+#sigapp-display-scale-modal .card-body {
+    padding: 14px 16px;
+}
+
+#sigapp-display-scale-modal .divider {
+    margin: 0 0 12px;
+}
+
+#sigapp-display-scale-modal .divider .divider-text {
+    color: #111827;
+    font-size: 13px;
+    font-weight: 700;
+    padding: 0 10px 0 0;
+}
+
+/* Preset Pills */
+#sigapp-display-scale-modal .sigapp-scale-presets {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 10px;
+}
+
+#sigapp-display-scale-modal .sigapp-scale-preset-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    min-height: 36px;
+    padding: 6px 14px;
+    border: 1px solid #d5e4fa;
+    border-radius: 999px !important;
+    background: #edf4ff;
+    color: #2057a3;
+    font-size: 12.5px;
+    font-weight: 600;
+    line-height: 1.2;
+    cursor: pointer;
+    transition: background-color .15s ease, border-color .15s ease, color .15s ease;
+}
+
+#sigapp-display-scale-modal .sigapp-scale-preset-btn:hover,
+#sigapp-display-scale-modal .sigapp-scale-preset-btn:focus {
+    background: #dfecff;
+    border-color: #2057a3;
+    outline: none;
+}
+
+#sigapp-display-scale-modal .sigapp-scale-preset-btn.is-active,
+#sigapp-display-scale-modal .sigapp-scale-preset-btn[aria-pressed="true"] {
+    background: #2057a3 !important;
+    border-color: #2057a3 !important;
+    color: #ffffff !important;
+}
+
+/* Slider Controls */
+#sigapp-display-scale-modal .sigapp-scale-control {
+    padding: 12px;
+    border: 1px solid #edf0f2;
+    border-radius: 8px;
+    background: #f9fafb;
+    margin-bottom: 10px;
+}
+
+#sigapp-display-scale-modal .sigapp-scale-control:last-child {
+    margin-bottom: 0;
+}
+
+#sigapp-display-scale-modal .sigapp-scale-control-head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 8px;
+}
+
+#sigapp-display-scale-modal .sigapp-scale-label {
+    display: block;
+    color: #111827;
+    font-size: 13px;
+    font-weight: 700;
+    margin: 0;
+}
+
+#sigapp-display-scale-modal .sigapp-scale-desc {
+    display: block;
+    color: #6b7280;
+    font-size: 11.5px;
+    font-weight: 500;
+    margin-top: 2px;
+}
+
+#sigapp-display-scale-modal .sigapp-scale-value-pill {
+    display: inline-flex;
+    align-items: center;
+    padding: 3px 10px;
+    border-radius: 999px;
+    background: #edf4ff;
+    border: 1px solid #d5e4fa;
+    color: #2057a3;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 12px;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+#sigapp-display-scale-modal .sigapp-scale-slider-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+#sigapp-display-scale-modal .sigapp-scale-step-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 34px;
+    height: 34px;
+    min-height: 34px;
+    flex: 0 0 34px;
+    padding: 0;
+    border: 1px solid #d8dde3;
+    border-radius: 8px !important;
+    background: #ffffff;
+    color: #374151;
+    font-size: 14px;
+    font-weight: 700;
+    line-height: 1;
+    cursor: pointer;
+}
+
+#sigapp-display-scale-modal .sigapp-scale-step-btn:hover,
+#sigapp-display-scale-modal .sigapp-scale-step-btn:focus {
+    border-color: #2057a3;
+    color: #2057a3;
+    background: #edf4ff;
+    outline: none;
+}
+
+#sigapp-display-scale-modal .sigapp-scale-range {
+    flex: 1 1 auto;
+    width: 100%;
+    height: 6px;
+    accent-color: #2057a3;
+    cursor: pointer;
+}
+
+#sigapp-display-scale-modal .sigapp-scale-ticks {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 5px;
+    padding: 0 42px;
+    color: #6b7280;
+    font-size: 11px;
+    font-weight: 600;
+}
+
+/* Live Preview Box (merefleksikan skala aktif secara aman) */
+#sigapp-display-scale-modal .sigapp-scale-preview-box {
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    background: #f8fafc;
+    padding: calc(12px * var(--sigapp-ui-scale, 1));
+    overflow: hidden;
+}
+
+#sigapp-display-scale-modal .sigapp-scale-preview-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: calc(10px * var(--sigapp-ui-scale, 1));
+}
+
+#sigapp-display-scale-modal .sigapp-scale-preview-title {
+    color: #111827;
+    font-size: calc(13px * var(--sigapp-font-scale, 1));
+    font-weight: 700;
+    line-height: 1.35;
+}
+
+#sigapp-display-scale-modal .sigapp-scale-preview-meta {
+    color: #6b7280;
+    font-size: calc(11.5px * var(--sigapp-font-scale, 1));
+    line-height: 1.35;
+    margin-top: calc(2px * var(--sigapp-ui-scale, 1));
+}
+
+#sigapp-display-scale-modal .sigapp-scale-preview-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: calc(4px * var(--sigapp-ui-scale, 1)) calc(10px * var(--sigapp-ui-scale, 1));
+    border-radius: 999px;
+    background: #ecfdf3;
+    border: 1px solid #15803d;
+    color: #166534;
+    font-size: calc(11px * var(--sigapp-font-scale, 1));
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+#sigapp-display-scale-modal .sigapp-scale-preview-controls {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: calc(8px * var(--sigapp-ui-scale, 1));
+    margin-top: calc(10px * var(--sigapp-ui-scale, 1));
+    padding-top: calc(10px * var(--sigapp-ui-scale, 1));
+    border-top: 1px solid #e5e7eb;
+}
+
+#sigapp-display-scale-modal .sigapp-scale-preview-label {
+    color: #6b7280;
+    font-size: calc(11.5px * var(--sigapp-font-scale, 1));
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+#sigapp-display-scale-modal .sigapp-scale-preview-input {
+    flex: 1 1 160px;
+    min-width: 0;
+    height: calc(34px * var(--sigapp-ui-scale, 1));
+    padding: calc(6px * var(--sigapp-ui-scale, 1)) calc(10px * var(--sigapp-ui-scale, 1));
+    border: 1px solid #d8dde3;
+    border-radius: 8px !important;
+    background: #ffffff;
+    color: #111827;
+    font-size: calc(12px * var(--sigapp-font-scale, 1));
+    line-height: 1.25;
+}
+
+#sigapp-display-scale-modal .sigapp-scale-preview-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: calc(7px * var(--sigapp-ui-scale, 1)) calc(14px * var(--sigapp-ui-scale, 1));
+    border: 1px solid #2057a3;
+    border-radius: 8px !important;
+    background: #2057a3;
+    color: #ffffff;
+    font-size: calc(12px * var(--sigapp-font-scale, 1));
+    font-weight: 600;
+    line-height: 1.25;
+    cursor: default;
+}
+
+/* Modal Footer */
+#sigapp-display-scale-modal .modal-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 8px;
+    background: #ffffff;
+    border-top: 1px solid #e5e7eb;
+    padding: 12px 18px;
+}
+
+#sigapp-display-scale-modal .modal-footer .btn {
+    min-height: 36px;
+    padding: 8px 16px;
+    border-radius: 8px !important;
+    font-size: 13px;
+    font-weight: 600;
+    line-height: 1.25;
+}
+
+#sigapp-display-scale-modal .modal-footer .btn svg {
+    width: 14px;
+    height: 14px;
+    vertical-align: -2px;
+}
+
+/* Mobile Responsive */
+@media (max-width: 767.98px) {
+    #sigapp-display-scale-modal .modal-dialog {
+        max-width: calc(100vw - 16px);
+        margin: 8px auto;
+    }
+
+    #sigapp-display-scale-modal .modal-body {
+        max-height: calc(100vh - 135px);
+        padding: 12px;
+    }
+
+    #sigapp-display-scale-modal .sigapp-scale-ticks {
+        padding: 0 38px;
+    }
+
+    #sigapp-display-scale-modal .modal-footer {
+        position: sticky;
+        bottom: 0;
+        z-index: 2;
+    }
+}
+
+/* Dark Layout Support */
+.dark-layout #sigapp-display-scale-modal .modal-content {
+    background: #283046;
+    border-color: rgba(255, 255, 255, .08);
+}
+
+.dark-layout #sigapp-display-scale-modal .modal-header,
+.dark-layout #sigapp-display-scale-modal .modal-footer {
+    background: #283046;
+    border-color: rgba(255, 255, 255, .08);
+}
+
+.dark-layout #sigapp-display-scale-modal .modal-title,
+.dark-layout #sigapp-display-scale-modal .divider .divider-text,
+.dark-layout #sigapp-display-scale-modal .sigapp-scale-label,
+.dark-layout #sigapp-display-scale-modal .sigapp-scale-preview-title {
+    color: #f8fafc;
+}
+
+.dark-layout #sigapp-display-scale-modal .divider .divider-text::after {
+    border-top-color: rgba(255, 255, 255, .12);
+}
+
+.dark-layout #sigapp-display-scale-modal .detail-title-icon {
+    background: rgba(32, 87, 163, .28);
+    border-color: rgba(147, 197, 253, .28);
+    color: #93c5fd;
+}
+
+.dark-layout #sigapp-display-scale-modal .close,
+.dark-layout #sigapp-display-scale-modal .sigapp-scale-subtitle,
+.dark-layout #sigapp-display-scale-modal .sigapp-scale-desc,
+.dark-layout #sigapp-display-scale-modal .sigapp-scale-ticks,
+.dark-layout #sigapp-display-scale-modal .sigapp-scale-preview-meta {
+    color: #b4b7bd;
+}
+
+.dark-layout #sigapp-display-scale-modal .modal-body {
+    background: #161d31;
+}
+
+.dark-layout #sigapp-display-scale-modal .card {
+    background: #283046;
+    border-color: rgba(255, 255, 255, .08);
+}
+
+.dark-layout #sigapp-display-scale-modal .sigapp-scale-control,
+.dark-layout #sigapp-display-scale-modal .sigapp-scale-preview-box {
+    background: #161d31;
+    border-color: rgba(255, 255, 255, .08);
+}
+
+.dark-layout #sigapp-display-scale-modal .sigapp-scale-preview-controls {
+    border-top-color: rgba(255, 255, 255, .08);
+}
+
+.dark-layout #sigapp-display-scale-modal .sigapp-scale-preview-label {
+    color: #b4b7bd;
+}
+
+.dark-layout #sigapp-display-scale-modal .sigapp-scale-preview-input {
+    background: #283046;
+    border-color: rgba(255, 255, 255, .14);
+    color: #f8fafc;
+}
+
+.dark-layout #sigapp-display-scale-modal .sigapp-scale-step-btn {
+    background: #283046;
+    border-color: rgba(255, 255, 255, .14);
+    color: #e2e8f0;
+}
+
+.dark-layout #sigapp-display-scale-modal .sigapp-scale-step-btn:hover,
+.dark-layout #sigapp-display-scale-modal .sigapp-scale-step-btn:focus {
+    background: rgba(32, 87, 163, .32);
+    border-color: #60a5fa;
+    color: #ffffff;
+}
+
+.dark-layout #sigapp-display-scale-modal .sigapp-scale-preset-btn,
+.dark-layout #sigapp-display-scale-modal .sigapp-scale-value-pill {
+    background: rgba(32, 87, 163, .24);
+    border-color: rgba(147, 197, 253, .28);
+    color: #bfdbfe;
+}
+
+.dark-layout #sigapp-display-scale-modal .sigapp-scale-preset-btn:hover,
+.dark-layout #sigapp-display-scale-modal .sigapp-scale-preset-btn:focus {
+    background: rgba(32, 87, 163, .42);
+    border-color: #60a5fa;
+}
+
+.dark-layout #sigapp-display-scale-modal .sigapp-scale-preset-btn.is-active,
+.dark-layout #sigapp-display-scale-modal .sigapp-scale-preset-btn[aria-pressed="true"] {
+    background: #2057a3 !important;
+    border-color: #2057a3 !important;
+    color: #ffffff !important;
+}

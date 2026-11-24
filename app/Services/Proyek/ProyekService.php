@@ -2,12 +2,12 @@
 
 namespace App\Services\Proyek;
 
-use App\Controllers\Notif;
 use App\Models\ProyekModel;
 use App\Models\SiteplanuploadModel;
 use App\Repositories\Proyek\ProyekRepository;
 use App\Services\FileAccessService;
 use App\Services\HistoryService;
+use App\Services\NotifikasiService;
 use CodeIgniter\HTTP\IncomingRequest;
 use RuntimeException;
 
@@ -20,7 +20,7 @@ class ProyekService
     private $validation;
     private $db;
     private HistoryService $historyService;
-    private Notif $notif;
+    private NotifikasiService $notif;
 
     public function __construct()
     {
@@ -31,25 +31,33 @@ class ProyekService
         $this->validation          = \Config\Services::validation();
         $this->db                  = db_connect();
         $this->historyService      = new HistoryService();
-        $this->notif               = new Notif();
+        $this->notif               = new NotifikasiService();
+    }
+
+    public function getDropdownList(): array
+    {
+        return $this->proyekModel->select('id_proyek, nama_proyek')->orderBy('order_by', 'asc')->findAll();
     }
 
     public function getAll(array $params = []): array
     {
         $rows = [];
+        $items = $this->proyekRepository->getAll($params);
 
-        foreach ($this->proyekRepository->getAll($params) as $key => $value) {
-            $ops = '<div class="btn-group">';
-            $ops .= '	<button type="button" class="btn btn-outline-primary waves-effect btn-sm" onclick="edit(' . $value->id_proyek . ')"><i class="fas fa-edit"></i></button>';
-            $ops .= '	<button type="button" class="btn btn-outline-info waves-effect btn-sm" onclick="viewProyek(' . $value->id_proyek . ')"><i class="fas fa-eye"></i></button>';
-            $ops .= '</div>';
-
+        foreach ($items as $key => $value) {
+            $id = (int) $value->id_proyek;
             $rows[$key] = [
-                $key + 1,
-                $value->nama_proyek,
-                $value->alamat_proyek,
-                "<img width='50px' src='" . $this->fileAccessService->thumbnailUrl('proyek_logo', (int) $value->id_proyek) . "'>",
-                $ops,
+                'id_proyek'          => $id,
+                'no'                 => $key + 1,
+                'nama_proyek'        => $value->nama_proyek,
+                'alamat_proyek'      => $value->alamat_proyek,
+                'kelurahan'          => $value->kelurahan ?? null,
+                'kecamatan'          => $value->kecamatan ?? null,
+                'kota'               => $value->kota ?? null,
+                'provinsi'           => $value->provinsi ?? null,
+                'landing_page_url'   => $value->landing_page_url ?? null,
+                'logo_thumbnail_url' => $this->fileAccessService->thumbnailUrl('proyek_logo', $id),
+                'logo_access_url'    => $this->fileAccessService->accessUrl('proyek_logo', $id),
             ];
         }
 
@@ -155,8 +163,9 @@ class ProyekService
             $rules['file'] = $this->siteplanRules('file', 10000);
         }
 
-        if ($this->shouldUpload($request, 'logon', 'no_up_logo')) {
-            $rules['logon'] = $this->logoRules('logon');
+        $logoField = $this->hasUploadedFile($request, 'logo') ? 'logo' : 'logon';
+        if ($this->shouldUpload($request, $logoField, 'no_up_logo')) {
+            $rules[$logoField] = $this->logoRules($logoField);
         }
 
         if ($this->shouldUpload($request, 'logo_pt', 'no_up_logo_pt')) {
@@ -180,8 +189,8 @@ class ProyekService
                 $fields['siteplan'] = $siteplan['location'];
             }
 
-            if (isset($rules['logon'])) {
-                $logo = $this->storeImage($request, 'logon', 'uploads/logo/');
+            if (isset($rules[$logoField])) {
+                $logo = $this->storeImage($request, $logoField, 'uploads/logo/');
                 $fields['logo'] = $logo['location'];
             }
 
@@ -352,66 +361,340 @@ class ProyekService
         return $file && $file->getError() !== UPLOAD_ERR_NO_FILE;
     }
 
-    public function getAksesList(): array
+    public function getAksesMeta(): array
     {
+        $userRows  = $this->proyekRepository->getActiveUsersWithGroups();
+        $groupRows = $this->proyekRepository->getAuthGroups();
+
+        $users = array_map(
+            fn (object $row): array => $this->formatActiveUser($row),
+            $userRows
+        );
+
+        $groups = array_map(static fn (object $row): array => [
+            'id'          => (int) $row->id,
+            'name'        => (string) $row->name,
+            'description' => (string) ($row->description ?? ''),
+        ], $groupRows);
+
+        return [
+            'users'           => $users,
+            'groups'          => $groups,
+            'admin_group_ids' => [1],
+            'permissions'     => [
+                'can_manage' => true,
+                'can_edit'   => true,
+            ],
+        ];
+    }
+
+    public function getAksesList(array $params = []): array
+    {
+        if (($params['format'] ?? null) === 'raw') {
+            $search  = trim((string) ($params['search'] ?? ''));
+            $page    = max(1, (int) ($params['page'] ?? 1));
+            $perPage = max(1, min(100, (int) ($params['per_page'] ?? 25)));
+
+            $paginated      = $this->proyekRepository->getAksesProyekPaginated($search, $page, $perPage);
+            $activeUsersMap = $this->getActiveUsersMap();
+            $items          = [];
+
+            foreach ($paginated['rows'] as $row) {
+                $idProyek = (int) $row->id_proyek;
+                $hasLogo  = ! empty($row->logo);
+                $resolved = $this->resolveActiveUsersFromCsv($row->id_users ?? '', $activeUsersMap);
+
+                $items[] = [
+                    'id_proyek'          => $idProyek,
+                    'nama_proyek'        => (string) $row->nama_proyek,
+                    'logo_thumbnail_url' => $hasLogo ? $this->fileAccessService->thumbnailUrl('proyek_logo', $idProyek) : null,
+                    'logo_access_url'    => $hasLogo ? $this->fileAccessService->accessUrl('proyek_logo', $idProyek) : null,
+                    'id_users'           => (string) ($row->id_users ?? ''),
+                    'user_ids'           => $resolved['user_ids'],
+                    'users_count'        => count($resolved['users']),
+                    'users_preview'      => array_slice($resolved['users'], 0, 5),
+                    'kumpulan_username'  => $resolved['kumpulan_username'],
+                ];
+            }
+
+            return [
+                'items' => $items,
+                'meta'  => [
+                    'page'     => $page,
+                    'per_page' => $perPage,
+                    'total'    => (int) $paginated['total'],
+                ],
+            ];
+        }
+
         $rows = $this->proyekRepository->getAksesProyekList();
         $data = [];
 
         foreach ($rows as $key => $value) {
-            $ops = '<div class="btn-group">';
-            $ops .= '	<button type="button" class="btn btn-sm btn-info" onclick="edit(\'' . $value->id_proyek . '\')"><i class="fa fa-edit"></i></button>';
-            $ops .= '</div>';
-
             $data[$key] = [
-                $value->nama_proyek,
-                $value->kumpulan_username,
-                $ops,
+                'id_proyek'         => (int) $value->id_proyek,
+                'nama_proyek'       => $value->nama_proyek,
+                'id_users'          => $value->id_users,
+                'kumpulan_username' => $value->kumpulan_username ?? '',
             ];
         }
 
         return $data;
     }
 
-    public function getAksesOne(int $idProyek): ?object
+    public function getAksesOne(int $idProyek, bool $raw = false): array|object|null
     {
         if ($idProyek <= 0) {
             return null;
         }
 
-        return $this->proyekRepository->getAksesProyekById($idProyek);
+        if (! $raw) {
+            return $this->proyekRepository->getAksesProyekById($idProyek);
+        }
+
+        $proyek = $this->proyekRepository->getById($idProyek);
+        if (! $proyek) {
+            return null;
+        }
+
+        $resolved = $this->resolveActiveUsersFromCsv($proyek->id_users ?? '', $this->getActiveUsersMap());
+
+        return [
+            'id_proyek'         => (int) $proyek->id_proyek,
+            'nama_proyek'       => (string) $proyek->nama_proyek,
+            'id_users'          => (string) ($proyek->id_users ?? ''),
+            'user_ids'          => $resolved['user_ids'],
+            'users'             => $resolved['users'],
+            'kumpulan_username' => $resolved['kumpulan_username'],
+        ];
     }
 
-    public function searchAksesUsers(string $keyword): array
+    public function searchAksesUsers(string $keyword, bool $raw = false): array
     {
+        if ($raw) {
+            return array_map(
+                fn (object $row): array => $this->formatActiveUser($row),
+                $this->proyekRepository->getActiveUsersWithGroups($keyword)
+            );
+        }
+
         return $this->proyekRepository->searchUsers($keyword);
     }
 
     public function updateAkses(array $postData): array
     {
-        $idProyek = (int) ($postData['id_proyek'] ?? 0);
-        $userIds  = $postData['id_users'] ?? [];
+        $rawIdProyek = $postData['id_proyek'] ?? $postData['idProyek'] ?? 0;
+        $idProyek    = is_numeric($rawIdProyek) ? (int) $rawIdProyek : 0;
 
         if ($idProyek <= 0) {
             return [
-                'success'  => false,
-                'messages' => 'Tidak ada proyek yang dipilih',
+                'success'     => false,
+                'status_code' => 422,
+                'messages'    => 'Validasi gagal.',
+                'errors'      => [
+                    'id_proyek' => 'Proyek wajib dipilih.',
+                ],
             ];
         }
 
-        $userIdsList = is_array($userIds) ? $userIds : explode(',', (string) $userIds);
-        $cleanedIds  = array_filter(array_map('trim', $userIdsList), static fn($val) => $val !== '');
-        $csv         = !empty($cleanedIds) ? implode(',', $cleanedIds) . ',' : '';
-
-        if ($this->proyekRepository->updateUserAccess($idProyek, $csv)) {
+        if (! $this->proyekRepository->existsProyek($idProyek)) {
             return [
-                'success'  => true,
-                'messages' => 'Berhasil diperbaharui',
+                'success'     => false,
+                'status_code' => 404,
+                'messages'    => 'Proyek tidak ditemukan.',
+            ];
+        }
+
+        $proyek     = $this->proyekRepository->getById($idProyek);
+        $rawUserIds = array_key_exists('id_users', $postData)
+            ? $postData['id_users']
+            : ($postData['idUsers'] ?? []);
+
+        $parsed = $this->normalizeSubmittedUserIds($rawUserIds);
+        if (! $parsed['valid']) {
+            return [
+                'success'     => false,
+                'status_code' => 422,
+                'messages'    => 'Validasi gagal.',
+                'errors'      => [
+                    'id_users' => 'Terdapat ID pengguna yang tidak valid.',
+                ],
+            ];
+        }
+
+        $userIds = $parsed['ids'];
+
+        if ($userIds !== []) {
+            $activeIds  = $this->proyekRepository->findActiveUserIds($userIds);
+            $missingIds = array_values(array_diff($userIds, $activeIds));
+
+            if ($missingIds !== []) {
+                return [
+                    'success'     => false,
+                    'status_code' => 422,
+                    'messages'    => 'Validasi gagal.',
+                    'errors'      => [
+                        'id_users' => 'Sebagian pengguna tidak ditemukan atau tidak aktif (ID: ' . implode(', ', $missingIds) . ').',
+                    ],
+                ];
+            }
+        }
+
+        $csv = $userIds !== [] ? implode(',', $userIds) . ',' : '';
+
+        if (! $this->proyekRepository->updateUserAccess($idProyek, $csv)) {
+            return [
+                'success'     => false,
+                'status_code' => 500,
+                'messages'    => 'Terjadi kesalahan saat memperbarui akses proyek.',
+            ];
+        }
+
+        $oldCsv = (string) ($proyek->id_users ?? '');
+        $this->historyService->log('master_proyek', [
+            'reference_type' => 'proyek_akses',
+            'reference_id'   => $idProyek,
+            'id_proyek'      => $idProyek,
+            'action'         => 'update_akses_proyek',
+            'summary'        => 'Memperbarui akses pengguna proyek ' . (string) ($proyek->nama_proyek ?? ''),
+            'old_data'       => [
+                'id_users' => $oldCsv,
+                'user_ids' => $this->parseUserIdsCsv($oldCsv),
+            ],
+            'new_data'       => [
+                'id_users' => $csv,
+                'user_ids' => $userIds,
+            ],
+        ]);
+
+        $resolved = $this->resolveActiveUsersFromIds($userIds, $this->getActiveUsersMap());
+
+        return [
+            'success'     => true,
+            'status_code' => 200,
+            'messages'    => 'Akses proyek berhasil diperbarui.',
+            'data'        => [
+                'id_proyek'         => $idProyek,
+                'nama_proyek'       => (string) ($proyek->nama_proyek ?? ''),
+                'id_users'          => $csv,
+                'user_ids'          => $resolved['user_ids'],
+                'users_count'       => count($resolved['users']),
+                'users'             => $resolved['users'],
+                'kumpulan_username' => $resolved['kumpulan_username'],
+            ],
+        ];
+    }
+
+    private function formatActiveUser(object $row): array
+    {
+        return [
+            'id'            => (int) $row->id,
+            'username'      => (string) $row->username,
+            'nama_karyawan' => (string) ($row->nama_karyawan ?? $row->username),
+            'id_group'      => isset($row->id_group) && $row->id_group !== null ? (int) $row->id_group : null,
+            'divisi'        => isset($row->divisi) && $row->divisi !== null ? (string) $row->divisi : null,
+        ];
+    }
+
+    private function getActiveUsersMap(): array
+    {
+        $map = [];
+        foreach ($this->proyekRepository->getActiveUsersWithGroups() as $row) {
+            $formatted               = $this->formatActiveUser($row);
+            $map[$formatted['id']]   = $formatted;
+        }
+
+        return $map;
+    }
+
+    private function parseUserIdsCsv(?string $csv): array
+    {
+        if ($csv === null || trim($csv) === '') {
+            return [];
+        }
+
+        $ids = [];
+        foreach (explode(',', $csv) as $part) {
+            $id = (int) trim($part);
+            if ($id > 0 && ! in_array($id, $ids, true)) {
+                $ids[] = $id;
+            }
+        }
+
+        return $ids;
+    }
+
+    private function resolveActiveUsersFromCsv(?string $csv, array $activeUsersMap): array
+    {
+        return $this->resolveActiveUsersFromIds($this->parseUserIdsCsv($csv), $activeUsersMap);
+    }
+
+    private function resolveActiveUsersFromIds(array $ids, array $activeUsersMap): array
+    {
+        $activeIds   = [];
+        $users       = [];
+        $usernames   = [];
+
+        foreach ($ids as $uid) {
+            if (! isset($activeUsersMap[$uid])) {
+                continue;
+            }
+
+            $user        = $activeUsersMap[$uid];
+            $activeIds[] = $uid;
+            $usernames[] = $user['username'];
+            $users[]     = [
+                'id'            => $user['id'],
+                'username'      => $user['username'],
+                'nama_karyawan' => $user['nama_karyawan'],
+                'divisi'        => $user['divisi'],
             ];
         }
 
         return [
-            'success'  => false,
-            'messages' => 'Terjadi kesalahan!',
+            'user_ids'          => $activeIds,
+            'users'             => $users,
+            'kumpulan_username' => implode(',', $usernames),
         ];
+    }
+
+    private function normalizeSubmittedUserIds(mixed $rawUserIds): array
+    {
+        if ($rawUserIds === null || $rawUserIds === '' || $rawUserIds === []) {
+            return ['valid' => true, 'ids' => []];
+        }
+
+        if (is_string($rawUserIds)) {
+            $items = explode(',', $rawUserIds);
+        } elseif (is_array($rawUserIds)) {
+            $items = $rawUserIds;
+        } else {
+            return ['valid' => false, 'ids' => []];
+        }
+
+        $ids = [];
+        foreach ($items as $item) {
+            if (is_string($item) && trim($item) === '') {
+                continue;
+            }
+
+            if (is_int($item)) {
+                $id = $item;
+            } elseif (is_string($item) && ctype_digit(trim($item))) {
+                $id = (int) trim($item);
+            } else {
+                return ['valid' => false, 'ids' => []];
+            }
+
+            if ($id <= 0) {
+                return ['valid' => false, 'ids' => []];
+            }
+
+            if (! in_array($id, $ids, true)) {
+                $ids[] = $id;
+            }
+        }
+
+        return ['valid' => true, 'ids' => $ids];
     }
 }

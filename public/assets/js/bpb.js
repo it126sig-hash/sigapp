@@ -25,6 +25,44 @@
     const formatListDate = value => value ? new Intl.DateTimeFormat('id-ID', { day: '2-digit', month: 'short', year: 'numeric' }).format(new Date(String(value).replace(' ', 'T'))) : '-';
     const statusTone = value => `bpb-status--${String(value || 'draft').toLowerCase().replace(/[^a-z0-9]+/g, '-')}`;
 
+    async function copyToClipboard(text) {
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            try {
+                await navigator.clipboard.writeText(text);
+                return true;
+            } catch (_) {}
+        }
+        const temp = $('<textarea>').css({ position: 'fixed', left: '-9999px', top: '0', opacity: '0' }).val(text).appendTo('body');
+        temp[0].select();
+        let ok = false;
+        try {
+            ok = document.execCommand('copy');
+        } catch (_) {}
+        temp.remove();
+        if (!ok) throw new Error('Browser tidak mendukung penyalinan otomatis.');
+        return true;
+    }
+
+    async function handleShareAction(shareUrl) {
+        shareUrl = shareUrl || (current && current.share_url) || (window.BPB_SHARED_DATA && window.BPB_SHARED_DATA.share_url) || window.location.href;
+        try {
+            await copyToClipboard(shareUrl);
+            Swal.fire({
+                icon: 'success',
+                title: 'Berhasil Disalin',
+                text: 'Link dokumen berhasil disalin ke clipboard!',
+                timer: 2000,
+                showConfirmButton: false
+            });
+        } catch (err) {
+            Swal.fire({
+                icon: 'info',
+                title: 'Link Dokumen BPB',
+                text: shareUrl
+            });
+        }
+    }
+
     async function request(path, opts) {
         opts = opts || {};
         opts.headers = opts.headers || {};
@@ -110,11 +148,11 @@
     function addItem(item) {
         item = item || {};
         $('#bpb-items').append(`<div class="bpb-item-row row">
-            <div class="col-md-4 form-group mb-md-0"><label>Nama barang</label><input class="form-control bpb-item-name" maxlength="255" value="${esc(item.nama_barang || '')}"></div>
-            <div class="col-md-2 form-group mb-md-0"><label>Jumlah</label><input type="number" min="0.01" step="0.01" class="form-control bpb-item-qty" value="${esc(item.jumlah || 1)}"></div>
+            <div class="col-md-4 form-group mb-md-0"><label>Nama barang <span class="text-danger">*</span></label><input class="form-control bpb-item-name" maxlength="255" value="${esc(item.nama_barang || '')}"></div>
+            <div class="col-md-2 form-group mb-md-0"><label>Jumlah <span class="text-danger">*</span></label><input type="number" min="0.01" step="0.01" class="form-control bpb-item-qty" value="${esc(item.jumlah || 1)}"></div>
             <div class="col-md-2 form-group mb-md-0"><label>Satuan <span class="text-danger">*</span></label><input class="form-control bpb-item-unit" maxlength="50" placeholder="pcs, rim, box" required value="${esc(item.satuan || '')}"></div>
-            <div class="col-md-3 form-group mb-md-0"><label>Keterangan</label><input class="form-control bpb-item-note" value="${esc(item.keterangan || '')}"></div>
-            <div class="col-md-1 d-flex align-items-end"><button type="button" class="btn btn-outline-danger bpb-remove-item"><i class="fa fa-trash"></i></button></div>
+            <div class="col-md-3 form-group mb-md-0"><label>Keterangan</label><textarea class="form-control bpb-item-note" rows="2" placeholder="Keterangan / spesifikasi">${esc(item.keterangan || '')}</textarea></div>
+            <div class="col-md-1 d-flex align-items-center mt-md-2"><button type="button" class="btn btn-outline-danger bpb-remove-item"><i class="fa fa-trash"></i></button></div>
         </div>`);
     }
 
@@ -279,6 +317,7 @@
     }
 
     function initTable() {
+        if (!$('#bpb-table').length) return;
         table = $('#bpb-table').DataTable({
             processing: true, serverSide: true, pageLength: 10, order: [],
             ajax: function (data, callback) {
@@ -336,7 +375,7 @@
         if (withSignature) {
             if (!id && submissionKey) form.append('submission_key', submissionKey);
             const method = $('#bpb-sign-method').val(); form.append('signature_method', method); form.append('signature_data', method === 'canvas' ? canvases['bpb-form-canvas'].data() : '');
-            form.append('password', $('#bpb-password').val()); form.append('consent', $('#bpb-consent').is(':checked') ? '1' : '0');
+            form.append('password', $('#bpb-password').val());
         }
         return form;
     }
@@ -364,7 +403,7 @@
 
     function setFormBusy(busy, title) {
         formBusy = busy;
-        $('#bpb-save-draft, #bpb-submit, #bpb-form-back, #bpb-create').prop('disabled', busy);
+        $('#bpb-save-draft, #bpb-submit, #bpb-form-back, #bpb-form-back-bottom, #bpb-create').prop('disabled', busy);
         const $overlay = $('#bpb-submit-overlay');
         if (busy) {
             $('#bpb-submit-title').text(title || 'Menyimpan BPB');
@@ -384,7 +423,7 @@
     function actionSubmitLabel(mode) {
         return ({
             sign: 'Konfirmasi Tanda Tangan', reject: 'Tolak BPB', cancel: 'Batalkan BPB',
-            process: 'Konfirmasi Diproses', disburse: 'Simpan Pencairan', finish: 'Simpan Status',
+            process: 'Konfirmasi Diproses', disburse: 'Tandai Sudah Cair', finish: 'Simpan Verifikasi',
         })[mode] || 'Simpan';
     }
 
@@ -454,13 +493,14 @@
             <section class="bpb-section"><div class="bpb-section-heading"><div class="divider divider-left"><div class="divider-text">Riwayat Status & Audit Trail</div></div><span class="badge badge-light-secondary">${d.history.length} Aktivitas</span></div><div class="bpb-timeline">${timeline}</div></section>`);
         $('#bpb-image-lightbox').addClass('d-none').attr('aria-hidden', 'true');
         const buttons = [`<button type="button" class="btn btn-outline-secondary" data-dismiss="modal">Tutup</button>`, `<a class="btn btn-outline-primary" target="_blank" href="${esc(d.pdf_url)}"><i class="fa fa-file-pdf mr-50"></i>PDF</a>`];
+        buttons.push('<button type="button" class="btn btn-outline-info" data-bpb-action="share"><i class="fa fa-share-alt mr-50"></i>Bagikan</button>');
         if (d.actions.edit) buttons.push('<button class="btn btn-outline-primary" data-bpb-action="edit">Edit</button>');
         if (d.actions.sign) buttons.push('<button class="btn btn-primary" data-bpb-action="sign">Tanda Tangani</button>');
         if (d.actions.reject) buttons.push('<button class="btn btn-outline-danger" data-bpb-action="reject">Tolak</button>');
         if (d.actions.cancel) buttons.push('<button class="btn btn-outline-danger" data-bpb-action="cancel">Batalkan</button>');
         if (d.actions.process) buttons.push('<button class="btn btn-primary" data-bpb-action="process">Tandai Diproses</button>');
         if (d.actions.disburse) buttons.push('<button class="btn btn-primary" data-bpb-action="disburse">Tandai Sudah Cair</button>');
-        if (d.actions.finish) buttons.push('<button class="btn btn-primary" data-bpb-action="finish">Status Pembelian</button>');
+        if (d.actions.finish) buttons.push('<button class="btn btn-primary" data-bpb-action="finish">Verifikasi Pengeluaran</button>');
         $('#bpb-detail-actions').html(buttons.join(''));
     }
 
@@ -499,33 +539,101 @@
 
     function openAction(mode) {
         if (actionBusy) return;
-        actionMode = mode; $('#bpb-action-form')[0].reset(); canvases['bpb-action-canvas'].clear(); $('#bpb-action-signature').addClass('d-none');
+        if (!current && window.BPB_SHARED_DATA) current = window.BPB_SHARED_DATA;
+        actionMode = mode; $('#bpb-action-form')[0].reset(); if (canvases['bpb-action-canvas']) canvases['bpb-action-canvas'].clear(); $('#bpb-action-signature').addClass('d-none');
         let title = 'Aksi BPB', fields = '';
-        if (mode === 'sign') { title = 'Tanda Tangani BPB'; $('#bpb-action-signature').removeClass('d-none'); }
+        if (mode === 'sign') { title = 'Tanda Tangani (ACC) BPB'; $('#bpb-action-signature').removeClass('d-none'); }
         if (mode === 'process') { title = 'Verifikasi Pengeluaran'; $('#bpb-action-signature').removeClass('d-none'); }
-        if (mode === 'reject') { title = 'Tolak BPB'; fields = '<div class="form-group"><label>Alasan penolakan</label><textarea class="form-control" id="bpb-action-reason" required></textarea></div>'; }
-        if (mode === 'cancel') { title = 'Batalkan BPB'; fields = '<div class="form-group"><label>Alasan pembatalan</label><textarea class="form-control" id="bpb-action-reason"></textarea></div>'; }
-        if (mode === 'disburse') { title = 'Data Pencairan'; fields = '<div class="form-group"><label>Nominal aktual</label><input type="number" min="1" class="form-control" id="bpb-actual-amount"></div><div class="form-group"><label>Nama penerima</label><input class="form-control" id="bpb-recipient"></div><div class="form-group"><label>Nomor rekening</label><input class="form-control" inputmode="numeric" id="bpb-account"></div><div class="form-group"><label>Catatan</label><textarea class="form-control" id="bpb-action-note"></textarea></div>'; }
-        if (mode === 'finish') { title = 'Status Pembelian'; fields = '<div class="form-group"><label>Status</label><select class="form-control" id="bpb-finish-status"><option value="purchased">Sudah Dibeli</option><option value="pending">Pending</option></select></div><div class="form-group"><label>Alasan pending</label><textarea class="form-control" id="bpb-action-reason"></textarea></div><div class="form-group"><label>Tanggal pembelian</label><input type="date" class="form-control" id="bpb-purchase-date"></div><div class="form-group"><label>Bukti pembelian (1–5 file)</label><input type="file" multiple accept="image/jpeg,image/png,image/webp,application/pdf" class="form-control" id="bpb-purchase-files"></div><div class="form-group"><label>Keterangan</label><textarea class="form-control" id="bpb-action-note"></textarea></div>'; }
+        if (mode === 'reject') { title = 'Tolak BPB'; fields = '<div class="form-group"><label>Alasan penolakan <span class="text-danger">*</span></label><textarea class="form-control" id="bpb-action-reason" required placeholder="Tuliskan alasan penolakan dokumen BPB"></textarea></div>'; }
+        if (mode === 'cancel') { title = 'Batalkan BPB'; fields = '<div class="form-group"><label>Alasan pembatalan</label><textarea class="form-control" id="bpb-action-reason" placeholder="Tuliskan alasan pembatalan dokumen BPB"></textarea></div>'; }
+        if (mode === 'disburse') { title = 'Tandai Sudah Cair'; fields = '<div class="form-group"><label>Nominal aktual <span class="text-danger">*</span></label><input type="number" min="1" step="any" class="form-control" id="bpb-actual-amount" required placeholder="Contoh: 1500000"></div><div class="form-group"><label>Nama penerima dana <span class="text-danger">*</span></label><input class="form-control" id="bpb-recipient" required placeholder="Nama penerima dana"></div><div class="form-group"><label>Nomor rekening tujuan <span class="text-danger">*</span></label><input class="form-control" inputmode="numeric" id="bpb-account" required placeholder="Nomor rekening tujuan"></div><div class="form-group"><label>Catatan pencairan</label><textarea class="form-control" id="bpb-action-note" placeholder="Catatan tambahan pencairan (opsional)"></textarea></div>'; }
+        if (mode === 'finish') {
+            title = 'Verifikasi Pengeluaran';
+            const today = new Date().toISOString().split('T')[0];
+            fields = `<div class="form-group">
+                <label>Status Pengeluaran</label>
+                <select class="form-control" id="bpb-finish-status">
+                    <option value="purchased">Sudah Dibeli (Verifikasi Pengeluaran)</option>
+                    <option value="pending">Pending</option>
+                </select>
+            </div>
+            <div id="bpb-finish-purchased-wrap">
+                <div class="form-group">
+                    <label>Tanggal pembelian <span class="text-danger">*</span></label>
+                    <input type="date" class="form-control" id="bpb-purchase-date" value="${today}">
+                </div>
+                <div class="form-group">
+                    <label>Bukti nota / kuitansi pembelian (1–5 file) <span class="text-danger">*</span></label>
+                    <input type="file" multiple accept="image/jpeg,image/png,image/webp,application/pdf" class="form-control" id="bpb-purchase-files">
+                    <small class="form-text text-muted">Format: JPG, PNG, WEBP, atau PDF. Maksimal 5 MB per file.</small>
+                </div>
+                <div class="form-group">
+                    <label>Keterangan pembelian</label>
+                    <textarea class="form-control" id="bpb-action-note" placeholder="Keterangan belanja atau rincian pembelian..."></textarea>
+                </div>
+            </div>
+            <div id="bpb-finish-pending-wrap" class="d-none">
+                <div class="form-group">
+                    <label>Alasan pending <span class="text-danger">*</span></label>
+                    <textarea class="form-control" id="bpb-action-reason" placeholder="Tuliskan kendala atau alasan mengapa pembelian dipending..."></textarea>
+                </div>
+            </div>`;
+            $('#bpb-action-signature').removeClass('d-none');
+        }
         $('#bpb-action-title').text(title); $('#bpb-action-fields').html(fields); setActionBusy(false); armModalCloseConfirmation('#bpb-action-modal'); $('#bpb-action-modal').modal('show');
     }
 
     async function submitAction() {
-        const form = new FormData(); let path = `api/bpb/${current.id}/${actionMode}`;
+        const form = new FormData();
+        const bpbId = current ? current.id : (window.BPB_SHARED_DATA ? window.BPB_SHARED_DATA.id : null);
+        if (!bpbId) throw new Error('ID BPB tidak ditemukan.');
+        let path = `api/bpb/${bpbId}/${actionMode}`;
         if (actionMode === 'sign' || actionMode === 'process') {
             const method = $('#bpb-action-sign-method').val(); form.append('signature_method', method); form.append('signature_data', method === 'canvas' ? canvases['bpb-action-canvas'].data() : ''); form.append('password', $('#bpb-action-password').val());
         }
         if (actionMode === 'reject' || actionMode === 'cancel') form.append('reason', $('#bpb-action-reason').val() || '');
-        if (actionMode === 'process') { path = `api/bpb/${current.id}/status`; form.append('status', 'processed'); }
-        if (actionMode === 'disburse') { path = `api/bpb/${current.id}/status`; form.append('status', 'disbursed'); form.append('actual_amount', $('#bpb-actual-amount').val()); form.append('recipient_name', $('#bpb-recipient').val()); form.append('account_number', $('#bpb-account').val()); form.append('note', $('#bpb-action-note').val()); }
-        if (actionMode === 'finish') { const status = $('#bpb-finish-status').val(); path = `api/bpb/${current.id}/status`; form.append('status', status); form.append('reason', $('#bpb-action-reason').val()); form.append('purchase_date', $('#bpb-purchase-date').val()); form.append('note', $('#bpb-action-note').val()); Array.from($('#bpb-purchase-files')[0].files || []).forEach(file => form.append('purchase_proofs[]', file)); }
-        const detail = await postForm(path, form); closeModalWithoutConfirmation('#bpb-action-modal'); current = detail; renderDetail(detail); table.ajax.reload(null, false);
+        if (actionMode === 'process') { path = `api/bpb/${bpbId}/status`; form.append('status', 'processed'); }
+        if (actionMode === 'disburse') { path = `api/bpb/${bpbId}/status`; form.append('status', 'disbursed'); form.append('actual_amount', $('#bpb-actual-amount').val()); form.append('recipient_name', $('#bpb-recipient').val()); form.append('account_number', $('#bpb-account').val()); form.append('note', $('#bpb-action-note').val()); }
+        if (actionMode === 'finish') {
+            const status = $('#bpb-finish-status').val();
+            path = `api/bpb/${bpbId}/status`;
+            form.append('status', status);
+            if (status === 'purchased') {
+                form.append('purchase_date', $('#bpb-purchase-date').val());
+                form.append('note', $('#bpb-action-note').val());
+                const fileInput = $('#bpb-purchase-files')[0];
+                Array.from(fileInput && fileInput.files || []).forEach(file => form.append('purchase_proofs[]', file));
+                const method = $('#bpb-action-sign-method').val();
+                form.append('signature_method', method);
+                form.append('signature_data', method === 'canvas' ? canvases['bpb-action-canvas'].data() : '');
+                form.append('password', $('#bpb-action-password').val());
+            } else if (status === 'pending') {
+                form.append('reason', $('#bpb-action-reason').val() || '');
+            }
+        }
+        const detail = await postForm(path, form);
+        closeModalWithoutConfirmation('#bpb-action-modal');
+        current = detail;
+        if ($('.bpb-shared-page').length) {
+            await Swal.fire({
+                icon: 'success',
+                title: 'Berhasil',
+                text: 'Aksi BPB berhasil disimpan.',
+                timer: 1500,
+                showConfirmButton: false
+            });
+            window.location.reload();
+        } else {
+            renderDetail(detail);
+            if (table) table.ajax.reload(null, false);
+            Swal.fire('Berhasil', 'Aksi BPB disimpan.', 'success');
+        }
     }
 
     $(function () {
         initCanvas('bpb-form-canvas'); initCanvas('bpb-action-canvas');
         $(document).on('click.bpb', '#bpb-create', () => { try { showForm(null); } catch (error) { alertError(error.message); } });
-        $(document).on('click.bpb', '#bpb-form-back', () => { if (formBusy) return; $('#bpb-form-page').addClass('d-none'); $('#bpb-list-page').removeClass('d-none'); $('#bpb-create').removeClass('d-none').prop('disabled', false); });
+        $(document).on('click.bpb', '#bpb-form-back, #bpb-form-back-bottom', () => { if (formBusy) return; $('#bpb-form-page').addClass('d-none'); $('#bpb-list-page').removeClass('d-none'); $('#bpb-create').removeClass('d-none').prop('disabled', false); });
         $(document).on('click.bpb', '#bpb-add-item', () => addItem());
         $(document).on('click.bpb', '.bpb-remove-item', function () { if ($('#bpb-items .bpb-item-row').length > 1) $(this).closest('.bpb-item-row').remove(); });
         $(document).on('click.bpb', '#bpb-dropzone', function (event) { if (!$(event.target).closest('.bpb-select-files').length) $('#bpb-attachments').trigger('click'); });
@@ -555,6 +663,12 @@
         $(document).on('click.bpb', '.bpb-clear-canvas', function () { canvases[$(this).data('canvas')].clear(); });
         $(document).on('change.bpb', '#bpb-sign-method', function () { $('#bpb-form-canvas-wrap').toggleClass('d-none', this.value === 'profile'); });
         $(document).on('change.bpb', '#bpb-action-sign-method', function () { $('#bpb-action-canvas-wrap').toggleClass('d-none', this.value === 'profile'); });
+        $(document).on('change.bpb', '#bpb-finish-status', function () {
+            const isPurchased = this.value === 'purchased';
+            $('#bpb-finish-purchased-wrap').toggleClass('d-none', !isPurchased);
+            $('#bpb-finish-pending-wrap').toggleClass('d-none', isPurchased);
+            $('#bpb-action-signature').toggleClass('d-none', !isPurchased);
+        });
         $(document).on('click.bpb', '#bpb-open-filter', function () { syncFilterPanel(); $('#bpb-filter-modal').modal('show'); });
         $(document).on('change.bpb', '#bpb-filter-history-status', function () {
             const enabled = Boolean(this.value);
@@ -581,17 +695,94 @@
         $(document).on('submit.bpb', '#bpb-form', async function (event) {
             event.preventDefault();
             if (formBusy) return;
+
+            const items = readItems();
+            if (!items.length) {
+                alertError('Minimal 1 barang harus ditambahkan.');
+                return;
+            }
+            for (let idx = 0; idx < items.length; idx++) {
+                const item = items[idx];
+                if (!item.nama_barang || !item.nama_barang.trim()) {
+                    alertError(`Nama barang pada baris ke-${idx + 1} wajib diisi.`);
+                    return;
+                }
+                const qty = parseFloat(item.jumlah);
+                if (isNaN(qty) || qty <= 0) {
+                    alertError(`Jumlah barang pada baris ke-${idx + 1} harus lebih besar dari 0.`);
+                    return;
+                }
+                if (!item.satuan || !item.satuan.trim()) {
+                    alertError(`Satuan barang pada baris ke-${idx + 1} wajib diisi.`);
+                    return;
+                }
+            }
+
+            if (!$('#bpb-approver').val()) {
+                alertError('Penanda tangan Mengetahui wajib dipilih.');
+                return;
+            }
+
+            const method = $('#bpb-sign-method').val();
+            if (method === 'canvas') {
+                const canvasData = canvases['bpb-form-canvas'] ? canvases['bpb-form-canvas'].data() : '';
+                if (!canvasData) {
+                    alertError('Tanda tangan pemohon wajib digambar pada canvas.');
+                    return;
+                }
+            }
+
+            const password = ($('#bpb-password').val() || '').trim();
+            if (!password) {
+                alertError('Password akun saat ini wajib diisi untuk tanda tangan elektronik.');
+                return;
+            }
+
             setFormBusy(true, 'Mengajukan BPB');
-            try { const id = $('#bpb-id').val(); const path = id && current && current.status !== 'draft' ? `api/bpb/${id}/update` : 'api/bpb/submit'; await postFormWithProgress(path, collectForm(true)); Swal.fire('Berhasil', 'BPB berhasil disimpan.', 'success'); selectedAttachments.forEach(revokeSelectedPreview); selectedAttachments = []; submissionKey = null; $('#bpb-selected-files').empty(); $('#bpb-form-page').addClass('d-none'); $('#bpb-list-page').removeClass('d-none'); $('#bpb-create').removeClass('d-none').prop('disabled', false); if (table) table.ajax.reload(); }
+            try {
+                const id = $('#bpb-id').val();
+                const path = id && current && current.status !== 'draft' ? `api/bpb/${id}/update` : 'api/bpb/submit';
+                await postFormWithProgress(path, collectForm(true));
+                Swal.fire('Berhasil', 'BPB berhasil disimpan.', 'success');
+                selectedAttachments.forEach(revokeSelectedPreview);
+                selectedAttachments = [];
+                submissionKey = null;
+                $('#bpb-selected-files').empty();
+                $('#bpb-form-page').addClass('d-none');
+                $('#bpb-list-page').removeClass('d-none');
+                $('#bpb-create').removeClass('d-none').prop('disabled', false);
+                if (table) table.ajax.reload();
+            }
             catch (error) { alertError(error.message); }
             finally { setFormBusy(false); }
         });
-        $(document).on('click.bpb', '#bpb-detail-actions [data-bpb-action]', function () { const mode = $(this).data('bpb-action'); if (mode === 'edit') { closeModalWithoutConfirmation('#bpb-detail-modal'); showForm(current); } else openAction(mode); });
+        $(document).on('click.bpb', '[data-bpb-action]', function (e) {
+            const mode = $(this).data('bpb-action');
+            if (mode === 'share') {
+                e.preventDefault();
+                handleShareAction($(this).data('share-url'));
+                return;
+            }
+            if (mode === 'edit') {
+                if ($('#bpb-detail-modal').length) {
+                    closeModalWithoutConfirmation('#bpb-detail-modal');
+                    showForm(current);
+                } else {
+                    window.location.href = url('bpb');
+                }
+            } else {
+                openAction(mode);
+            }
+        });
+        $(document).on('click.bpb', '#bpb-btn-copy-share', function (e) {
+            e.preventDefault();
+            handleShareAction($(this).data('share-url'));
+        });
         $(document).on('submit.bpb', '#bpb-action-form', async function (event) {
             event.preventDefault();
             if (actionBusy) return;
             setActionBusy(true);
-            try { await submitAction(); Swal.fire('Berhasil', 'Aksi BPB disimpan.', 'success'); }
+            try { await submitAction(); }
             catch (error) { alertError(error.message); }
             finally { setActionBusy(false); }
         });
@@ -617,11 +808,27 @@
         $('#bpb-action-modal').on('shown.bs.modal.bpb', function () { const canvas = canvases['bpb-action-canvas']; if (canvas) { canvas.resize(); canvas.clear(); } });
         window.addEventListener('orientationchange', () => setTimeout(() => Object.values(canvases).forEach(canvas => canvas.resize()), 250));
         window.addEventListener('resize', () => Object.values(canvases).forEach(canvas => canvas.resize()));
+
+        if (window.BPB_SHARED_DATA) {
+            current = window.BPB_SHARED_DATA;
+            const reqFiles = (current.files || []).filter(f => f.category === 'request');
+            const purFiles = (current.files || []).filter(f => f.category === 'purchase');
+            imageCollections['request'] = reqFiles.filter(f => String(f.mime_type || '').toLowerCase().startsWith('image/')).map(f => ({ url: f.url, name: f.original_name }));
+            imageCollections['purchase'] = purFiles.filter(f => String(f.mime_type || '').toLowerCase().startsWith('image/')).map(f => ({ url: f.url, name: f.original_name }));
+        }
+
         (async function () {
-            try { options = await request('api/bpb/options'); populateUsers(); } catch (error) { alertError(error.message); }
-            initTable();
-            renderActiveFilters();
-            if (config.openId) openDetail(config.openId);
+            if ($('#bpb-table').length || $('#bpb-filter-modal').length) {
+                try {
+                    options = await request('api/bpb/options');
+                    populateUsers();
+                } catch (error) {
+                    alertError(error.message);
+                }
+                initTable();
+                renderActiveFilters();
+            }
+            if (config.openId && $('#bpb-table').length) openDetail(config.openId);
         })();
     });
 })(jQuery);

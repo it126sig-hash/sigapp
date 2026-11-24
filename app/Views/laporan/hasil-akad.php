@@ -1,6 +1,9 @@
 <link rel="stylesheet" type="text/css" href="<?= base_url('app-assets/vendors/css/tables/datatable/dataTables.bootstrap4.min.css') ?>">
 <link rel="stylesheet" type="text/css" href="<?= base_url('app-assets/vendors/css/tables/datatable/responsive.bootstrap4.min.css') ?>">
+<link rel="stylesheet" type="text/css" href="<?= base_url('app-assets/vendors/css/forms/select/select2.min.css') ?>">
+<link rel="stylesheet" type="text/css" href="<?= base_url('app-assets/vendors/css/pickers/flatpickr/flatpickr.min.css') ?>">
 <link rel="stylesheet" type="text/css" href="<?= base_url('assets/css/laporan-hasil-akad.css') ?>?v=<?= filemtime(FCPATH . 'assets/css/laporan-hasil-akad.css') ?>">
+<style><?= view('siteplan/partials/modal_detail_styles') ?></style>
 
 <div class="app-content content hasil-akad-report-page">
     <div class="content-overlay"></div>
@@ -86,7 +89,8 @@
                 <div id="hasil_akad_detail_error" class="alert alert-danger" role="alert" hidden></div>
                 <div class="card mb-0"><div class="card-datatable hasil-akad-detail-table-wrap">
                     <table id="hasil_akad_detail_table" class="table table-bordered table-striped mb-0 w-100">
-                        <thead id="hasil_akad_detail_table_head"><tr><th>Jenis Laporan</th><th>Jalan / No. Kavling</th><th>Nama Konsumen</th><th>Tanggal</th><th>Nominal</th><th>Aksi</th></tr></thead>
+                        <thead id="hasil_akad_detail_table_head"></thead>
+                        <tbody></tbody>
                     </table>
                 </div></div>
             </div>
@@ -102,23 +106,34 @@
 <script src="<?= base_url('app-assets/vendors/js/tables/datatable/dataTables.responsive.min.js') ?>"></script>
 <script src="<?= base_url('app-assets/vendors/js/tables/datatable/responsive.bootstrap4.js') ?>"></script>
 <script src="<?= base_url('app-assets/vendors/js/charts/chart.min.js') ?>"></script>
+<script src="<?= base_url('app-assets/vendors/js/forms/select/select2.full.min.js') ?>"></script>
+<script src="<?= base_url('app-assets/vendors/js/pickers/flatpickr/flatpickr.min.js') ?>"></script>
 
 <?= view('siteplan/partials/modal_detail', ['data' => []]) ?>
+<?= view('keuangan/partials/modal_pencairan_akad') ?>
 <script>
+window.base_url = '<?= base_url() ?>/';
+window.loaded = window.loaded || [];
+
 window.HASIL_AKAD_REPORT = <?= json_encode([
     'summaryUrl' => base_url('api/laporan/hasil-akad/summary'),
     'detailUrl' => base_url('api/laporan/hasil-akad/detail'),
     'hasProject' => (bool) $activeProyek,
     'projectName' => (string) ($activeProyek->nama_proyek ?? ''),
+    'canManagePencairan' => function_exists('in_groups') ? in_groups(['1', '3']) : false,
     'csrfName' => csrf_token(),
     'csrfHash' => csrf_hash(),
 ], JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT) ?>;
 if (typeof dt_proyek === 'undefined') var dt_proyek = <?= json_encode($activeProyek ?? new \stdClass()) ?>;
-if (typeof csrfName === 'undefined') var csrfName = '<?= csrf_token() ?>';
-if (typeof csrfHash === 'undefined') var csrfHash = '<?= csrf_hash() ?>';
+if (dt_proyek) {
+    dt_proyek.id_perumahan_sikumbang = dt_proyek.id_perumahan_sikumbang || '';
+}
+if (typeof csrfName === 'undefined') window.csrfName = '<?= csrf_token() ?>';
+if (typeof csrfHash === 'undefined') window.csrfHash = '<?= csrf_hash() ?>';
 if (typeof not_found === 'undefined') var not_found = '<?= base_url('assets/images/not-found.png') ?>';
 if (typeof editdtt === 'undefined') var editdtt = [];
 if (typeof roleid === 'undefined') var roleid = '<?= user_id() ? (session()->get('role_id') ?? 0) : 0 ?>';
 </script>
-<script src="<?= base_url('assets/js/siteplan-detail-modal.js') ?>?<?= filemtime(FCPATH . 'assets/js/siteplan-detail-modal.js') ?>"></script>
+<script src="<?= base_url('assets/js/siteplan-detail-modal.js') ?>?v=<?= filemtime(FCPATH . 'assets/js/siteplan-detail-modal.js') ?>"></script>
+<script src="<?= base_url('assets/js/pencairan-akad-modal.js') ?>?v=<?= filemtime(FCPATH . 'assets/js/pencairan-akad-modal.js') ?>"></script>
 <script src="<?= base_url('assets/js/laporan-hasil-akad.js') ?>?v=<?= filemtime(FCPATH . 'assets/js/laporan-hasil-akad.js') ?>"></script>

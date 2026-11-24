@@ -8,6 +8,7 @@
 <link rel="stylesheet" type="text/css" href="<?= base_url() ?>assets/css/richtext.min.css">
 <link rel="stylesheet" type="text/css"
   href="<?= base_url() ?>app-assets/vendors/css/pickers/flatpickr/flatpickr.min.css">
+<link rel="stylesheet" type="text/css" href="<?= base_url('assets/css/booking-fee.css') ?>?v=<?= filemtime(FCPATH . 'assets/css/booking-fee.css') ?>">
 <script>
   var csrfName = '<?= csrf_token() ?>';
   var csrfHash = '<?= csrf_hash() ?>';
@@ -366,6 +367,11 @@
                   <i class="fas fa-envelope-open-text mr-50"></i> RIWAYAT SURAT TAGIHAN
                 </a>
               </li>
+              <li class="nav-item">
+                <a class="nav-link font-weight-bold" id="tab_booking_terverifikasi-tab" data-toggle="tab" href="#tab_booking_terverifikasi" role="tab" aria-selected="false">
+                  <i class="fas fa-check-double mr-50"></i> BOOKING FEE TERVERIFIKASI
+                </a>
+              </li>
             </ul>
           </div>
         </div>
@@ -554,6 +560,38 @@
             </div>
           </div>
           <!-- END TAB 3 -->
+
+          <!-- TAB 4: BOOKING FEE TERVERIFIKASI -->
+          <div class="tab-pane" id="tab_booking_terverifikasi" role="tabpanel" aria-labelledby="tab_booking_terverifikasi-tab">
+            <div class="card mb-1">
+              <div class="card-header booking-verified-header py-75 px-1">
+                <div>
+                  <h5 class="list-tagihan-title mb-0"><i class="fas fa-check-double text-primary mr-50"></i> Booking Fee Terverifikasi</h5>
+                  <p class="booking-verified-subtitle">Daftar transaksi yang booking fee-nya sudah diverifikasi Keuangan. Gunakan tombol Batalkan untuk membuka kunci verifikasi.</p>
+                </div>
+                <button type="button" class="btn btn-outline-primary btn-sm waves-effect" id="btn_refresh_booking_terverifikasi" title="Refresh Data">
+                  <i class="fas fa-sync-alt mr-25"></i> Refresh
+                </button>
+              </div>
+            </div>
+            <div class="card">
+              <div class="card-datatable p-50">
+                <table id="table_booking_terverifikasi" class="table compact w-100">
+                  <thead>
+                    <tr>
+                      <th class="text-center" width="5%">No</th>
+                      <th class="text-left" width="32%">Konsumen &amp; Unit</th>
+                      <th class="text-left" width="23%">Booking Fee</th>
+                      <th class="text-left" width="22%">Verifikasi</th>
+                      <th class="text-center" width="18%">Aksi</th>
+                    </tr>
+                  </thead>
+                  <tbody></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+          <!-- END TAB 4 -->
         </div>
       </div>
     </div>
@@ -656,6 +694,7 @@
 
 <script src="<?= base_url() ?>assets/js/jquery.richtext.min.js"></script>
 <script src="<?= base_url() ?>assets/js/tagihan-bayar-modal.js?v=<?= filemtime(FCPATH.'assets/js/tagihan-bayar-modal.js') ?>"></script>
+<script src="<?= base_url('assets/js/keuangan/booking-verified.js') ?>?v=<?= filemtime(FCPATH . 'assets/js/keuangan/booking-verified.js') ?>"></script>
 <script>
   window.canCreateTagihan = <?= (function_exists('in_groups') && in_groups(['1', '3'])) ? 'true' : 'false' ?>;
 </script>
@@ -675,6 +714,7 @@
   });
 
   let listTagihanTable = null;
+  let riwayatBayarTable = null;
   let tagihanDetailCache = {};
 
   function isi_data(keepModalOpen = false) {
@@ -683,7 +723,15 @@
     }
     tagihanDetailCache = {};
     if (listTagihanTable) listTagihanTable.ajax.reload(null, false);
+    if (riwayatBayarTable) riwayatBayarTable.ajax.reload(null, false);
+    if (window.BookingVerifiedTab && typeof window.BookingVerifiedTab.reload === "function") {
+      window.BookingVerifiedTab.reload();
+    }
   }
+
+  window.refreshTagihanList = function(keepModalOpen = false) {
+    isi_data(keepModalOpen);
+  };
 
   function formatTagihanChild(data) {
     if (!Array.isArray(data) || data.length === 0) {
@@ -1205,7 +1253,7 @@
     });
 
     //on chnage search
-    $(".dataTables_filter input")
+    $("#data_table_filter input")
       .off()
       .on('change', function(e) {
         listTagihanTable.search(this.value).draw();
@@ -1298,6 +1346,7 @@
     $("#btn_terapkan_filter").on("click", function(e) {
       tagihanDetailCache = {};
       listTagihanTable.draw();
+      if (window.BookingVerifiedTab) window.BookingVerifiedTab.reload(true);
       $("#filterModal").modal("hide");
     });
 
@@ -1355,6 +1404,7 @@
         
         tagihanDetailCache = {};
         listTagihanTable.draw();
+        if (window.BookingVerifiedTab) window.BookingVerifiedTab.reload(true);
         $("#filterModal").modal("hide");
     });
 
@@ -1372,7 +1422,7 @@
           is_kpr: $("#is_kpr").val(),
           booking_tgl_range: $("#booking_tgl_range").val(),
           jatuh_tempo_tgl_range: $("#jatuh_tempo_tgl_range").val(),
-          search_value: $('.dataTables_filter input').val()
+          search_value: $('#data_table_filter input').val()
         },
         dataType: "json",
         beforeSend: function() {
@@ -1412,7 +1462,6 @@
     // ========================================================
     let riwayatBayarTableLoaded = false;
     let riwayatSuratTableLoaded = false;
-    let riwayatBayarTable = null;
     let riwayatSuratTable = null;
 
     $('a[data-toggle="tab"]').on('shown.bs.tab', function(e) {
@@ -1430,6 +1479,11 @@
           riwayatSuratTableLoaded = true;
         } else if (riwayatSuratTable) {
           riwayatSuratTable.columns.adjust();
+        }
+      } else if (target === '#tab_booking_terverifikasi') {
+        if (window.BookingVerifiedTab) {
+          window.BookingVerifiedTab.init();
+          window.BookingVerifiedTab.adjust();
         }
       } else if (target === '#tab_tagihan') {
         if (listTagihanTable) {

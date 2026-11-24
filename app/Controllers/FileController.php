@@ -24,19 +24,21 @@ class FileController extends BaseController
 
     public function show(string $source, int $id)
     {
-        return $this->stream($source, $id, false);
+        $signedUserId = $this->resolveSignedUserId($source, $id, null);
+        return $this->stream($source, $id, false, $signedUserId);
     }
 
     public function thumbnail(string $source, int $id)
     {
         try {
+            $signedUserId = $this->resolveSignedUserId($source, $id, 'thumb');
             try {
-                $file = $this->fileAccessService->resolve($source, $id, true);
+                $file = $this->fileAccessService->resolve($source, $id, true, $signedUserId);
             } catch (RuntimeException $e) {
                 if ($e->getMessage() === 'FORBIDDEN') {
                     throw $e;
                 }
-                $file = $this->fileAccessService->resolve($source, $id, false);
+                $file = $this->fileAccessService->resolve($source, $id, false, $signedUserId);
             }
         } catch (RuntimeException $e) {
             if ($e->getMessage() === 'FORBIDDEN') {
@@ -52,7 +54,9 @@ class FileController extends BaseController
     public function path(string $source)
     {
         try {
-            $file = $this->fileAccessService->resolvePath($source, (string) $this->request->getGet('path'));
+            $pathToken = (string) $this->request->getGet('path');
+            $signedUserId = $this->resolveSignedUserId($source, $pathToken, null);
+            $file = $this->fileAccessService->resolvePath($source, $pathToken, $signedUserId);
         } catch (RuntimeException $e) {
             if ($e->getMessage() === 'FORBIDDEN') {
                 return $this->response->setStatusCode(403)->setBody('Akses file ditolak');
@@ -74,7 +78,9 @@ class FileController extends BaseController
     public function pathThumbnail(string $source)
     {
         try {
-            $file = $this->fileAccessService->resolvePath($source, (string) $this->request->getGet('path'));
+            $pathToken = (string) $this->request->getGet('path');
+            $signedUserId = $this->resolveSignedUserId($source, $pathToken, 'thumb');
+            $file = $this->fileAccessService->resolvePath($source, $pathToken, $signedUserId);
         } catch (RuntimeException $e) {
             if ($e->getMessage() === 'FORBIDDEN') {
                 return $this->response->setStatusCode(403)->setBody('Akses file ditolak');
@@ -86,10 +92,29 @@ class FileController extends BaseController
         return $this->streamThumbnail($file);
     }
 
-    private function stream(string $source, int $id, bool $thumbnail)
+    private function resolveSignedUserId(string $source, string|int $identifier, ?string $variant = null): ?int
+    {
+        $expires = (int) $this->request->getGet('expires');
+        $uid = (int) $this->request->getGet('uid');
+        $sig = trim((string) $this->request->getGet('sig'));
+
+        if ($expires > 0 || $uid > 0 || $sig !== '') {
+            if ($expires <= 0 || $uid <= 0 || $sig === '') {
+                throw new RuntimeException('FORBIDDEN');
+            }
+            if ($this->fileAccessService->verifySignature($source, $identifier, $variant, $expires, $uid, $sig)) {
+                return $uid;
+            }
+            throw new RuntimeException('FORBIDDEN');
+        }
+
+        return null;
+    }
+
+    private function stream(string $source, int $id, bool $thumbnail, ?int $signedUserId = null)
     {
         try {
-            $file = $this->fileAccessService->resolve($source, $id, $thumbnail);
+            $file = $this->fileAccessService->resolve($source, $id, $thumbnail, $signedUserId);
         } catch (RuntimeException $e) {
             if ($e->getMessage() === 'FORBIDDEN') {
                 return $this->response->setStatusCode(403)->setBody('Akses file ditolak');
@@ -110,12 +135,14 @@ class FileController extends BaseController
                 }
             } catch (\Throwable $e) {
                 log_message('error', 'Gagal menyiapkan metadata GPS foto produksi: ' . $e->getMessage());
-
-                return $this->response->setStatusCode(500)->setBody('Gagal menyiapkan metadata GPS foto.');
             }
         }
 
-        return $this->streamFile($file);
+        $isVersionedSiteplan = !$thumbnail
+            && $source === 'proyek_siteplan'
+            && trim((string) $this->request->getGet('v')) !== '';
+
+        return $this->streamFile($file, $isVersionedSiteplan);
     }
 
     private function streamThumbnail(array $file)
@@ -139,7 +166,7 @@ class FileController extends BaseController
         return $this->streamFile($file);
     }
 
-    private function streamFile(array $file)
+    private function streamFile(array $file, bool $immutableVersioned = false)
     {
         $absolutePath = (string) ($file['absolute_path'] ?? '');
         if ($absolutePath === '' || !is_file($absolutePath) || !is_readable($absolutePath)) {
@@ -155,10 +182,28 @@ class FileController extends BaseController
         $lastModified = gmdate('D, d M Y H:i:s', $lastModifiedTime) . ' GMT';
         $etag = '"' . sha1($absolutePath . '|' . $fileSize . '|' . $lastModifiedTime) . '"';
 
+        // Berkas ber-hash ?v= pada proyek_siteplan bersifat immutable selama 30 hari.
+        $maxAge = $immutableVersioned ? 2592000 : 86400;
+        $cacheControl = $immutableVersioned
+            ? "private, max-age={$maxAge}, immutable"
+            : "private, max-age={$maxAge}, must-revalidate";
+        $expiresHeader = gmdate('D, d M Y H:i:s', time() + $maxAge) . ' GMT';
+
+        if (function_exists('header_remove')) {
+            @header_remove('Cache-Control');
+            @header_remove('Expires');
+            @header_remove('Pragma');
+        }
+
         if ($this->isNotModified($etag, $lastModifiedTime)) {
             return $this->response
                 ->setStatusCode(304)
-                ->setHeader('Cache-Control', 'private, max-age=86400, must-revalidate')
+                ->removeHeader('Cache-Control')
+                ->removeHeader('Expires')
+                ->removeHeader('Pragma')
+                ->setHeader('Cache-Control', $cacheControl)
+                ->setHeader('Expires', $expiresHeader)
+                ->setHeader('Pragma', 'private')
                 ->setHeader('ETag', $etag)
                 ->setHeader('Last-Modified', $lastModified);
         }
@@ -167,7 +212,12 @@ class FileController extends BaseController
             ->setHeader('Content-Type', $mimeType)
             ->setHeader('Content-Disposition', $this->contentDisposition($disposition, $fileName))
             ->setHeader('Content-Length', (string) $fileSize)
-            ->setHeader('Cache-Control', 'private, max-age=86400, must-revalidate')
+            ->removeHeader('Cache-Control')
+            ->removeHeader('Expires')
+            ->removeHeader('Pragma')
+            ->setHeader('Cache-Control', $cacheControl)
+            ->setHeader('Expires', $expiresHeader)
+            ->setHeader('Pragma', 'private')
             ->setHeader('ETag', $etag)
             ->setHeader('Last-Modified', $lastModified)
             ->setHeader('X-Content-Type-Options', 'nosniff');

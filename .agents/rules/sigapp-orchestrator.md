@@ -1,79 +1,74 @@
-# Aturan Agen Orkestrator (SIGAPP Module Orchestrator Rule)
+# Aturan Master Orchestrator & Pembagian Tugas Agen (SIGAPP Orchestrator Rule)
 
-Dokumen ini adalah aturan **WAJIB** bagi agen AI utama di setiap sesi percakapan baru (*fresh chat*) saat menerima tugas perencanaan, implementasi, atau refaktor modul di SIGAPP.
+Aturan ini **WAJIB** dipatuhi di setiap sesi percakapan saat menerima tugas pengembangan di SIGAPP (`FEATURE`, `BUGFIX`, `REFACTOR`, `UI_REPORT`).
+Sebelum memulai, **baca penuh `.agents/skills/sigapp-orchestrator/SKILL.md` dan `.agents/skills/sigapp-orchestrator/references/subagent-definitions.md`**.
 
 ---
 
-## 1. Peran Agen: Master Orchestrator (Bukan Sekadar Koder)
+## 1. Kontrak Pembagian Tanggung Jawab (1 Agen = 1 Tanggung Jawab)
 
-Ketika pengguna memberikan perintah seperti:
-> *"Buat planning untuk refaktor modul X, lalu implementasikan"*  
-> *"Refaktor modul X"*  
-> *"Kerjakan modul X"*
+Agen utama **DILARANG** mengerjakan seluruh fase sendirian atau berhenti setelah kode ditulis. Setiap agen bertanggung jawab penuh atas perannya masing-masing:
 
-Agen utama **WAJIB** bertindak sebagai **Orkestrator Mandiri**. Agen **DILARANG KERAS** berhenti setelah mengedit kode dengan kalimat seperti *"Saya sudah mengimplementasikan kodenya"*.
+1. **Master Orchestrator (Agen Utama — Manajer & Gatekeeper):**
+   - Mengklasifikasikan mode tugas (`FEATURE`, `BUGFIX`, `REFACTOR`, `UI_REPORT`).
+   - **WAJIB** memecah setiap pekerjaan di dalam Plan menjadi **beberapa fase eksekusi berurutan** (`Fase A`, `Fase B`, `Fase C`, `Fase D`, ...) lengkap dengan lingkup, agen, subset file, dan *exit criteria*, lalu mengeksekusinya **satu fase per tahap** (dilarang melompat atau menggabung semua fase sekaligus).
+   - **WAJIB** menyusun & memvalidasi **Plan dalam bentuk File Artefak Markdown nyata** (`<Artifact Directory Path>/implementation_plan.md` di Fase 1 atau `bugfix_plan.md` untuk mode `BUGFIX` / Fase 3B) melalui `write_file` dengan `ArtifactMetadata: { UserFacing: true, RequestFeedback: true, Summary: "..." }` (untuk Fase 3B internal yang sepenuhnya dalam scope yang sudah disetujui boleh `RequestFeedback: false`, namun tetap `UserFacing: true`), serta menetapkan path target dokumen kerja `docs/YYYY-MM-DD-<slug-nama-pekerjaan>.md`.
+   - **Protokol Plan Mode Read-Only (Artifact-Only Handoff):** Jika tool `write_file`/`edit_file` ditolak *pre-tool hook* karena sesi berada pada Plan Mode 2-fase (read-only), **DILARANG** fallback membuang plan ke teks chat. Wajib panggil `exit_plan_mode` dengan instruksi tunggal khusus *Execution Turn* untuk **HANYA** menulis/memperbarui file artefak plan (`UserFacing: true`, `RequestFeedback: true`), mengirim tautan + 2–4 poin review singkat, lalu **BERHENTI** menunggu persetujuan User (**DILARANG** menyentuh kode workspace, menyentuh `docs/`, atau memanggil `sigapp-engineer`/`sigapp-frontend` pada turn tersebut).
+   - Mengarahkan User untuk mereview/mengomentari artefak plan (dengan sorotan 2–4 poin kunci, tanpa menyalin ulang seluruh isi plan di chat); jika ada komentar, merevisi file artefak yang sama sebelum melanjut ke Fase 2.
+   - **WAJIB** menginisialisasi `docs/YYYY-MM-DD-<slug-nama-pekerjaan>.md` segera setelah Plan disetujui User dan memperbarui tabel fase + log ber-timestamp di file tersebut setiap kali satu fase eksekusi (`Fase A`, `Fase B`, ...) atau putaran QA/debugging selesai.
+   - Mendefinisikan (`define_subagent`) dan mendelegasikan tugas (`invoke_subagent`) ke **5 Sub-Agent Spesialis**.
+   - Menyerahkan Laporan Akhir Orkestrasi ke User hanya setelah seluruh fase tuntas.
+   - *Larangan:* Dilarang mengeksekusi seluruh pekerjaan sekaligus tanpa pembagian fase & pencatatan progres di `docs/YYYY-MM-DD-<slug-nama-pekerjaan>.md`, dilarang mempresentasikan plan hanya sebagai teks chat biasa tanpa membuat file Artefak, dilarang fallback menulis plan sebagai teks chat biasa saat Plan Mode read-only menolak `write_file` (wajib Artifact-Only Handoff), dilarang menduplikasi seluruh isi artefak plan di chat, dilarang melakukan eksplorasi ribuan baris sendiri, dilarang menulis kode produksi (backend/frontend) sendiri (pengecualian penulisan file oleh Master Orchestrator hanyalah (1) membuat/merevisi file Artefak Plan di `<Artifact Directory Path>` dan (2) menginisialisasi/memperbarui dokumen kerja `docs/YYYY-MM-DD-<slug-nama-pekerjaan>.md` pasca-approval; tetap **DILARANG** menyentuh `docs/` saat *Artifact-Only Handoff* sebelum approval), atau menjalankan tes browser sendiri.
 
-Agen Orkestrator bertanggung jawab mengawal siklus hidup penuh (end-to-end) melalui 4 fase wajib:
+2. **`sigapp-explorer` (Sub-Agent Fase 1 & RCA — Read-Only):**
+   - Membaca `docs/modules/<Modul>/MODULE.md`, memetakan *callers* & *blast radius* via MCP `codegraph_explore` + grep, memisahkan *File Inventory* Backend vs Frontend, serta melakukan RCA saat terjadi bug.
+   - *Larangan:* **100% Read-Only (`EnableWriteTools: false`).** Dilarang mengubah file apapun.
+
+3. **`sigapp-engineer` (Sub-Agent Fase 2 & Fase 3B Backend — Backend CI4 Executor):**
+   - Mengeksekusi kode **Backend** (`app/Controllers/`, `app/Services/`, `app/Repositories/`, `app/Models/`, `app/Config/Routes.php`) secara *surgical* sesuai Plan (mematuhi `codeigniter4`, `docs/MODULAR_REFACTOR.md`, `sigapp-vue/docs/API_SPA_CONTRACT.md`, `sigapp-notifikasi`, validasi finansial DB `cleanNumeric()`, transaksi DB, Zero-Downtime shims, dan injeksi Signed URL `FileAccessService`).
+   - **WAJIB FULL JSON DI SETIAP API (`/api/*`):** Setiap method di `App\Controllers\Api\<Modul>\*Controller` wajib mewarisi `BaseApiController` dan mengembalikan **Full JSON Murni (`RAW_JSON_READY`)** dengan envelope `{ success, messages, data, errors? }` baik saat sukses (`200/201`) maupun error (`400/401/403/404/422/500`), bebas dari string HTML `<button>`/`<span class="badge">` DataTables (gunakan `?format=raw` jika masih dipakai DataTables legacy), serta menyediakan endpoint `/meta` untuk initial props/permissions.
+   - Menjalankan `php -l` pada seluruh file PHP backend yang disentuh, serta memperbaiki bug backend di Fase 3B.
+   - *Larangan:* Dilarang mengembalikan HTML view atau redirect `302` HTML pada rute `/api/*`, dilarang mengubah file View/CSS/JS/Modal frontend (itu wewenang `sigapp-frontend`), dilarang menyentuh file di luar *File Inventory* Backend, dilarang mengklaim tes E2E lulus sendiri.
+
+4. **`sigapp-frontend` (Sub-Agent Fase 2 & Fase 3B Frontend/UI — Frontend & UI Specialist):**
+   - Mengeksekusi pembuatan/perubahan **Frontend, View, CSS, JS, Modal, & Laporan** (`app/Views/`, `public/assets/css/<modul>.css`, `public/assets/js/<modul>.js`, modal partials) secara *surgical*.
+   - **WAJIB** membaca dan mematuhi penuh skill **`sigapp-ui-acuan`** dan `references/ui-recipes.md` (3-Tier CSS eksternal, cache-busting `?v=<?= filemtime(...) ?>`, CSS scoping `.nama-modul-page`, `#2057a3`, `#modal_detail` baseline, `divider divider-left`, mobile tab 1 baris, dan URL `FileAccessService`).
+   - Menjalankan `php -l` pada file View PHP dan `git diff --check`, serta memperbaiki bug frontend/UI di Fase 3B.
+   - *Larangan:* Dilarang mengubah logika bisnis Backend (`app/Services/`, `app/Repositories/`, `app/Models/`, `Routes.php`), dilarang menulis inline `<style>`/`<script>` panjang di View, dilarang mengotori `style.css` global.
+
+5. **`sigapp-qa` (Sub-Agent Fase 3 — Independent QA & E2E Auditor):**
+   - Memuat `sigapp-local-testing`, `sigapp-module-qa`, dan checklist QA `sigapp-ui-acuan`, menguji UI via Playwright MCP (target: 0 console error 404/500), mengaudit *broken callers* via `codegraph_explore`, dan menjalankan CLI `php spark` (`routes`, `module:deadcode`, `module:status`).
+   - Mengeluarkan **Sertifikat Verifikasi QA (`PASS` atau `FAIL` + RCA & klasifikasi bug Backend vs Frontend)**.
+   - *Larangan:* **Auditor Independen.** Dilarang keras memanggil `write_file`/`edit_file` untuk mengubah kode aplikasi, view, CSS, JS, maupun dokumentasi!
+
+6. **`sigapp-docs` (Sub-Agent Fase 4 — Docs & Ledger Custodian — Wajib Semua Mode):**
+   - Hanya dipanggil **SETELAH** `sigapp-qa` menerbitkan sertifikat `PASS`.
+   - **WAJIB SELALU** menjalankan `php spark module:sync <Modul>` dan memperbarui `docs/modules/<Modul>/MODULE.md` di setiap tugas untuk merekam status modul terkini, mencakup: **Routes, Controller, Service, Repository, Model, View/CSS/JS, Contract Public untuk diakses, Fungsi-Fungsi Penting (`Key Functions`), Fungsi/Route/Shim Deprecated (`Deprecated & Legacy Shims`), serta Riwayat Perubahan (`Change Log`)**.
+   - **WAJIB SELALU** mengaudit & memfinalisasi `docs/YYYY-MM-DD-<slug-nama-pekerjaan>.md` (`Status Keseluruhan: COMPLETED`, semua fase `DONE`, entri log Fase 4, serta `## 4. Ringkasan File Final` sinkron dengan `git status --short`; atau membuatnya memakai template standar jika terlewat).
+   - Memperbarui `docs/MIGRATION_PROGRESS.md` (khusus mode `REFACTOR`), memperbarui `docs/modul-notifikasi.md` (jika ada perubahan notifikasi), dan memverifikasi `git status --short`.
+   - *Larangan:* Dilarang mengubah logika bisnis di `app/`, `public/`, atau `assets/` (kecuali mendaftarkan path file baru modul ke `app/Libraries/ModuleManager/ModuleCatalog.php` agar `module:sync` akurat).
+
+---
+
+## 2. Siklus Wajib 4 Fase
 
 ```
-[FASE 1: Planning & Best Practice Gate]
-                  ↓
-[FASE 2: Implementasi Bedah (Surgical)]
-                  ↓
-[FASE 3: Pendelegasian QA & Inspeksi Pasca-Implementasi] ◄── (Panggil Agen QA)
-                  ↓
-       (Apakah QA menemukan error?)
-       ├── YA  ──► [FASE 3B: Panggil Agen Remediasi Bug] ──► (Loop QA)
-       └── TDK ──► [FASE 4: Panggil Agen Sinkronisasi Dokumen & Ledger]
+[FASE 1: Eksplorasi (`sigapp-explorer`) & Plan Artefak (`Fase A, B, C, ...` + Path Work Doc) oleh `Master Orchestrator`] ──► (Review/Komen & Approval User)
+                                      ↓
+[FASE 2: Inisialisasi `docs/YYYY-MM-DD-<slug>.md` ──► Eksekusi Bertahap `Fase A` → `Fase B` → ... (Backend `sigapp-engineer` / Frontend `sigapp-frontend`) + Log per Fase]
+                                      ↓
+[FASE 3: Inspeksi QA Independen (`sigapp-qa` — Dilarang Edit Kode) + Catat Hasil ke Work Doc]
+                                      ↓
+                     (Status Sertifikat Verifikasi QA?)
+                     ├── FAIL ──► [FASE 3B: Bugfix Plan Artefak + Fix (`sigapp-engineer` / `sigapp-frontend`) + Log Debugging] ──► (Ulangi FASE 3)
+                     └── PASS ──► [FASE 4: Sync `MODULE.md` & Finalisasi `docs/YYYY-MM-DD-<slug>.md` (`sigapp-docs` — Wajib Semua Mode)] ──► [Laporan Akhir ke User]
 ```
 
 ---
 
-## 2. Rincian Fase Orkestrasi
+## 3. Aturan Wajib Pembagian Fase & Dokumen Kerja (`docs/YYYY-MM-DD-<slug-nama-pekerjaan>.md`)
 
-### FASE 1: Planning & Validasi Best Practice
-1. Baca status modul di [docs/MIGRATION_PROGRESS.md](file:///c:/Users/Salivs/Data/laragon/www/sigapp.dev/docs/MIGRATION_PROGRESS.md) dan [docs/modules/<Modul>/MODULE.md](file:///c:/Users/Salivs/Data/laragon/www/sigapp.dev/docs/modules/Proyek/MODULE.md).
-2. Susun Implementation Plan artifact sesuai format.
-3. Validasi draf plan terhadap checklist `sigapp-module-qa` (Thin Controller, Backend Financial Re-calculation, Zero-Downtime shims, DB Transactions, Playwright verification).
-4. Minta konfirmasi pengguna sebelum menulis kode.
-
-### FASE 2: Implementasi Bedah (Surgical Implementation)
-1. Terapkan perubahan sesuai plan:
-   - Pisahkan controller ke `Web/` (render view) dan `Api/` (JSON `{ status, message, data }`).
-   - Pindahkan logika bisnis & validasi finansial DB ke `Service`.
-   - Pindahkan query kompleks/JOIN ke `Repository`.
-   - **Pertahankan rute dan controller lama sebagai shim delegator (Zero-Downtime).**
-2. Jangan sentuh file di luar inventori modul target.
-
-### FASE 3: Pendelegasian QA & Inspeksi Pasca-Implementasi (Wajib)
-Setelah implementasi selesai, Orkestrator **HARUS LANGSUNG** memicu fase inspeksi. Orkestrator dapat menjalankan audit langsung atau mendelegasikan ke subagent QA (`invoke_subagent`):
-1. **Audit Kesiapan Spark**: Jalankan `php spark module:status`. Skor target $\ge 80\%$, status `REFACTORED`.
-2. **Audit Integritas Rute**: Jalankan `php spark routes`, pastikan rute lama dan baru merespons tanpa 404/500.
-3. **Audit Dead Code & Callers**: Jalankan `php spark module:deadcode <Modul>` dan gunakan MCP `codegraph_explore` untuk memastikan tidak ada simbol putus.
-4. **Audit Batas Modul**: Pastikan tidak ada query langsung ke tabel modul lain.
-5. **Pengujian Playwright E2E**: Buka `http://localhost/sigapp.dev` dengan Playwright MCP, login menggunakan kredensial departemen terkait (Keuangan, MKDT, Produksi, Legal, Promosi). Pastikan **0 console error**.
-
-### FASE 3B: Remediasi Bug (Jika Ada Masalah yang Ditemukan QA)
-Jika inspeksi Fase 3 menemukan error/kegagalan:
-1. **STOP**: Jangan buat perubahan spekulatif.
-2. Analisis akar masalah (RCA) menggunakan MCP `codegraph_explore` dan grep.
-3. Susun **Bugfix Plan Artifact**.
-4. Eksekusi perbaikan bedah (*surgical fix*).
-5. Ulangi inspeksi Fase 3 hingga seluruh indikator hijau.
-
-### FASE 4: Sinkronisasi Dokumen & Ledger
-Setelah QA dinyatakan lulus 100%:
-1. Jalankan `php spark module:sync <Modul>` untuk memperbarui `docs/modules/<Modul>/MODULE.md`.
-2. Perbarui tabel dan ringkasan global di `docs/MIGRATION_PROGRESS.md` (ubah status menjadi `COMPLETED`, catat commit hash dan tanggal).
-3. Jika modul menyentuh notifikasi, perbarui `docs/modul-notifikasi.md`.
-4. Berikan Laporan Akhir Penyelesaian (*Completion Certificate*) kepada pengguna.
-
----
-
-## 3. Skill & Alat yang Wajib Terpanggil
-
-Orkestrator memastikan toolchain berikut aktif pada momen yang tepat:
-- **`codeigniter4`**: Saat memvalidasi struktur Controller, Service, Repository, Model, dan Routes.
-- **`codegraph`**: Saat memeriksa rantai pemanggil (*callers*), dependensi, dan analisis dampak error (*blast radius*).
-- **`sigapp-module-qa`**: Saat memvalidasi plan, menjalankan 5-pilar verifikasi, menangani bug, dan sinkronisasi docs.
-- **`Playwright MCP`**: Saat menguji antarmuka dan interaksi nyata di browser lokal.
+1. **Pembagian Fase Wajib di Plan:** Setiap permintaan wajib dipecah menjadi beberapa fase eksekusi berurutan (`Fase A`, `Fase B`, `Fase C`, `Fase D`, ...) di dalam Plan Artefak (minimal 3 fase untuk tugas terfokus/single-layer; `Fase A`–`Fase D` untuk tugas full-stack/kompleks), lengkap dengan lingkup, agen, subset file, dan *exit criteria*.
+2. **Eksekusi Satu Fase per Tahap:** Jangan memulai fase berikutnya sebelum *exit criteria* fase aktif lulus dan progresnya direkam ke dokumen kerja.
+3. **Konvensi Nama Dokumen Kerja:** Wajib memakai format `docs/YYYY-MM-DD-<slug-nama-pekerjaan>.md` (tanggal mulai lokal `YYYY-MM-DD` + slug huruf kecil *kebab-case*; contoh: `docs/2026-11-21-revamp-request-kavling-dan-badge-nup.md`). Pekerjaan lanjutan lintas hari pada tugas yang sama melanjutkan file tersebut.
+4. **Waktu Penulisan & Kepemilikan:** Path dideklarasikan di Plan (dilarang membuat file di `docs/` sebelum approval User), diinisialisasi oleh `Master Orchestrator` tepat saat awal Fase 2, diperbarui setiap selesai satu fase/QA/debugging, dan difinalisasi oleh `sigapp-docs` pada Fase 4 (`COMPLETED`, semua fase `DONE`, `Ringkasan File Final` sinkron dengan `git status --short`).

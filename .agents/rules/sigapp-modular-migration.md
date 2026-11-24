@@ -1,101 +1,51 @@
 # Aturan & Standar Migrasi Modular SIGAPP
 
-Dokumen ini adalah aturan WAJIB bagi agen/developer saat melakukan refaktor modul di SIGAPP secara bertahap (satu per satu).
+Dokumen ini adalah aturan WAJIB saat menjalankan mode tugas **`REFACTOR`** (migrasi modul bertahap) di bawah koordinasi `sigapp-orchestrator`.
 
 ---
 
 ## 1. Prinsip Utama: Zero-Downtime & Anti-Regresi
 
-1. **Aplikasi Harus Selalu Bisa Diakses:**
-   Proses migrasi tidak boleh memutus operasional harian. Setiap perubahan kode harus backward-compatible.
-2. **Jangan Hapus Endpoint Lama Mendadak:**
-   Ketika controller dipecah menjadi `Web/` dan `Api/`, endpoint/route lama **harus tetap dipertahankan** (sebagai alias delegator ke controller baru) sampai seluruh skrip JavaScript/View yang memanggilnya dialihkan dan diverifikasi.
-3. **AutoRoute CI4 Tetap Aktif:**
-   Jangan mematikan `$routes->setAutoRoute(true)` secara global selama fase migrasi.
-4. **Skema Database Non-Breaking:**
-   Dilarang menghapus atau mengubah nama kolom/tabel aktif tanpa proses migrasi bertahap.
+1. **Backward-Compatible:** Proses migrasi tidak boleh memutus operasional harian.
+2. **Zero-Downtime Route & Service Shims:** Ketika controller dipecah ke `Web/<Modul>` dan `Api/<Modul>`, rute lama di `app/Config/Routes.php` dan class service/repo lama yang masih dipanggil modul lain **wajib dipertahankan sebagai alias/shim delegator**.
+3. **AutoRoute CI4 Tetap Aktif:** Jangan mematikan `$routes->setAutoRoute(true)` secara global selama fase migrasi.
+4. **Skema Database Non-Breaking:** Dilarang menghapus atau mengubah nama kolom/tabel aktif tanpa proses migrasi bertahap.
 
 ---
 
 ## 2. Batas Wilayah Modul (Module Boundary)
 
-Setiap modul bisnis memiliki wilayah kepemilikan yang didefinisikan dalam `docs/modules/<NamaModul>/MODULE.md`.
-
-### A. Kepemilikan Tabel (Owner Tables)
-* Hanya modul pemilik yang memiliki izin melakukan operasi **INSERT, UPDATE, DELETE** pada tabel miliknya.
-* Modul lain dilarang keras melakukan manipulasi langsung ke tabel modul lain (`$db->table('tabel_lain')->update()`).
-
-### B. Komunikasi Antar-Modul (Contracts)
-1. **Frontend (Browser / JS / AJAX / Mobile):**
-   * Gunakan **Public REST API Endpoint** (`/api/...`).
-   * Mengembalikan respons JSON standar `{ status, message, data }`.
-2. **Backend Antar-Modul:**
-   * Gunakan **Direct PHP Public Service Methods**.
-   * Dilarang melakukan loopback HTTP call (`curl` ke localhost). Panggil method Service resmi dari modul pemilik.
-   * Tetap jaga transaksi atomik database (`$db->transStart()` / `$db->transComplete()`).
-
-### C. Standar Struktur Folder Modul (Namespace & Path)
-Setiap modul diorganisir ke dalam subfolder modul tersendiri:
-* **Web Controllers**: `app/Controllers/Web/<Modul>/` (Namespace: `App\Controllers\Web\<Modul>`)
-* **API Controllers**: `app/Controllers/Api/<Modul>/` (Namespace: `App\Controllers\Api\<Modul>`)
-* **Services**: `app/Services/<Modul>/` (Namespace: `App\Services\<Modul>`)
-* **Repositories**: `app/Repositories/<Modul>/` (Namespace: `App\Repositories\<Modul>`)
-* **Backward-Compatibility Shims**: Untuk service atau repository yang dipanggil oleh modul lain atau legacy AutoRoute, sediakan shim class tipis di `app/Services/` atau `app/Repositories/` yang meng-`extends` class modular baru.
+Setiap modul bisnis memiliki wilayah kepemilikan yang didefinisikan dalam `docs/modules/<NamaModul>/MODULE.md`:
+- **Kepemilikan Tabel (`Owner Tables`):** Hanya modul pemilik yang diizinkan melakukan **INSERT, UPDATE, DELETE** pada tabel miliknya. Modul lain dilarang memanipulasi tabel modul lain secara langsung.
+- **Komunikasi Antar-Modul (`Contracts`):**
+  - *Frontend (Browser/JS/AJAX & Vue/Capacitor):* Melalui Public REST API (`/api/...`) yang **WAJIB mengembalikan Full JSON murni (`RAW_JSON_READY`)** dengan format standar `BaseApiController` `{ success, messages, data, errors? }` (bebas string HTML DataTables dan tanpa redirect HTML `302` pada `/api/*`) sesuai `docs/MODULAR_REFACTOR.md` dan `sigapp-vue/docs/API_SPA_CONTRACT.md`.
+  - *Backend Antar-Modul:* Melalui Direct PHP Public Service Methods (dilarang loopback HTTP `curl`).
+- **Struktur Namespace Modular:**
+  - Web Controllers: `app/Controllers/Web/<Modul>/` (`App\Controllers\Web\<Modul>`)
+  - API Controllers: `app/Controllers/Api/<Modul>/` (`App\Controllers\Api\<Modul>`)
+  - Services: `app/Services/<Modul>/` (`App\Services\<Modul>`)
+  - Repositories: `app/Repositories/<Modul>/` (`App\Repositories\<Modul>`)
+- **Aturan Shared Views/Modals & Routes (`app/Config/Routes.php` & Folder View Bersama):**
+  - File rute global `app/Config/Routes.php` boleh dimodifikasi untuk mendaftarkan rute eksplisit modul target (dengan tetap mempertahankan rute lama sebagai shim).
+  - Untuk folder view bersama (`app/Views/master/`, `app/Views/siteplan/partials/`, `app/Views/setting/`), agen hanya boleh mengubah partial/view yang spesifik milik modul target tanpa merusak partial departemen lain.
+  - Komponen *Shared Infrastructure* (`FileAccessService`, `StorageService`, `BaseApiController`, `FileController`) boleh dikonsumsi lintas modul tanpa dianggap melanggar batas wilayah.
 
 ---
 
-## 3. SOP Alur Migrasi Satu Modul (Step-by-Step)
+## 3. Pembagian Tugas Agen pada Mode `REFACTOR`
 
-Ketika diperintahkan untuk merefaktor suatu modul (misal: `"refaktor modul X"`), ikuti tahapan berikut secara ketat:
-
-### Langkah 1: Preflight & Analisis Batas
-1. Baca dokumen `docs/modules/<Modul>/MODULE.md`.
-2. Periksa daftar file inventory, routes (eksplisit & AutoRoute), dan tabel pemilik.
-3. Jalankan `php spark module:deadcode <Modul>` untuk melihat kandidat dead code.
-
-### Langkah 2: Audit & Pemisahan Controller
-1. Jika controller masih campuran View + JSON:
-   * Buat `App\Controllers\Web\<Modul>\<Modul>Controller` untuk render view.
-   * Buat `App\Controllers\Api\<Modul>\<Modul>Controller` untuk endpoint JSON.
-2. Pertahankan route lama di `app/Config/Routes.php` yang mendelegasikan ke controller baru (Zero-Downtime alias).
-
-### Langkah 3: Ekstraksi Logika Bisnis ke Service
-1. Pindahkan kalkulasi bisnis, validasi finansial, dan manipulasi data dari Controller ke `App\Services\<Modul>\<Modul>Service`.
-2. Jika ada query multi-tabel / JOIN kompleks, tempatkan di `App\Repositories\<Modul>\<Modul>Repository`.
-
-### Langkah 4: Pembersihan Dead Code Terkonfirmasi
-1. Hapus method yang terbukti tidak memiliki pemanggil (0 callers) dan bukan route aktif.
-2. Bersihkan variabel/helper yang tidak lagi digunakan.
-
-### Langkah 5: Pengujian E2E Playwright (Wajib)
-1. Jalankan pengujian antarmuka dengan Playwright menggunakan akun departemen terkait:
-   * Keuangan: `nisalis` / `nisalis123`
-   * MKDT: `citra` / `citra123`
-   * Produksi: `alika` / `alikas123`
-   * Legal: `marlina` / `marlina123`
-   * Promosi: `benny` / `benny123`
-2. Pastikan tidak ada console error (500/404) dan alur bisnis utama berjalan mulus.
-
-### Langkah 6: Sinkronisasi Dokumentasi & Commit
-1. Jalankan `php spark module:sync <Modul>` untuk memperbarui `docs/modules/<Modul>/MODULE.md` secara otomatis.
-2. Perbarui baris modul tersebut di `docs/MIGRATION_PROGRESS.md` menjadi `COMPLETED` beserta commit hash.
-3. Periksa `git status` dan commit perubahan modul tersebut secara terisolasi.
-
----
-
-## 4. Protokol Fresh Chat (Sesi Percakapan Baru per Modul)
-
-Untuk menjaga context window tetap bersih dan hemat token:
-
-1. **Aturan Pembacaan File:**
-   Agen di fresh chat **HANYA** perlu membaca:
-   * File ini: `.agents/rules/sigapp-modular-migration.md`
-   * Global ledger: `docs/MIGRATION_PROGRESS.md`
-   * Dokumen target: `docs/modules/<TargetModul>/MODULE.md`
-   * File-file di dalam `File Inventory` milik modul yang sedang dikerjakan.
-   * **DILARANG** membaca file controller/service modul lain kecuali file Contract publik yang dipanggil.
-2. **Template Prompt Memulai Sesi Fresh Chat:**
-   User cukup memberikan instruksi:
-   > *"Kerjakan refaktor Modul <NamaModul> sesuai docs/modules/<NamaModul>/MODULE.md dan SOP di .agents/rules/sigapp-modular-migration.md."*
-3. **Hasil Akhir Sesi:**
-   Setiap akhir sesi fresh chat, pastikan `MODULE.md` dan `MIGRATION_PROGRESS.md` telah disinkronkan dan di-commit ke Git.
+1. **Fase 1 (`sigapp-explorer` + `Master Orchestrator`):**
+   - `sigapp-explorer` membaca `docs/modules/<Modul>/MODULE.md`, memetakan *File Inventory* (Backend vs Frontend), *Owner Tables*, rute, *callers* via `codegraph_explore`, dan dead code.
+   - `Master Orchestrator` menyusun Implementation Plan refaktor dan meminta persetujuan User.
+2. **Fase 2 Backend (`sigapp-engineer`):**
+   - Memisahkan `Web/<Modul>/<Modul>Controller` dan `Api/<Modul>/<Modul>Controller`.
+   - Mengekstraksi logika bisnis & validasi finansial DB (`cleanNumeric()`, transaksi DB) ke `Services/<Modul>/<Modul>Service` dan query JOIN kompleks ke `Repositories/<Modul>/<Modul>Repository`.
+   - Menyiapkan rute delegator & class shim Zero-Downtime, membersihkan dead code backend (0 callers), dan menjalankan `php -l`.
+3. **Fase 2 Frontend (`sigapp-frontend`):**
+   - Menyesuaikan View (`app/Views/`), memindahkan inline CSS/JS ke `public/assets/css/<modul>.css` dan `public/assets/js/<modul>.js` dengan `filemtime(...)`, serta memastikan kepatuhan penuh terhadap skill **`sigapp-ui-acuan`**.
+4. **Fase 3 (`sigapp-qa`):**
+   - Mengaudit 0 broken callers via `codegraph_explore`.
+   - Menguji UI E2E via Playwright MCP dengan skill `sigapp-local-testing` (0 console errors + audit checklist `sigapp-ui-acuan`).
+   - Menjalankan `php spark routes`, `php spark module:deadcode <Modul>`, dan memastikan `php spark module:status` mencapai status `REFACTORED` dengan skor $\ge 80\%$.
+5. **Fase 4 (`sigapp-docs`):**
+   - Setelah `sigapp-qa` menerbitkan sertifikat `PASS`, menjalankan `php spark module:sync <Modul>`, memperbarui baris modul di `docs/MIGRATION_PROGRESS.md` menjadi `COMPLETED`, dan memastikan `git status` bersih serta terisolasi.

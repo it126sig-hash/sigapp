@@ -200,7 +200,7 @@
                 <tr class="is_hidden">
                     <td width="160" valign="top">
                         <ul>
-                            <li>Discount</li>
+                            <li>Diskon</li>
                         </ul>
                     </td>
                     <td width="208" valign="top"></td>
@@ -212,7 +212,49 @@
             <?php else:
                 $grandTotal = $data->harga_allin;
             ?>
+                <tr>
+                    <td>Biaya Biaya</td>
+                    <td>
+                <tr class="is_hidden">
+                    <td width="160" valign="top">
+                        <ul>
+                            <li>Biaya Kavling Strategis</li>
+                        </ul>
+                    </td>
+                    <td width="208" valign="top"></td>
+                    <td> : Rp.</td>
+                    <td width="208" valign="top" class="button-green" align="right">
+                        <span
+                            style="margin:500pt"><?= num_format($data->harga_penambahan) ?></span>
+                    </td>
+                </tr>
+                <tr class="is_hidden">
+                    <td width="160" valign="top">
+                        <ul>
+                            <li>SBUM</li>
+                        </ul>
+                    </td>
+                    <td width="208" valign="top"></td>
+                    <td> : Rp.</td>
+                    <td width="208" valign="top" class="button-green" align="right">
+                        <span style="margin:500pt">(<?= num_format($data->harga_sbum) ?>)</span>
+                    </td>
+                </tr>
+                <tr class="is_hidden">
+                    <td width="160" valign="top">
+                        <ul>
+                            <li>Diskon</li>
+                        </ul>
+                    </td>
+                    <td width="208" valign="top"></td>
+                    <td> : Rp.</td>
+                    <td width="208" valign="top" class="button-green" align="right">
+                        <span style="margin:500pt">(<?= num_format($data->harga_diskon_uang_muka) ?>)</span>
+                    </td>
 
+                </tr>
+                </td>
+                </tr>
                 </tr>
 
             <?php endif; ?>
@@ -235,7 +277,7 @@
                 </td>
                 <td width="213" valign="top">
                     <p align="center">
-                        Uraiain Pembayaran
+                        Uraian Pembayaran
                     </p>
                 </td>
                 <td></td>
@@ -306,7 +348,7 @@
                 <strong><?= strtoupper($proyek->atas_nama) ?>.
             </li>
 
-            <li>Apabila keterlambatan pembayaran melewati waktu 30 hari kerja. Saya bersedia pembelian tanah dan
+            <li>Apabila keterlambatan pembayaran melewati waktu 30 hari kerja dari tanggal jatuh tempo. Saya bersedia pembelian tanah dan
                 rumah
                 ini dibatalkan dengan sendirinya.</li>
 
@@ -320,7 +362,7 @@
 
             <li>Persyaratan data-data untuk pengajuan KPR dan semua data lain yang diperlukan atau saya serahkan
                 secara
-                lengkap <?= strtoupper($proyek->nama_pt) ?>. paling lambat 2 (dua) minggu setelah tanggal SPPTB ini
+                lengkap kepada <?= strtoupper($proyek->nama_pt) ?> paling lambat 2 (dua) minggu setelah tanggal SPPTB ini
                 ditandatangani.
             </li>
 
@@ -328,9 +370,9 @@
                 ini
                 menjadi batal dengan sendirinya, sesuai dengan ketentuan pada butir 5.</li>
 
-            <li>Apabila terjadi penurunan KPR dari pihak Bank, maka saya bersedia membayar kekurangan / penurunan
+            <li>Apabila terjadi penurunan KPR/nilai KPR yang disetujui dari pihak Bank lebih rendah, maka saya bersedia membayar kekurangan / penurunan
                 KPR
-                tersebut paling lambat 2 minggu setelah tanggal persetujuan kredit dari Bank.</li>
+                tersebut paling lambat 2 minggu hari kerja setelah tanggal persetujuan kredit dari Bank.</li>
 
             <li>Apabila terjadi ganti nama atau pindah kavling maka saya bersedia dikenakan pembayaran booking fee
                 kembali dan kemudian SPPTB ini diganti dengan SPPTB pemohon baru.</li>
@@ -356,6 +398,11 @@
 
             <li>Setelah serah terima dilakukan maka saya bersedia untuk membayar iuran Pemeliharaan Lingkungan yang
                 besaran awalnya senilai Rp. 10.000 (sepuluh ribu rupiah) setiap bulan.</li>
+
+            <li>Saya bersedia untuk mematuhi dan menaati seluruh peraturan, tata tertib, serta ketentuan yang berlaku di
+                lingkungan perumahan <?= strtoupper($proyek->nama_pt) ?>, baik yang telah ditetapkan maupun yang akan
+                ditetapkan di kemudian hari, selama tidak bertentangan dengan peraturan perundang-undangan yang
+                berlaku.</li>
         </ol>
     </div>
 </div>

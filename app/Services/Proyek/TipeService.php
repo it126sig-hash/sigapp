@@ -2,7 +2,6 @@
 
 namespace App\Services\Proyek;
 
-use App\Controllers\Notif;
 use App\Models\GambarkerjaModel;
 use App\Models\KavlingModel;
 use App\Models\ProyekModel;
@@ -10,6 +9,7 @@ use App\Models\TipeModel;
 use App\Repositories\Proyek\TipeRepository;
 use App\Services\FileAccessService;
 use App\Services\HistoryService;
+use App\Services\NotifikasiService;
 use CodeIgniter\HTTP\IncomingRequest;
 use RuntimeException;
 
@@ -47,7 +47,7 @@ class TipeService
     private $validation;
     private $db;
     private HistoryService $historyService;
-    private Notif $notif;
+    private NotifikasiService $notif;
 
     public function __construct()
     {
@@ -59,28 +59,54 @@ class TipeService
         $this->validation = \Config\Services::validation();
         $this->db = db_connect();
         $this->historyService = new HistoryService();
-        $this->notif = new Notif();
+        $this->notif = new NotifikasiService();
     }
 
     public function getAll(array $params): array
     {
         $data = [];
+        $isRaw = ($params['format'] ?? '') === 'raw';
 
         foreach ($this->tipeRepository->getAll($params) as $key => $value) {
-            $ops = '<div class="btn-group">';
-            $ops .= '	<button type="button" class="btn btn-outline-primary waves-effect btn-sm" onclick="edit(' . $value->id_tipe . ')"><i class="fa fa-edit"></i></button>';
-            $ops .= '</div>';
-
-            $data[$key] = [
-                $value->id_tipe,
-                $value->nama_proyek,
-                $value->no_tipe_rumah,
-                $value->tipe_rumah,
-                $value->lb,
-                $value->lt,
-                $value->keterangan,
-                $ops,
-            ];
+            if ($isRaw) {
+                $data[$key] = [
+                    'id_tipe'                    => (int) $value->id_tipe,
+                    'id_proyek'                  => (int) $value->id_proyek,
+                    'nama_proyek'                => $value->nama_proyek,
+                    'no_tipe_rumah'              => $value->no_tipe_rumah,
+                    'tipe_rumah'                 => $value->tipe_rumah,
+                    'lb'                         => (float) $value->lb,
+                    'lt'                         => (float) $value->lt,
+                    'jumlah_kamar_tidur'         => (int) ($value->jumlah_kamar_tidur ?? 0),
+                    'jumlah_kamar_mandi'         => (int) ($value->jumlah_kamar_mandi ?? 0),
+                    'spesifikasi_teknis_atap'    => $value->spesifikasi_teknis_atap ?? null,
+                    'spesifikasi_teknis_dinding' => $value->spesifikasi_teknis_dinding ?? null,
+                    'spesifikasi_teknis_lantai'  => $value->spesifikasi_teknis_lantai ?? null,
+                    'spesifikasi_teknis_pondasi' => $value->spesifikasi_teknis_pondasi ?? null,
+                    'harga'                      => (float) ($value->harga ?? 0),
+                    'is_subsidi'                 => (int) ($value->is_subsidi ?? 0),
+                    'is_active'                  => (int) ($value->is_active ?? 1),
+                    'jumlah_kavling'             => (int) ($value->jumlah_kavling ?? 0),
+                    'id_gambar_tipe'             => !empty($value->id_gambar_tipe) ? (int) $value->id_gambar_tipe : null,
+                    'id_gambar_denah'            => !empty($value->id_gambar_denah) ? (int) $value->id_gambar_denah : null,
+                    'id_gambar_kerja'            => !empty($value->id_gambar_kerja) ? (int) $value->id_gambar_kerja : null,
+                    'gambar_tipe_access_url'     => !empty($value->id_gambar_tipe) ? $this->fileAccessService->accessUrl('gambar_kerja', (int) $value->id_gambar_tipe) : null,
+                    'gambar_denah_access_url'    => !empty($value->id_gambar_denah) ? $this->fileAccessService->accessUrl('gambar_kerja', (int) $value->id_gambar_denah) : null,
+                    'gambar_kerja_access_url'    => !empty($value->id_gambar_kerja) ? $this->fileAccessService->accessUrl('gambar_kerja', (int) $value->id_gambar_kerja) : null,
+                    'keterangan'                 => $value->keterangan,
+                ];
+            } else {
+                $data[$key] = [
+                    $value->id_tipe,
+                    $value->nama_proyek,
+                    $value->no_tipe_rumah,
+                    $value->tipe_rumah,
+                    $value->lb,
+                    $value->lt,
+                    $value->keterangan,
+                    (int) $value->id_tipe,
+                ];
+            }
         }
 
         return $data;
@@ -90,28 +116,49 @@ class TipeService
     {
         $result = $this->tipeRepository->getDataTables($params);
         $rows = [];
-        $no = $params['start'] + 1;
+        $no = ($params['start'] ?? 0) + 1;
+        $isRaw = ($params['format'] ?? '') === 'raw';
 
         foreach ($result['rows'] as $key => $value) {
-            $ops = '<div class="btn-group">';
-            $ops .= '   <button type="button" class="btn btn-outline-info waves-effect btn-sm" onclick="view(' . $value->id_tipe . ')" title="Lihat Detail"><i class="fa fa-eye"></i></button>';
-            $ops .= '	<button type="button" class="btn btn-outline-primary waves-effect btn-sm" onclick="edit(' . $value->id_tipe . ')" title="Perbaharui Data"><i class="fa fa-edit"></i></button>';
-            $ops .= '	<button type="button" class="btn btn-outline-danger waves-effect btn-sm" onclick="remove(' . $value->id_tipe . ')" title="Hapus"><i class="fa fa-trash"></i></button>';
-            $ops .= '</div>';
-
             $tipeRumahMerge = $value->tipe_rumah . ' (' . $value->lb . '/' . $value->lt . ')';
 
-            $rows[$key] = [
-                $no++,
-                $value->no_tipe_rumah,
-                $tipeRumahMerge,
-                $this->statusBadge($value->is_subsidi, 'Subsidi', 'Non-Subsidi'),
-                $value->jumlah_kamar_tidur,
-                $value->jumlah_kamar_mandi,
-                '<span class="badge badge-light-info font-weight-bolder" style="cursor: pointer;" onclick="listKavling(' . $value->id_tipe . ')" title="Lihat List Kavling">' . $value->jumlah_kavling . ' Unit</span>',
-                $value->keterangan,
-                $ops,
-            ];
+            if ($isRaw) {
+                $rows[$key] = [
+                    'id_tipe'                 => (int) $value->id_tipe,
+                    'id_proyek'               => (int) $value->id_proyek,
+                    'nama_proyek'             => $value->nama_proyek,
+                    'no_tipe_rumah'           => $value->no_tipe_rumah,
+                    'tipe_rumah'              => $value->tipe_rumah,
+                    'lb'                      => (float) $value->lb,
+                    'lt'                      => (float) $value->lt,
+                    'is_subsidi'              => (int) $value->is_subsidi,
+                    'is_active'               => (int) ($value->is_active ?? 1),
+                    'jumlah_kamar_tidur'      => (int) $value->jumlah_kamar_tidur,
+                    'jumlah_kamar_mandi'      => (int) $value->jumlah_kamar_mandi,
+                    'jumlah_kavling'          => (int) $value->jumlah_kavling,
+                    'harga'                   => (float) ($value->harga ?? 0),
+                    'id_gambar_tipe'          => !empty($value->id_gambar_tipe) ? (int) $value->id_gambar_tipe : null,
+                    'id_gambar_denah'         => !empty($value->id_gambar_denah) ? (int) $value->id_gambar_denah : null,
+                    'id_gambar_kerja'         => !empty($value->id_gambar_kerja) ? (int) $value->id_gambar_kerja : null,
+                    'gambar_tipe_access_url'  => !empty($value->id_gambar_tipe) ? $this->fileAccessService->accessUrl('gambar_kerja', (int) $value->id_gambar_tipe) : null,
+                    'gambar_denah_access_url' => !empty($value->id_gambar_denah) ? $this->fileAccessService->accessUrl('gambar_kerja', (int) $value->id_gambar_denah) : null,
+                    'gambar_kerja_access_url' => !empty($value->id_gambar_kerja) ? $this->fileAccessService->accessUrl('gambar_kerja', (int) $value->id_gambar_kerja) : null,
+                    'keterangan'              => $value->keterangan ?? '',
+                ];
+            } else {
+                $rows[$key] = [
+                    $no++,
+                    $value->no_tipe_rumah,
+                    $tipeRumahMerge,
+                    (int) $value->is_subsidi,
+                    (int) $value->jumlah_kamar_tidur,
+                    (int) $value->jumlah_kamar_mandi,
+                    (int) $value->jumlah_kavling,
+                    $value->keterangan ?? '',
+                    (int) ($value->is_active ?? 1),
+                    (int) $value->id_tipe,
+                ];
+            }
         }
 
         return [
@@ -122,6 +169,15 @@ class TipeService
         ];
     }
 
+    public function getListKavling(int $idTipe): array
+    {
+        if ($idTipe <= 0) {
+            return [];
+        }
+
+        return $this->tipeRepository->getListKavling($idTipe);
+    }
+
     public function getOne(int $idTipe): ?object
     {
         $data = $this->tipeModel->where('id_tipe', $idTipe)->first();
@@ -129,6 +185,8 @@ class TipeService
         if (!$data) {
             return null;
         }
+
+        $data->is_active = (int) ($data->is_active ?? 1);
 
         $this->appendFileUrls($data, 'gambar_kerja', $data->id_gambar_kerja ?? null);
         $this->appendFileUrls($data, 'gambar_tipe', $data->id_gambar_tipe ?? null);
@@ -150,9 +208,15 @@ class TipeService
         $fields['id_gambar_tipe'] = null;
         $fields['id_gambar_denah'] = null;
 
-        $validation = $this->validate($fields, true, $request);
+        $validation = $this->validate($fields, false, $request);
         if ($validation !== true) {
             return ['success' => false, 'messages' => $validation];
+        }
+
+        if ($fields['is_active'] === null || $fields['is_active'] === '') {
+            $fields['is_active'] = 1;
+        } else {
+            $fields['is_active'] = (int) $fields['is_active'];
         }
 
         $this->db->transStart();
@@ -162,6 +226,9 @@ class TipeService
 
             $proyek = $this->proyekModel->where('id_proyek', $fields['id_proyek'])->first();
             foreach (array_keys(self::FILE_FIELDS) as $fieldName) {
+                if (!$this->hasUploadedFile($request, $fieldName)) {
+                    continue;
+                }
                 $fileId = $this->storeUploadedFile($request, $fieldName, $fields, $proyek);
                 $fields[$this->tipeFieldForUpload($fieldName)] = $fileId;
             }
@@ -207,12 +274,25 @@ class TipeService
             return ['success' => false, 'messages' => 'Id tipe tidak valid'];
         }
 
+        $oldData = $this->tipeModel->find($idTipe);
+        if (!$oldData) {
+            return ['success' => false, 'messages' => 'Data tipe tidak ditemukan'];
+        }
+
+        if (empty($fields['id_proyek']) && !empty($oldData->id_proyek)) {
+            $fields['id_proyek'] = $oldData->id_proyek;
+        }
+
         $validation = $this->validate($fields, false, $request);
         if ($validation !== true) {
             return ['success' => false, 'messages' => $validation];
         }
 
-        $oldData = $this->tipeModel->find($idTipe);
+        if ($fields['is_active'] === null || $fields['is_active'] === '') {
+            $fields['is_active'] = (int) ($oldData->is_active ?? 1);
+        } else {
+            $fields['is_active'] = (int) $fields['is_active'];
+        }
 
         $this->db->transStart();
 
@@ -277,22 +357,40 @@ class TipeService
 
     private function requestFields(IncomingRequest $request): array
     {
+        $payload = [];
+        if (str_contains((string) $request->getHeaderLine('Content-Type'), 'application/json')) {
+            $payload = (array) ($request->getJSON(true) ?? []);
+        }
+        $post = (array) $request->getPost();
+        $data = array_merge($payload, $post);
+
+        $idProyek = $data['id_proyek'] ?? $data['idProyek'] ?? null;
+        if (function_exists('resolve_active_proyek_id')) {
+            $idProyek = resolve_active_proyek_id($idProyek);
+        }
+
+        $isActive = $data['is_active'] ?? ($data['isActive'] ?? null);
+        if (is_bool($isActive)) {
+            $isActive = $isActive ? 1 : 0;
+        }
+
         return [
-            'id_tipe' => $request->getPost('idTipe'),
-            'id_proyek' => $request->getPost('idProyek'),
-            'no_tipe_rumah' => $request->getPost('no_tipe_rumah'),
-            'tipe_rumah' => $request->getPost('tipeRumah'),
-            'is_subsidi' => $request->getPost('isSubsidi'),
-            'lb' => $request->getPost('lb'),
-            'lt' => $request->getPost('lt'),
-            'jumlah_kamar_tidur' => $request->getPost('jumlah_kamar_tidur'),
-            'jumlah_kamar_mandi' => $request->getPost('jumlah_kamar_mandi'),
-            'spesifikasi_teknis_atap' => $request->getPost('spesifikasi_teknis_atap'),
-            'spesifikasi_teknis_dinding' => $request->getPost('spesifikasi_teknis_dinding'),
-            'spesifikasi_teknis_lantai' => $request->getPost('spesifikasi_teknis_lantai'),
-            'spesifikasi_teknis_pondasi' => $request->getPost('spesifikasi_teknis_pondasi'),
-            'harga' => $request->getPost('harga'),
-            'keterangan' => $request->getPost('keterangan'),
+            'id_tipe'                    => $data['id_tipe'] ?? $data['idTipe'] ?? null,
+            'id_proyek'                  => $idProyek,
+            'no_tipe_rumah'              => $data['no_tipe_rumah'] ?? $data['noTipeRumah'] ?? null,
+            'tipe_rumah'                 => $data['tipe_rumah'] ?? $data['tipeRumah'] ?? null,
+            'is_subsidi'                 => isset($data['is_subsidi']) ? $data['is_subsidi'] : ($data['isSubsidi'] ?? 0),
+            'is_active'                  => $isActive,
+            'lb'                         => $data['lb'] ?? null,
+            'lt'                         => $data['lt'] ?? null,
+            'jumlah_kamar_tidur'         => $data['jumlah_kamar_tidur'] ?? $data['jumlahKamarTidur'] ?? 0,
+            'jumlah_kamar_mandi'         => $data['jumlah_kamar_mandi'] ?? $data['jumlahKamarMandi'] ?? 0,
+            'spesifikasi_teknis_atap'    => $data['spesifikasi_teknis_atap'] ?? $data['spesifikasiTeknisAtap'] ?? null,
+            'spesifikasi_teknis_dinding' => $data['spesifikasi_teknis_dinding'] ?? $data['spesifikasiTeknisDinding'] ?? null,
+            'spesifikasi_teknis_lantai'  => $data['spesifikasi_teknis_lantai'] ?? $data['spesifikasiTeknisLantai'] ?? null,
+            'spesifikasi_teknis_pondasi' => $data['spesifikasi_teknis_pondasi'] ?? $data['spesifikasiTeknisPondasi'] ?? null,
+            'harga'                      => $data['harga'] ?? 0,
+            'keterangan'                 => $data['keterangan'] ?? null,
         ];
     }
 
@@ -302,6 +400,7 @@ class TipeService
             'id_proyek' => ['label' => 'Id proyek', 'rules' => 'permit_empty|max_length[255]'],
             'no_tipe_rumah' => ['label' => 'Nomor', 'rules' => 'permit_empty|max_length[255]'],
             'tipe_rumah' => ['label' => 'Tipe rumah', 'rules' => 'permit_empty|max_length[255]'],
+            'is_active' => ['label' => 'Status Aktif', 'rules' => 'permit_empty|in_list[0,1]'],
             'lb' => ['label' => 'Lb', 'rules' => 'permit_empty'],
             'lt' => ['label' => 'Lt', 'rules' => 'permit_empty'],
             'jumlah_kamar_tidur' => ['label' => 'Jumlah Kamar Tidur', 'rules' => 'permit_empty|integer'],

@@ -135,6 +135,7 @@ initSigappModalStacking();
     false,
   );
 
+  initNotificationRealtimeListeners();
   window.setTimeout(loadNotificationBadge, 0);
 })(window);
 
@@ -328,6 +329,9 @@ function initModalListener(id) {
     });
   });
 }
+window.initModalListener = initModalListener;
+window.modalInitListener = initModalListener;
+
 function removeModalListener(id) {
   $(id).off("hide.bs.modal");
   $(id).removeData("isConfirmedClose");
@@ -607,12 +611,14 @@ function paint(t, a, e, d = null) {
 /******************************** getNotif *********************************/
 
 let notificationCenterUrgentItems = {};
+let notificationActivityItemsMap = {};
 let notificationCenterRequest = null;
 let notificationBadgeRequest = null;
 let notificationCenterLoaded = false;
 let notificationCenterUserSelectedTab = false;
 let notificationActivityHasMore = true;
 let currentNotifProjectId = "auto"; // Default: ikut proyek aktif
+let currentNotifIntent = "";
 
 function notificationProjectId() {
   if (currentNotifProjectId && currentNotifProjectId !== "auto") {
@@ -707,9 +713,55 @@ function renderNotificationSummary(response) {
   $("#notif-activity-count").text(activityUnread);
 }
 
-// Smart Polling AJAX (Menggantikan SSE yang bikin freeze)
+// Smart Polling AJAX (Fallback realtime) + BroadcastChannel & SW Push Listener
 let notifPollTimer = null;
+let notifRealtimeDebounceTimer = null;
+let lastNotifSyncAt = 0;
 const NOTIF_POLL_INTERVAL = 30000; // 30 detik
+const NOTIF_VISIBILITY_STALE_MS = 15000; // 15 detik
+
+function scheduleRealtimeNotifSync() {
+  if (notifRealtimeDebounceTimer) {
+    clearTimeout(notifRealtimeDebounceTimer);
+  }
+  notifRealtimeDebounceTimer = window.setTimeout(function () {
+    notifRealtimeDebounceTimer = null;
+    loadNotificationBadge();
+    if ($("#list-notif").hasClass("show")) {
+      getNotif(true);
+    }
+  }, 400);
+}
+
+function initNotificationRealtimeListeners() {
+  if (window.SIGAPP_NOTIF_REALTIME_READY) {
+    return;
+  }
+  window.SIGAPP_NOTIF_REALTIME_READY = true;
+
+  if (typeof BroadcastChannel !== "undefined") {
+    try {
+      const notifChannel = new BroadcastChannel("sigapp_notif_realtime");
+      notifChannel.addEventListener("message", function (event) {
+        const msg = event && event.data ? event.data : {};
+        if (msg.type === "PUSH_RECEIVED" || msg.type === "SIGAPP_PUSH_RECEIVED") {
+          scheduleRealtimeNotifSync();
+        }
+      });
+    } catch (e) {
+      // Abaikan jika BroadcastChannel diblokir oleh context browser
+    }
+  }
+
+  if ("serviceWorker" in navigator && navigator.serviceWorker) {
+    navigator.serviceWorker.addEventListener("message", function (event) {
+      const msg = event && event.data ? event.data : {};
+      if (msg.type === "SIGAPP_PUSH_RECEIVED" || msg.type === "PUSH_RECEIVED") {
+        scheduleRealtimeNotifSync();
+      }
+    });
+  }
+}
 
 function loadNotificationBadge() {
   if (notifPollTimer) {
@@ -726,7 +778,8 @@ function loadNotificationBadge() {
   if (notificationBadgeRequest && notificationBadgeRequest.readyState !== 4) {
     notificationBadgeRequest.abort();
   }
-  
+
+  lastNotifSyncAt = Date.now();
   notificationBadgeRequest = $.ajax({
     type: "get",
     url: base_url + "/notif/summary",
@@ -746,10 +799,15 @@ function loadNotificationBadge() {
   });
 }
 
-// Refresh badge seketika saat user kembali membuka tab
+// Refresh summary saat user kembali membuka tab setelah > 15 detik
 document.addEventListener('visibilitychange', function() {
     if (document.visibilityState === 'visible') {
-        loadNotificationBadge();
+        if (Date.now() - lastNotifSyncAt > NOTIF_VISIBILITY_STALE_MS) {
+            loadNotificationBadge();
+            if ($("#list-notif").hasClass("show")) {
+                getNotif(true);
+            }
+        }
     }
 });
 
@@ -763,19 +821,26 @@ function getNotif(forceReload = true) {
   }
 
   start = 0;
+  notificationActivityHasMore = true;
+  const centerParams = {
+    [csrfName]: csrfHash,
+    id_proyek: notificationProjectId(),
+  };
+  if (currentNotifIntent) {
+    centerParams.intent = currentNotifIntent;
+  }
+
   notificationCenterRequest = $.ajax({
     type: "get",
     url: base_url + "/notif/center",
-    data: {
-      [csrfName]: csrfHash,
-      id_proyek: notificationProjectId(),
-    },
+    data: centerParams,
     dataType: "json",
     beforeSend: function () {
       setNotificationRefreshLoading(true);
       $("#notification-center-body").addClass("is-loading");
     },
     success: function (r) {
+      lastNotifSyncAt = Date.now();
       updateNotificationToken(r.token);
 
       setNotificationRefreshLoading(false);
@@ -935,7 +1000,23 @@ const DIVISI_AVATAR_COLOR = {
   10: "#82868b",
 };
 
+function notificationAttrEscape(value) {
+  if (value === null || value === undefined) {
+    return "";
+  }
+  return String(value)
+    .replace(/&/g, "&amp;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;");
+}
+
 function renderActivityItem(v) {
+  if (v && v.id !== undefined && v.id !== null) {
+    notificationActivityItemsMap[String(v.id)] = v;
+  }
+
   const unread = v.is_read == 0;
   const username = v.username || "Sistem";
   const initial = username.trim().charAt(0).toUpperCase() || "?";
@@ -943,6 +1024,9 @@ function renderActivityItem(v) {
   const avatarColor = DIVISI_AVATAR_COLOR[v.divisi_id] || "#82868b";
   const divisiBadge = v.divisi
     ? `<span class="badge badge-pill ${badgeClass}">${notificationEscape(v.divisi)}</span>`
+    : "";
+  const intentBadge = v.intent === "action_required"
+    ? '<span class="activity-intent-badge">Perlu Tindakan</span>'
     : "";
   const notifText = notificationEscape(v.notif_text || notificationPlainText(v.notif));
   const hasLocation = v.nama_jalan || v.no_kavling;
@@ -952,9 +1036,13 @@ function renderActivityItem(v) {
 
   const defaultLogo = (typeof base_url !== 'undefined' ? base_url : '/') + 'assets/images/pwa/icon-192.png';
   const logoUrl = v.logo_thumbnail_url || v.logo_access_url || defaultLogo;
-  
+  const eventTypeAttr = notificationAttrEscape(v.event_type || "");
+  const actionUrlAttr = notificationAttrEscape(v.action_url || "");
+  const safeTypeJs = notificationAttrEscape(v.type || "");
+  const safeKavlingJs = notificationAttrEscape(v.id_kavling ?? "");
+
   return `
-    <div class="activity-item${unread ? " is-unread" : ""}" onclick="handleNotificationClick(${v.id}, '${v.id_kavling}', '${v.type || ""}', this)">
+    <div class="activity-item${unread ? " is-unread" : ""}" data-notif-id="${notificationAttrEscape(v.id)}" data-event-type="${eventTypeAttr}" data-action-url="${actionUrlAttr}" onclick="handleNotificationClick(${Number(v.id) || 0}, '${safeKavlingJs}', '${safeTypeJs}', this)">
       <div class="activity-avatar bg-transparent" style="padding:0; overflow:hidden; border: 1px solid #ebe9f1;">
         <img src="${notificationEscape(logoUrl)}" alt="logo" style="width:100%; height:100%; object-fit:cover; border-radius:50%;">
       </div>
@@ -962,6 +1050,7 @@ function renderActivityItem(v) {
         <div class="activity-title-row">
           <strong>${notificationEscape(username)}</strong>
           ${divisiBadge}
+          ${intentBadge}
         </div>
         <p class="activity-text">${notifText}</p>
         <div class="activity-meta">
@@ -973,12 +1062,22 @@ function renderActivityItem(v) {
   `;
 }
 
-$("#list-notif").closest(".dropdown-notification").on("shown.bs.dropdown", function () {
-  ensureNotificationCenterLoaded();
-});
+window.openNotificationCenter = function () {
+  const $modal = $("#list-notif");
+  if ($modal.length) {
+    $modal.modal("show");
+  }
+};
 
-$("#header-notif").on("click", function () {
-  window.setTimeout(ensureNotificationCenterLoaded, 0);
+function closeNotificationCenterModal() {
+  const $modal = $("#list-notif");
+  if ($modal.length && $modal.hasClass("show")) {
+    $modal.modal("hide");
+  }
+}
+
+$("#list-notif").on("shown.bs.modal", function () {
+  ensureNotificationCenterLoaded();
 });
 
 $("#refresh-notif-center").click(function (event) {
@@ -1033,12 +1132,28 @@ $("#list-notif").on("click", ".notif-project-btn", function(e) {
   }
 });
 
-// Enable horizontal scrolling with mouse wheel for the project filter
-$(document).on("wheel", ".notif-project-scroll", function(e) {
+// Enable horizontal scrolling with mouse wheel for the project & intent filters
+$(document).on("wheel", ".notif-project-scroll, .notif-intent-scroll", function(e) {
   if (e.originalEvent.deltaY !== 0) {
     e.preventDefault();
     this.scrollLeft += e.originalEvent.deltaY;
   }
+});
+
+$("#list-notif").on("click", ".notif-intent-pill", function (e) {
+  e.preventDefault();
+  e.stopPropagation();
+
+  currentNotifIntent = String($(this).data("intent") || "");
+
+  $("#list-notif .notif-intent-pill")
+    .removeClass("active")
+    .attr("aria-pressed", "false");
+  $(this).addClass("active").attr("aria-pressed", "true");
+
+  start = 0;
+  notificationActivityHasMore = true;
+  getNotif(true);
 });
 
 function setNotificationCenterTab(target, fromUser = true) {
@@ -1073,14 +1188,19 @@ function loadData() {
   }
 
   isLoading = true;
+  const loadParams = {
+    [csrfName]: csrfHash,
+    offset: start,
+    id_proyek: notificationProjectId(),
+  };
+  if (currentNotifIntent) {
+    loadParams.intent = currentNotifIntent;
+  }
+
   $.ajax({
     url: base_url + "/loadnotif",
     method: "GET",
-    data: {
-      [csrfName]: csrfHash,
-      offset: start,
-      id_proyek: notificationProjectId(),
-    },
+    data: loadParams,
     success: function (r) {
       if (r.token) {
         csrfHash = r.token;
@@ -1168,6 +1288,7 @@ function openNotificationUrgentItem(key) {
   }
 
   if (item.type === "cashout_subkon" && typeof openCOSubkon === "function") {
+    closeNotificationCenterModal();
     return openCOSubkon({
       id_proyek: item.id_proyek || notificationProjectId(),
       id_cashout_subkon: item.id_cashout_subkon,
@@ -1185,17 +1306,21 @@ function openNotificationUrgentItem(key) {
 
   if (item.type === "tagihan") {
     if (typeof openSiteplanKeuanganFromUrgent === "function") {
+      closeNotificationCenterModal();
       return openSiteplanKeuanganFromUrgent(item);
     }
     if (typeof openSiteplanKeuanganFromNotification === "function") {
+      closeNotificationCenterModal();
       return openSiteplanKeuanganFromNotification(item.id_kavling);
     }
     if (typeof modal_tagihan === "function") {
+      closeNotificationCenterModal();
       return modal_tagihan(item.id_kavling);
     }
   }
 
   if (typeof openSiteplanKavlingFromNotification === "function") {
+    closeNotificationCenterModal();
     return openSiteplanKavlingFromNotification(item.id_kavling);
   }
 
@@ -1204,14 +1329,39 @@ function openNotificationUrgentItem(key) {
   }
 
   if (typeof view_detail === "function") {
+    closeNotificationCenterModal();
     return view_detail(item.id_kavling);
   }
 }
 
 function handleNotificationClick(id_notif, id_kavling, type, el) {
+  const itemMeta = notificationActivityItemsMap[String(id_notif)] || {};
+  const eventType = String(
+    itemMeta.event_type || (el ? $(el).attr("data-event-type") : "") || type || "",
+  );
+  const actionUrl = String(
+    itemMeta.action_url || (el ? $(el).attr("data-action-url") : "") || "",
+  );
+  const baseRoot = typeof base_url === "string" ? base_url.replace(/\/+$/, "") : "";
+  const openNotifUrl = baseRoot + "/notif/open/" + id_notif;
+  const hasValidKavling =
+    id_kavling !== null &&
+    id_kavling !== undefined &&
+    id_kavling !== "" &&
+    id_kavling !== "null" &&
+    id_kavling !== "undefined";
+  const navigateEvents = [
+    "legal_dokumen_updated",
+    "tagihan_signature_requested",
+    "tagihan_signature_responded",
+    "bpb_execution_requested",
+    "dajam_pengajuan_created",
+    "dajam_pencairan_completed",
+  ];
+
   // Tandai notifikasi sebagai dibaca
   $.ajax({
-    url: base_url + "/notif/mark-as-read/" + id_notif,
+    url: baseRoot + "/notif/mark-as-read/" + id_notif,
     type: "POST",
     data: {
       [csrfName]: csrfHash,
@@ -1229,24 +1379,33 @@ function handleNotificationClick(id_notif, id_kavling, type, el) {
         $(el).removeClass("is-unread");
       }
 
-      // Refresh list notifikasi (agar badge & warna bg terupdate)
-      getNotif();
-
       if (type === "cashout_subkon") {
+        getNotif();
         if (typeof openCOSubkon === "function") {
+          closeNotificationCenterModal();
           openCOSubkon({
             id_kavlings: [String(id_kavling)],
           });
+        } else if (actionUrl) {
+          closeNotificationCenterModal();
+          window.location.href = openNotifUrl;
         } else {
           console.log("openCOSubkon function is not available.");
         }
       } else if (type === "tagihan") {
+        getNotif();
         if (typeof openSiteplanKeuanganFromNotification === "function") {
+          closeNotificationCenterModal();
           openSiteplanKeuanganFromNotification(id_kavling);
         } else if (typeof modal_tagihan === "function") {
+          closeNotificationCenterModal();
           modal_tagihan(id_kavling);
+        } else if (actionUrl) {
+          closeNotificationCenterModal();
+          window.location.href = openNotifUrl;
         }
       } else if (type && type.startsWith("tiket_masalah")) {
+        getNotif();
         let parts = type.split("|");
         let tmRefType = parts[1] || null;
         let tmRefId = parts[2] || null;
@@ -1261,17 +1420,53 @@ function handleNotificationClick(id_notif, id_kavling, type, el) {
         }
         
         if (tmRefType && tmRefId && typeof window.openTiketMasalah === 'function') {
-            window.openTiketMasalah(tmRefType, tmRefId);
-        } else if (id_kavling && id_kavling !== 'null' && typeof window.openTiketMasalah === 'function') {
-            window.openTiketMasalah('kavling', id_kavling);
+          closeNotificationCenterModal();
+          window.openTiketMasalah(tmRefType, tmRefId);
+        } else if (hasValidKavling && typeof window.openTiketMasalah === 'function') {
+          closeNotificationCenterModal();
+          window.openTiketMasalah('kavling', id_kavling);
+        } else if (actionUrl) {
+          closeNotificationCenterModal();
+          window.location.href = openNotifUrl;
         }
+      } else if (type && type.startsWith("fee_sales")) {
+        closeNotificationCenterModal();
+        window.location.href = openNotifUrl;
+      } else if (
+        navigateEvents.includes(eventType) ||
+        navigateEvents.includes(type)
+      ) {
+        if (
+          eventType === "legal_dokumen_updated" &&
+          hasValidKavling &&
+          typeof openSiteplanKavlingFromNotification === "function" &&
+          (!actionUrl || actionUrl.indexOf("siteplan") !== -1)
+        ) {
+          getNotif();
+          closeNotificationCenterModal();
+          openSiteplanKavlingFromNotification(id_kavling);
+        } else {
+          closeNotificationCenterModal();
+          window.location.href = openNotifUrl;
+        }
+      } else if (actionUrl) {
+        closeNotificationCenterModal();
+        window.location.href = openNotifUrl;
       } else if (type === "progress" && typeof openSiteplanKavlingFromNotification === "function") {
+        getNotif();
+        closeNotificationCenterModal();
         openSiteplanKavlingFromNotification(id_kavling);
       } else {
-        if (typeof openSiteplanKavlingFromNotification === "function") {
+        getNotif();
+        if (hasValidKavling && typeof openSiteplanKavlingFromNotification === "function") {
+          closeNotificationCenterModal();
           openSiteplanKavlingFromNotification(id_kavling);
-        } else if (typeof view_detail === "function") {
+        } else if (hasValidKavling && typeof view_detail === "function") {
+          closeNotificationCenterModal();
           view_detail(id_kavling);
+        } else if (id_notif) {
+          closeNotificationCenterModal();
+          window.location.href = openNotifUrl;
         }
       }
     },
@@ -1281,7 +1476,7 @@ function handleNotificationClick(id_notif, id_kavling, type, el) {
 // Deteksi scroll pada div
 $("#notification-center-body").scroll(function () {
   if (
-    $(this).scrollTop() + $(this).innerHeight() >= $(this)[0].scrollHeight &&
+    $(this).scrollTop() + $(this).innerHeight() >= $(this)[0].scrollHeight - 24 &&
     !isLoading &&
     notificationActivityHasMore &&
     $("#notif-activity-pane").hasClass("is-active")
@@ -1741,12 +1936,19 @@ function readSelectedPhotoCoordinate(file, callback) {
 }
 
 function showFoto(data, imbuhan = "", del = true, options = {}) {
+  if (!Array.isArray(data)) {
+    return;
+  }
+
+  const allowDelete = del === true || del === "true";
+
   data.forEach((item) => {
     const containerElement = document.getElementById(
       `${imbuhan}list_${item.kategori}`,
     );
     if (containerElement) {
-      const isDocument = item.file_name.endsWith(".pdf") || item.file_name.endsWith(".xlsx");
+      const fileName = String(item.file_name || "");
+      const isDocument = fileName.endsWith(".pdf") || fileName.endsWith(".xlsx");
       const fileHref = item.access_url || file_url('file_produksi', item.id);
       const downloadHref = item.download_url || file_url('file_produksi', item.id, true);
       const gpsDownloadHref = !isDocument && options.embedGpsMetadata
@@ -1764,8 +1966,9 @@ function showFoto(data, imbuhan = "", del = true, options = {}) {
         const link = document.createElement("a");
         link.href = fileHref;
         link.target = "_blank";
+        link.rel = "noopener noreferrer";
         link.classList.add("detail-file-icon", "btn", "btn-outline-primary");
-        link.innerHTML = `<i class="${item.file_name.endsWith(".pdf") ? "far fa-file-pdf" : "far fa-file-excel"}"></i><span class="ml-50">Lihat File</span>`;
+        link.innerHTML = `<i class="${fileName.endsWith(".pdf") ? "far fa-file-pdf" : "far fa-file-excel"}"></i><span class="ml-50">Lihat File</span>`;
         imgContainer.appendChild(link);
       } else {
         const img = document.createElement("img");
@@ -1798,10 +2001,14 @@ function showFoto(data, imbuhan = "", del = true, options = {}) {
       const viewButton = document.createElement("a");
       viewButton.href = fileHref;
       viewButton.target = "_blank";
+      viewButton.rel = "noopener noreferrer";
       viewButton.innerHTML = '<i class="fas fa-external-link-alt"></i> Lihat';
       viewButton.classList.add("btn", "btn-outline-primary", "btn-sm");
 
       const downloadButton = document.createElement("button");
+      downloadButton.type = "button";
+      downloadButton.title = "Unduh";
+      downloadButton.setAttribute("aria-label", "Unduh");
       downloadButton.innerHTML = '<i class="fas fa-download"></i>';
       downloadButton.classList.add("btn", "btn-primary", "btn-sm");
 
@@ -1814,30 +2021,26 @@ function showFoto(data, imbuhan = "", del = true, options = {}) {
         link.click();
       });
 
-      // console.log(del)
-      if (del == true) {
+      actionDiv.appendChild(viewButton);
+      actionDiv.appendChild(downloadButton);
+
+      if (allowDelete) {
         const deleteButton = document.createElement("button");
-        deleteButton.innerText = "Hapus";
-        deleteButton.style.position = "absolute";
-        deleteButton.style.top = "5px";
-        deleteButton.style.left = "5px";
-        deleteButton.style.backgroundColor = "red";
-        deleteButton.style.color = "white";
-        deleteButton.style.border = "none";
-        deleteButton.style.cursor = "pointer";
+        deleteButton.type = "button";
+        deleteButton.classList.add("btn", "btn-outline-danger", "btn-sm", "btn-hapus-foto");
+        deleteButton.dataset.fotoId = item.id;
+        deleteButton.innerHTML = '<i class="fas fa-trash-alt mr-25"></i>Hapus';
 
         deleteButton.addEventListener("click", function (event) {
           event.preventDefault();
           hapusFoto(item.id);
         });
 
-        imgDiv.appendChild(deleteButton);
+        actionDiv.appendChild(deleteButton);
       }
 
       imgDiv.appendChild(imgContainer);
       bodyDiv.appendChild(actionDiv);
-      actionDiv.appendChild(viewButton);
-      actionDiv.appendChild(downloadButton);
       imgDiv.appendChild(bodyDiv);
 
       containerElement.appendChild(imgDiv);
@@ -1851,45 +2054,76 @@ function hapusFoto(id) {
     text: "Anda tidak akan dapat mengembalikan ini!",
     icon: "warning",
     showCancelButton: true,
-    confirmButtonColor: "#3085d6",
-    cancelButtonColor: "#d33",
+    confirmButtonColor: "#dc2626",
+    cancelButtonColor: "#6b7280",
     confirmButtonText: "Ya, hapus!",
+    cancelButtonText: "Batal",
   }).then((result) => {
-    if (result.isConfirmed) {
-      $.ajax({
-        url: base_url + "/produksi/hapus_foto",
-        type: "post",
-        data: {
-          [csrfName]: csrfHash,
-          id: id,
-        },
+    if (!result.isConfirmed) {
+      return;
+    }
 
-        success: function (response) {
-          if (response.success) {
-            Swal.fire({
-              icon: "success",
-              title: "Berhasil",
-              text: "Foto berhasil dihapus",
-            }).then(() => {
-              $(`#foto_produksi_${id}`).remove();
-            });
-          } else {
-            Swal.fire({
-              icon: "error",
-              title: "Gagal",
-              text: "Foto gagal dihapus",
-            });
+    const $btn = $(`.btn-hapus-foto[data-foto-id="${id}"]`);
+    $btn.prop("disabled", true);
+
+    $.ajax({
+      url: base_url.replace(/\/+$/, "") + "/api/produksi/hapus_foto",
+      type: "post",
+      dataType: "json",
+      data: {
+        [csrfName]: csrfHash,
+        id: id,
+      },
+      success: function (response) {
+        if (response && response.token) {
+          csrfHash = response.token;
+        }
+
+        if (response && response.success) {
+          $(`#foto_produksi_${id}`).remove();
+
+          const modalKavlingId =
+            $("#modal_divisi7 .id_kavling").val() || $("#id_kavling").val();
+          if (
+            typeof loadProduksiHistory === "function" &&
+            modalKavlingId &&
+            $("#modal_divisi7").hasClass("show")
+          ) {
+            loadProduksiHistory(modalKavlingId, false);
           }
-        },
-        error: function () {
+
+          Swal.fire({
+            icon: "success",
+            title: "Berhasil",
+            text: (response && response.messages) || "Foto berhasil dihapus",
+          });
+        } else {
+          $btn.prop("disabled", false);
           Swal.fire({
             icon: "error",
             title: "Gagal",
-            text: "Terjadi kesalahan saat menghapus foto",
+            text:
+              (response && (response.messages || response.message)) ||
+              "Foto gagal dihapus",
           });
-        },
-      });
-    }
+        }
+      },
+      error: function (xhr) {
+        $btn.prop("disabled", false);
+        const errJson = xhr && xhr.responseJSON ? xhr.responseJSON : null;
+        if (errJson && errJson.token) {
+          csrfHash = errJson.token;
+        }
+
+        Swal.fire({
+          icon: "error",
+          title: "Gagal",
+          text:
+            (errJson && (errJson.messages || errJson.message)) ||
+            "Terjadi kesalahan saat menghapus foto",
+        });
+      },
+    });
   });
 }
 

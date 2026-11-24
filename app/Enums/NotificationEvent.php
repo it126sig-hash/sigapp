@@ -59,4 +59,61 @@ final class NotificationEvent
     const BPB_REJECTED            = 'bpb_rejected';
     const BPB_APPROVED            = 'bpb_approved';
     const BPB_STATUS_CHANGED      = 'bpb_status_changed';
+    public const BPB_EXECUTION_REQUESTED = 'bpb_execution_requested';
+
+    // ── Legal ──
+    public const LEGAL_DOKUMEN_UPDATED = 'legal_dokumen_updated';
+
+    // ── Direksi / Tagihan ──
+    public const TAGIHAN_SIGNATURE_REQUESTED = 'tagihan_signature_requested';
+    public const TAGIHAN_SIGNATURE_RESPONDED = 'tagihan_signature_responded';
+
+    // ── Dana Jaminan (Dajam) ──
+    public const DAJAM_PENGAJUAN_CREATED   = 'dajam_pengajuan_created';
+    public const DAJAM_PENCAIRAN_COMPLETED = 'dajam_pencairan_completed';
+
+    // ── Fee Sales ──
+    public const FEE_SALES_PENGAJUAN_CREATED  = 'fee_sales_pengajuan_created';
+    public const FEE_SALES_PENGAJUAN_REJECTED = 'fee_sales_pengajuan_rejected';
+    public const FEE_SALES_TERMIN_GENERATED   = 'fee_sales_termin_generated';
+    public const FEE_SALES_HARGA_NET_UPDATED  = 'fee_sales_harga_net_updated';
+    public const FEE_SALES_TTD_SIGNED         = 'fee_sales_ttd_signed';
+    public const FEE_SALES_PENCAIRAN          = 'fee_sales_pencairan';
+
+    public static function all(): array
+    {
+        return array_values((new \ReflectionClass(self::class))->getConstants());
+    }
+
+    public static function legacyTypeMap(): array
+    {
+        return [
+            'fee_sales_pengajuan'          => self::FEE_SALES_PENGAJUAN_CREATED,
+            'fee_sales_pengajuan_rejected' => self::FEE_SALES_PENGAJUAN_REJECTED,
+            'fee_sales_reject'             => self::FEE_SALES_PENGAJUAN_REJECTED,
+            'fee_sales_rejection'          => self::FEE_SALES_PENGAJUAN_REJECTED,
+            'fee_sales_termin'             => self::FEE_SALES_TERMIN_GENERATED,
+            'fee_sales_harga_net'          => self::FEE_SALES_HARGA_NET_UPDATED,
+            'fee_sales_ttd'                => self::FEE_SALES_TTD_SIGNED,
+            'fee_sales_pencairan'          => self::FEE_SALES_PENCAIRAN,
+            'fee_sales_cair'               => self::FEE_SALES_PENCAIRAN,
+        ];
+    }
+
+    public static function fromLegacyType(?string $type): ?string
+    {
+        if ($type === null) {
+            return null;
+        }
+
+        $type = strtolower(trim($type));
+        if ($type === '') {
+            return null;
+        }
+
+        $map = self::legacyTypeMap();
+
+        return $map[$type] ?? $type;
+    }
 }
+

@@ -36,6 +36,7 @@ class MkdtModel extends Model
 		'id_hargajual',
 		'harga_jual',
 		'harga_jual_net',
+		'harga_net_ajb',
 		'harga_diskon',
 		'harga_penambahan',
 		'harga_penambahan_tanah',
@@ -69,6 +70,7 @@ class MkdtModel extends Model
 		'sp3k_tgl_exp',
 		'rencana_akad_tgl',
 		'akad_tgl',
+		'akad_indent_tgl',
 		'rincian',
 		'akad',
 		'akad_indent',
@@ -98,7 +100,16 @@ class MkdtModel extends Model
 		'harga_diskon_hargajual',
 		'harga_diskon_uang_muka',
 		'dajam_selesai',
-		'promo'
+		'promo',
+		'id_proyek',
+		'catatan_nup',
+		'file_nup',
+		'file_surat_pindah',
+		'nup_source',
+		'last_id_kavling',
+		'nup_at',
+		'nup_by',
+		'no_nup'
 	];
 	protected $useTimestamps = true;
 	protected $createdField  = 'created_at';

@@ -122,13 +122,49 @@ self.addEventListener('push', function(event) {
       tag: data.tag || 'sigapp-notif',
       renotify: true
   };
-  
-  event.waitUntil(self.registration.showNotification(title, options));
+
+  const timestamp = Date.now();
+  try {
+      if (typeof BroadcastChannel !== 'undefined') {
+          const channel = new BroadcastChannel('sigapp_notif_realtime');
+          channel.postMessage({
+              type: 'PUSH_RECEIVED',
+              payload: data,
+              timestamp: timestamp
+          });
+          channel.close();
+      }
+  } catch (e) {
+      console.error("Gagal broadcast push via BroadcastChannel:", e);
+  }
+
+  const notifyClients = clients.matchAll({ type: 'window', includeUncontrolled: true })
+      .then((windowClients) => {
+          windowClients.forEach((client) => {
+              try {
+                  client.postMessage({
+                      type: 'SIGAPP_PUSH_RECEIVED',
+                      payload: data,
+                      timestamp: timestamp
+                  });
+              } catch (e) {
+                  // Abaikan error postMessage pada client individual
+              }
+          });
+      })
+      .catch(() => {});
+
+  event.waitUntil(
+      Promise.all([
+          self.registration.showNotification(title, options),
+          notifyClients
+      ])
+  );
 });
 
 self.addEventListener('notificationclick', function(event) {
   event.notification.close();
-  let url = event.notification.data.url || '/';
+  let url = (event.notification && event.notification.data && event.notification.data.url) ? event.notification.data.url : '/';
 
   // Pastikan URL absolute
   if (!url.startsWith('http')) {

@@ -2,26 +2,12 @@
 
 namespace App\Controllers;
 
-use App\Services\HistoryService;
+use App\Controllers\Web\AuditTrail\RiwayatPerubahanController as ModularRiwayatPerubahanController;
 
-class RiwayatPerubahan extends BaseController
+/**
+ * @deprecated Use App\Controllers\Web\AuditTrail\RiwayatPerubahanController instead.
+ * Zero-downtime shim for legacy references.
+ */
+class RiwayatPerubahan extends ModularRiwayatPerubahanController
 {
-    protected HistoryService $historyService;
-
-    public function __construct()
-    {
-        $this->historyService = new HistoryService();
-    }
-
-    public function index()
-    {
-        return view('template', [
-            'content' => 'riwayat_perubahan/index',
-            'data' => [
-                'controller' => 'riwayat-perubahan',
-                'title' => 'Riwayat Perubahan',
-                'modules' => $this->historyService->moduleLabels(),
-            ],
-        ]);
-    }
 }

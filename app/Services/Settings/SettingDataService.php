@@ -21,15 +21,68 @@ class SettingDataService
         return $this->repository->getAllConfigs();
     }
 
+    public function getMetaTables(): array
+    {
+        $tables = [];
+        foreach ($this->repository->getAllConfigs() as $key => $config) {
+            $tables[] = [
+                'key'         => $key,
+                'label'       => $config['label'],
+                'table_label' => $config['table_label'],
+                'primary_key' => $config['primary_key'],
+                'manual_id'   => !empty($config['manual_id']),
+                'fields'      => $config['fields'],
+            ];
+        }
+
+        return $tables;
+    }
+
     public function getConfig(string $key): array
     {
         return $this->repository->getConfig($key);
     }
 
-    public function list(string $key): array
+    public function list(string $key, array $params = []): array
     {
         $config = $this->repository->getConfig($key);
         $rows = $this->repository->listRows($config);
+
+        if (($params['format'] ?? '') === 'raw') {
+            $search = trim((string) ($params['search'] ?? ''));
+            if ($search !== '') {
+                $fieldKeys = array_keys($config['fields']);
+                $rows = array_values(array_filter($rows, static function (array $row) use ($search, $config, $fieldKeys): bool {
+                    $candidates = [(string) ($row[$config['primary_key']] ?? '')];
+                    foreach ($fieldKeys as $fieldKey) {
+                        $candidates[] = (string) ($row[$fieldKey] ?? '');
+                    }
+                    foreach ($candidates as $candidate) {
+                        if ($candidate !== '' && mb_stripos($candidate, $search) !== false) {
+                            return true;
+                        }
+                    }
+
+                    return false;
+                }));
+            }
+
+            $page = max(1, (int) ($params['page'] ?? 1));
+            $perPage = max(1, min(100, (int) ($params['per_page'] ?? 25)));
+            $total = count($rows);
+            $sliced = array_slice($rows, ($page - 1) * $perPage, $perPage);
+
+            $items = array_map(fn (array $row): array => $this->formatRawRow($config, $row), $sliced);
+
+            return [
+                'items' => $items,
+                'meta'  => [
+                    'page'     => $page,
+                    'per_page' => $perPage,
+                    'total'    => $total,
+                ],
+            ];
+        }
 
         $data = [];
         foreach ($rows as $index => $row) {
@@ -52,7 +105,7 @@ class SettingDataService
         ];
     }
 
-    public function get(string $key, int $id): ?array
+    public function get(string $key, int $id, bool $raw = false): ?array
     {
         $config = $this->repository->getConfig($key);
         $row = $this->repository->findActiveRow($config, $id);
@@ -61,22 +114,36 @@ class SettingDataService
             return null;
         }
 
+        if ($raw) {
+            return $this->formatRawRow($config, $row);
+        }
+
         $row['success'] = true;
         $row['token'] = csrf_hash();
 
         return $row;
     }
 
-    public function save(string $key, array $postData, int $userId): array
+    public function save(string $key, array $postData, int $userId, bool $raw = false): array
     {
         $config = $this->repository->getConfig($key);
-        $id = (int) ($postData[$config['primary_key']] ?? 0);
+        $id = (int) ($postData[$config['primary_key']] ?? $postData['id'] ?? 0);
         $fields = $this->collectFields($config, $postData);
 
         $rules = $this->validationRules($config);
+        $this->validation->reset();
         $this->validation->setRules($rules);
 
         if (!$this->validation->run($fields)) {
+            if ($raw) {
+                return [
+                    'success'  => false,
+                    'status'   => 422,
+                    'messages' => 'Validasi gagal.',
+                    'errors'   => $this->validation->getErrors(),
+                ];
+            }
+
             return [
                 'success'  => false,
                 'token'    => csrf_hash(),
@@ -89,6 +156,14 @@ class SettingDataService
 
         if ($id > 0) {
             if (!$this->repository->findActiveRow($config, $id)) {
+                if ($raw) {
+                    return [
+                        'success'  => false,
+                        'status'   => 404,
+                        'messages' => 'Data tidak ditemukan',
+                    ];
+                }
+
                 return [
                     'success'  => false,
                     'token'    => csrf_hash(),
@@ -105,6 +180,16 @@ class SettingDataService
 
             $this->repository->updateRow($config['table'], $config['primary_key'], $id, $fields);
 
+            if ($raw) {
+                $updated = $this->repository->findActiveRow($config, $id);
+                return [
+                    'success'  => true,
+                    'status'   => 200,
+                    'messages' => 'Data berhasil diperbaharui',
+                    'data'     => $updated ? $this->formatRawRow($config, $updated) : null,
+                ];
+            }
+
             return [
                 'success'  => true,
                 'token'    => csrf_hash(),
@@ -120,10 +205,23 @@ class SettingDataService
         }
 
         if (!empty($config['manual_id'])) {
-            $fields[$config['primary_key']] = $this->repository->nextManualId($config);
+            $newId = $this->repository->nextManualId($config);
+            $fields[$config['primary_key']] = $newId;
+            $this->repository->insertRow($config['table'], $fields);
+        } else {
+            $newId = $this->repository->insertRow($config['table'], $fields);
         }
 
-        $this->repository->insertRow($config['table'], $fields);
+        if ($raw) {
+            $created = $this->repository->findActiveRow($config, $newId);
+            return [
+                'success'  => true,
+                'created'  => true,
+                'status'   => 201,
+                'messages' => 'Data berhasil ditambahkan',
+                'data'     => $created ? $this->formatRawRow($config, $created) : [$config['primary_key'] => $newId],
+            ];
+        }
 
         return [
             'success'  => true,
@@ -132,10 +230,27 @@ class SettingDataService
         ];
     }
 
-    public function delete(string $key, int $id, int $userId): array
+    public function delete(string $key, int $id, int $userId, bool $raw = false): array
     {
         $config = $this->repository->getConfig($key);
+        if ($raw && $id <= 0) {
+            return [
+                'success'  => false,
+                'status'   => 422,
+                'messages' => 'ID tidak valid',
+                'errors'   => ['id' => 'ID wajib diisi'],
+            ];
+        }
+
         if (!$this->repository->findActiveRow($config, $id)) {
+            if ($raw) {
+                return [
+                    'success'  => false,
+                    'status'   => 404,
+                    'messages' => 'Data tidak ditemukan',
+                ];
+            }
+
             return [
                 'success'  => false,
                 'token'    => csrf_hash(),
@@ -145,11 +260,50 @@ class SettingDataService
 
         $this->repository->softDeleteRow($config, $id, $userId);
 
+        if ($raw) {
+            return [
+                'success'  => true,
+                'status'   => 200,
+                'messages' => 'Data berhasil dihapus',
+                'data'     => [
+                    'id'                    => $id,
+                    $config['primary_key']  => $id,
+                ],
+            ];
+        }
+
         return [
             'success'  => true,
             'token'    => csrf_hash(),
             'messages' => 'Data berhasil dihapus',
         ];
+    }
+
+    protected function formatRawRow(array $config, array $row): array
+    {
+        $pk = $config['primary_key'];
+        $item = [
+            $pk => (int) ($row[$pk] ?? 0),
+        ];
+
+        foreach ($config['fields'] as $field => $meta) {
+            $type = $meta['type'] ?? 'text';
+            if ($type === 'number') {
+                $item[$field] = (int) ($row[$field] ?? 0);
+            } elseif ($type === 'decimal') {
+                $item[$field] = (float) ($row[$field] ?? 0);
+            } else {
+                $item[$field] = (string) ($row[$field] ?? '');
+            }
+        }
+
+        foreach (['created_at', 'updated_at', 'add_by', 'edit_by'] as $auditField) {
+            if (array_key_exists($auditField, $row)) {
+                $item[$auditField] = $row[$auditField];
+            }
+        }
+
+        return $item;
     }
 
     protected function collectFields(array $config, array $postData): array

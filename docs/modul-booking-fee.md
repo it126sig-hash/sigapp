@@ -28,6 +28,12 @@ Tombol verifikasi membuka form berisi nominal dan tanggal booking dari MKDT. Keu
 
 Pembayaran booking otomatis tidak dapat dihapus lewat riwayat pembayaran umum. Untuk MKDT dengan booking positif, server juga menolak alokasi BO tambahan meskipun permintaan dibentuk di luar frontend.
 
+### Pembatalan Verifikasi Keuangan
+
+Keuangan atau administrator (grup `1`/`3` dengan akses proyek transaksi) dapat memantau daftar booking terverifikasi melalui endpoint Pure JSON `POST /api/tagihan/booking/terverifikasi` (mendukung mode DataTables server-side pada tab **BOOKING FEE TERVERIFIKASI** maupun `?format=raw`, mencakup status `Lunas`, `Akad`, `Promo Rp 0`, dan `NUP` tanpa kavling) dan membatalkan verifikasi melalui `POST /api/tagihan/booking/batal-verifikasi` (atau langsung dari tombol **Batalkan Verifikasi** pada Modal Bayar) dengan alasan wajib `reason` sepanjang 3–500 karakter.
+
+Server menolak pembatalan apabila transaksi berstatus `Batal` (`status_mkdt === 'Batal'`, `is_batal = 1`, atau `refund_paid = 1`), sementara transaksi aktif termasuk `Akad` dan `is_lunas = 1` diizinkan. Dalam satu transaksi database, sistem mengosongkan `mkdt_booking_payment.verified_by` dan `verified_at` menjadi `NULL` tanpa menghapus `log_pembayaran`, `log_pembayaran_detail`, `finance_ledger`, maupun `mkdt_payment_summary`, sehingga nominal dan tanggal booking pada MKDT/NUP atau verifikasi Keuangan kembali terbuka untuk dikoreksi dan diverifikasi ulang. Setiap pembatalan dicatat pada `history_log` (`module: 'keuangan'`, `action: 'batal_verifikasi_booking'`, snapshot before/after, serta `metadata.reason`) tanpa memicu notifikasi ke MKDT.
+
 ## Tampilan dan perhitungan
 
 Modal pembayaran menampilkan kartu Booking Fee di atas list tagihan. Kartu memuat nominal, tanggal, status pembayaran, status verifikasi, riwayat booking, dan kuitansi booking tersendiri. Riwayat tersebut tidak muncul lagi di riwayat angsuran.

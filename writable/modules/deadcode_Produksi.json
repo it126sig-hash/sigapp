@@ -1,0 +1,12 @@
+[
+    {
+        "layer": "Controller",
+        "file": "ProduksiController.php",
+        "name": "direksi"
+    },
+    {
+        "layer": "Controller",
+        "file": "ProduksiController.php",
+        "name": "meta"
+    }
+]

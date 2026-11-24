@@ -11,7 +11,7 @@ use App\Models\BpbSignatureModel;
 use App\Models\UserSignatureProfileModel;
 use App\Repositories\Bpb\BpbRepository;
 use App\Services\FileAccessService;
-use App\Services\NotifikasiService;
+use App\Services\Notifikasi\NotifikasiService;
 use Myth\Auth\Password;
 use RuntimeException;
 
@@ -85,8 +85,10 @@ class BpbService
         $access = new FileAccessService();
         foreach ($detail['files'] as &$file) {
             $file['url'] = $access->accessUrl('bpb_file', (int) $file['id']);
+            $file['signed_url'] = $access->signedUrl('bpb_file', (int) $file['id'], $userId);
             if (str_starts_with(strtolower((string) ($file['mime_type'] ?? '')), 'image/')) {
                 $file['thumbnail_url'] = $access->thumbnailUrl('bpb_file', (int) $file['id']);
+                $file['signed_thumbnail_url'] = $access->signedThumbnailUrl('bpb_file', (int) $file['id'], $userId);
             }
         }
         foreach ($detail['signatures'] as &$signature) {
@@ -97,7 +99,19 @@ class BpbService
         $detail['status_label'] = BpbWorkflow::label($detail['status']);
         $detail['actions'] = $this->actions($detail, $userId);
         $detail['pdf_url'] = site_url('bpb/' . $id . '/pdf');
+        $detail['share_token'] = $detail['share_token'] ?? null;
+        $detail['share_url'] = site_url('bpb/shared/' . ($detail['share_token'] ?? ''));
         return $detail;
+    }
+
+    public function detailByToken(string $token, int $userId): array
+    {
+        $request = $this->repository->findByShareToken($token);
+        if (! $request) {
+            throw new RuntimeException('BPB tidak ditemukan.');
+        }
+
+        return $this->detail((int) $request['id'], $userId);
     }
 
     public function saveDraft(array $data, array $uploads, int $userId): array
@@ -150,7 +164,9 @@ class BpbService
         $id = (int) ($data['id'] ?? 0);
         if ($id <= 0) {
             $key = trim((string) ($data['submission_key'] ?? ''));
-            if (! preg_match('/^[a-f0-9]{64}$/i', $key)) {
+            if ($key === '') {
+                $key = bin2hex(random_bytes(32));
+            } elseif (! preg_match('/^[a-f0-9]{64}$/i', $key)) {
                 throw new RuntimeException('Kunci pengajuan tidak valid. Muat ulang form BPB lalu coba kembali.');
             }
 
@@ -210,6 +226,23 @@ class BpbService
                 $notify[] = [(int) $request['applicant_user_id'], NotificationEvent::BPB_APPROVED, "BPB {$request['nomor']} telah disetujui."];
             }
             $this->sendNotifications($notify, $userId, $id);
+            if ($next === BpbWorkflow::APPROVED) {
+                try {
+                    (new NotifikasiService())->tambah_notif(
+                        '2;3',
+                        "BPB {$request['nomor']} telah disetujui dan siap diproses/dicairkan.",
+                        $userId,
+                        null,
+                        null,
+                        NotificationEvent::BPB_EXECUTION_REQUESTED,
+                        null,
+                        '/bpb?open=' . $id,
+                        NotificationEvent::BPB_EXECUTION_REQUESTED
+                    );
+                } catch (\Throwable $e) {
+                    log_message('error', 'BPB execution notification failed: {message}', ['message' => $e->getMessage()]);
+                }
+            }
             return $this->detail($id, $userId);
         } catch (\Throwable $e) {
             if (! $committed) {
@@ -272,10 +305,14 @@ class BpbService
         $this->db->transBegin();
         try {
             $request = $this->repository->lock($id);
-            if ((int) $request['applicant_user_id'] !== $userId && ! $this->repository->hasGroup($userId, 2)) {
+            $target = (string) ($data['status'] ?? '');
+            if (in_array($target, [BpbWorkflow::DISBURSED, BpbWorkflow::PURCHASED, BpbWorkflow::PENDING], true)) {
+                if (! $this->repository->hasGroup($userId, 2)) {
+                    throw new RuntimeException('Hanya Departemen Umum yang dapat menandai cair atau memverifikasi pengeluaran.');
+                }
+            } elseif ((int) $request['applicant_user_id'] !== $userId && ! $this->repository->hasGroup($userId, 2)) {
                 throw new RuntimeException('Hanya pembuat BPB atau Divisi Umum yang dapat mengubah status.');
             }
-            $target = (string) ($data['status'] ?? '');
             if (! BpbWorkflow::canOperationalTransition($request['status'], $target)) {
                 throw new RuntimeException('Transisi status tidak diizinkan.');
             }
@@ -297,10 +334,13 @@ class BpbService
                 }
                 $update['pending_reason'] = trim($data['reason']);
             } elseif ($target === BpbWorkflow::PURCHASED) {
+                $user = $this->verifyPassword($userId, (string) ($data['password'] ?? ''));
                 if (! $this->validDate((string) ($data['purchase_date'] ?? ''))) {
                     throw new RuntimeException('Tanggal pembelian wajib diisi dengan benar.');
                 }
-                $createdPaths = $this->syncFiles($id, 'purchase', [], $uploads, $userId, false);
+                $createdPaths[] = $this->createSignature($request, 'expense_verifier', $user, $data, (string) $request['current_document_hash'], $ip, $agent);
+                $purchaseUploads = $this->syncFiles($id, 'purchase', [], $uploads, $userId, false);
+                $createdPaths = array_merge($createdPaths, $purchaseUploads);
                 if ($this->files->where(['bpb_id' => $id, 'category' => 'purchase'])->countAllResults() < 1) {
                     throw new RuntimeException('Minimal satu bukti pembelian wajib diunggah.');
                 }
@@ -377,9 +417,6 @@ class BpbService
             } elseif ($request['status'] !== BpbWorkflow::DRAFT) {
                 throw new RuntimeException('Hanya draft yang dapat diajukan.');
             }
-            if (! filter_var($data['consent'] ?? false, FILTER_VALIDATE_BOOLEAN)) {
-                throw new RuntimeException('Persetujuan tanda tangan wajib dicentang.');
-            }
             $user = $this->verifyPassword($userId, (string) ($data['password'] ?? ''));
             $this->validateApprovers($data, $userId, true);
             $items = $this->normalizeItems($data['items'] ?? [], true);
@@ -403,6 +440,9 @@ class BpbService
                     'nomor' => BpbNumberFormatter::format($number['sequence'], $number['month'], $number['year']),
                     'verification_token' => bin2hex(random_bytes(32)), 'submitted_at' => $now,
                 ];
+                if (empty($request['share_token'])) {
+                    $update['share_token'] = bin2hex(random_bytes(16));
+                }
             }
             $update['status'] = BpbWorkflow::approvalStatus($update['cc_user_id'] !== null);
             $this->requests->update($id, $update);
@@ -466,7 +506,11 @@ class BpbService
             }
             $path = $this->fileService->copyPrivate($profile['signature_path'], 'bpb/' . $request['id'] . '/signatures');
         } else {
-            $path = $this->fileService->storeCanvas((string) ($data['signature_data'] ?? ''), 'bpb/' . $request['id'] . '/signatures');
+            $dataUrl = trim((string) ($data['signature_data'] ?? ''));
+            if ($dataUrl === '') {
+                throw new RuntimeException('Tanda tangan digital wajib dibubuhkan.');
+            }
+            $path = $this->fileService->storeCanvas($dataUrl, 'bpb/' . $request['id'] . '/signatures');
         }
         $this->signatures->insert([
             'bpb_id' => $request['id'], 'role' => $role, 'signer_user_id' => $user['id'],
@@ -493,8 +537,14 @@ class BpbService
             if ($name === '' && ! $required) {
                 continue;
             }
-            if ($name === '' || $qty <= 0 || ($required && $unit === '')) {
-                throw new RuntimeException('Setiap item wajib memiliki nama barang, jumlah positif, dan satuan.');
+            if ($name === '') {
+                throw new RuntimeException('Nama barang pada setiap item wajib diisi.');
+            }
+            if ($qty <= 0) {
+                throw new RuntimeException('Jumlah barang harus lebih besar dari 0.');
+            }
+            if ($required && $unit === '') {
+                throw new RuntimeException('Satuan barang pada setiap item wajib diisi.');
             }
             if (mb_strlen($unit) > 50) {
                 throw new RuntimeException('Satuan maksimal 50 karakter.');
@@ -597,15 +647,15 @@ class BpbService
     {
         $owner = (int) $request['applicant_user_id'] === $userId;
         $approverSigned = $this->repository->hasApproverSignature((int) $request['id']);
-        $operational = $owner || $this->repository->hasGroup($userId, 2);
+        $isUmum = $this->repository->hasGroup($userId, 2);
         return [
             'edit' => $owner && ($request['status'] === BpbWorkflow::DRAFT || (in_array($request['status'], [BpbWorkflow::WAITING_CC, BpbWorkflow::WAITING_APPROVER], true) && ! $approverSigned)),
             'cancel' => $owner && in_array($request['status'], [BpbWorkflow::WAITING_CC, BpbWorkflow::WAITING_APPROVER], true) && ! $approverSigned,
             'sign' => ($request['status'] === BpbWorkflow::WAITING_CC && (int) $request['cc_user_id'] === $userId) || ($request['status'] === BpbWorkflow::WAITING_APPROVER && (int) $request['approver_user_id'] === $userId),
             'reject' => ($request['status'] === BpbWorkflow::WAITING_CC && (int) $request['cc_user_id'] === $userId) || ($request['status'] === BpbWorkflow::WAITING_APPROVER && (int) $request['approver_user_id'] === $userId),
-            'process' => $operational && $request['status'] === BpbWorkflow::APPROVED,
-            'disburse' => $operational && $request['status'] === BpbWorkflow::PROCESSED,
-            'finish' => $operational && in_array($request['status'], [BpbWorkflow::DISBURSED, BpbWorkflow::PENDING], true),
+            'process' => false,
+            'disburse' => $isUmum && in_array($request['status'], [BpbWorkflow::APPROVED, BpbWorkflow::PROCESSED], true),
+            'finish' => $isUmum && in_array($request['status'], [BpbWorkflow::DISBURSED, BpbWorkflow::PENDING], true),
         ];
     }
 

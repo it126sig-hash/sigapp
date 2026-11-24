@@ -1,0 +1,12 @@
+[
+    {
+        "layer": "Service",
+        "file": "FeeSalesPdfService.php",
+        "name": "render"
+    },
+    {
+        "layer": "Repository",
+        "file": "SalesExternalRepository.php",
+        "name": "hasGeneratedTerminByMkdt"
+    }
+]

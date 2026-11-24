@@ -18,10 +18,16 @@ final class BpbWorkflow
     public static function labels(): array
     {
         return [
-            self::DRAFT => 'Draft', self::WAITING_CC => 'Diajukan - Menunggu CC',
-            self::WAITING_APPROVER => 'Diajukan - Menunggu Mengetahui', self::APPROVED => 'Disetujui',
-            self::PROCESSED => 'Diproses', self::DISBURSED => 'Sudah Cair', self::PENDING => 'Pending',
-            self::PURCHASED => 'Sudah Dibeli', self::REJECTED => 'Ditolak', self::CANCELLED => 'Dibatalkan',
+            self::DRAFT => 'Draft',
+            self::WAITING_CC => 'Diajukan - Menunggu CC',
+            self::WAITING_APPROVER => 'Diajukan - Menunggu ACC',
+            self::APPROVED => 'Disetujui (ACC)',
+            self::PROCESSED => 'Diproses',
+            self::DISBURSED => 'Sudah Cair',
+            self::PENDING => 'Pending',
+            self::PURCHASED => 'Pengeluaran Terverifikasi',
+            self::REJECTED => 'Ditolak',
+            self::CANCELLED => 'Dibatalkan',
         ];
     }
 
@@ -47,7 +53,7 @@ final class BpbWorkflow
     public static function canOperationalTransition(string $from, string $to): bool
     {
         return in_array($to, match ($from) {
-            self::APPROVED => [self::PROCESSED],
+            self::APPROVED => [self::DISBURSED],
             self::PROCESSED => [self::DISBURSED],
             self::DISBURSED => [self::PENDING, self::PURCHASED],
             self::PENDING => [self::PURCHASED],

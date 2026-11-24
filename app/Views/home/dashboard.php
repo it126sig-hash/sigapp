@@ -1,1145 +1,623 @@
 <!-- BEGIN: Vendor CSS-->
-<link rel="stylesheet" type="text/css" href="<?= base_url() ?>/app-assets/vendors/css/vendors.min.css">
-<link rel="stylesheet" type="text/css" href="<?= base_url() ?>/app-assets/vendors/css/pickers/flatpickr/flatpickr.min.css">
-<link rel="stylesheet" type="text/css" href="<?= base_url() ?>/app-assets/vendors/css/forms/select/select2.min.css">
-<link rel="stylesheet" type="text/css" href="<?= base_url() ?>/app-assets/vendors/css/extensions/toastr.min.css">
-
-<link rel="stylesheet" type="text/css" href="<?= base_url() ?>/app-assets/vendors/css/pickers/flatpickr/flatpickr.min.css">
-
+<link rel="stylesheet" type="text/css" href="<?= base_url('app-assets/vendors/css/vendors.min.css') ?>">
+<link rel="stylesheet" type="text/css" href="<?= base_url('app-assets/vendors/css/extensions/sweetalert2.min.css') ?>">
+<link rel="stylesheet" type="text/css" href="<?= base_url('app-assets/vendors/css/pickers/flatpickr/flatpickr.min.css') ?>">
+<link rel="stylesheet" type="text/css" href="<?= base_url('app-assets/vendors/css/forms/select/select2.min.css') ?>">
+<link rel="stylesheet" type="text/css" href="<?= base_url('app-assets/vendors/css/extensions/toastr.min.css') ?>">
 <!-- END: Vendor CSS-->
+
+<!-- BEGIN: Module CSS (SIGAPP 3-Tier Architecture & filemtime Cache Busting) -->
+<link rel="stylesheet" type="text/css" href="<?= base_url('assets/css/dashboard.css') ?>?v=<?= filemtime(FCPATH . 'assets/css/dashboard.css') ?>">
+<!-- END: Module CSS -->
+
+<!-- Configuration Inject -->
 <script>
-	// const base_url = "<?= base_url() ?>"
-	// var csrfName = '<?= csrf_token() ?>';
-	// var csrfHash = '<?= csrf_hash() ?>';
+    window.DASHBOARD_CONFIG = <?= json_encode([
+        'roleContext' => $roleContext ?? null,
+        'csrfName'    => csrf_token(),
+        'csrfHash'    => csrf_hash(),
+        'baseUrl'     => base_url('/'),
+    ]) ?>;
 </script>
-<style>
-	.dashboard-header-row {
-		display: flex;
-		align-items: center;
-		justify-content: space-between;
-		flex-wrap: wrap;
-		gap: .75rem;
-		margin-bottom: 1rem;
-	}
 
-	.dashboard-header-row h2 {
-		margin-bottom: 0;
-	}
+<?php
+$visibleTabs = $roleContext['visible_tabs'] ?? ['operasional'];
+$defaultTab = $roleContext['default_tab'] ?? 'operasional';
+$canViewFinance = !empty($roleContext['can_view_finance']);
+?>
 
-	.dashboard-header-row .dashboard-subtitle {
-		color: #94a3b8;
-		font-size: .86rem;
-		margin-top: .15rem;
-		margin-bottom: 0;
-	}
-
-	.dashboard-period-pills {
-		display: inline-flex;
-		background: #f1f0f5;
-		border-radius: 10px;
-		padding: .35rem;
-		gap: .25rem;
-	}
-
-	.dashboard-period-pills .btn {
-		border: none;
-		border-radius: 8px;
-		padding: .5rem 1rem;
-		font-size: .86rem;
-		font-weight: 600;
-		color: #6e6b7b;
-		background: transparent;
-		transition: all 0.2s ease;
-	}
-
-	.dashboard-period-pills input[type="month"].btn {
-		font-family: inherit;
-		cursor: pointer;
-		outline: none;
-	}
-
-	.dashboard-period-pills input[type="month"]::-webkit-calendar-picker-indicator {
-		cursor: pointer;
-		opacity: 0.6;
-		transition: opacity 0.2s ease;
-	}
-
-	.dashboard-period-pills input[type="month"]:hover::-webkit-calendar-picker-indicator {
-		opacity: 1;
-	}
-
-	.dashboard-period-pills .btn.active {
-		background: #fff;
-		color: #7367f0;
-		box-shadow: 0 2px 6px rgba(15, 23, 42, .08);
-	}
-
-	.dashboard-kpi-grid {
-		display: grid;
-		grid-template-columns: repeat(4, minmax(0, 1fr));
-		gap: 1rem;
-		height: 100%;
-		flex: 1 1 auto;
-		align-items: stretch;
-	}
-
-	.dashboard-kpi-card {
-		border: 1px solid #eef0f4;
-		border-radius: 16px;
-		background: #fff;
-		height: 100%;
-		padding: 1.15rem 1.25rem;
-		min-height: 150px;
-		display: flex;
-		flex-direction: column;
-		box-shadow: 0 1px 2px rgba(15, 23, 42, .04);
-		transition: all 0.2s ease;
-	}
-	
-	.dashboard-kpi-card.cursor-pointer:hover {
-		transform: translateY(-2px);
-		box-shadow: 0 4px 12px rgba(15, 23, 42, .1);
-	}
-
-	.kpi-card-head {
-		display: flex;
-		align-items: flex-start;
-		justify-content: space-between;
-		gap: .5rem;
-	}
-
-	.dashboard-kpi-card .kpi-label {
-		color: #94a3b8;
-		font-size: .7rem;
-		font-weight: 700;
-		letter-spacing: .05em;
-		text-transform: uppercase;
-	}
-
-	.kpi-icon-badge {
-		width: 34px;
-		height: 34px;
-		border-radius: 50%;
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		flex-shrink: 0;
-	}
-
-	.kpi-icon-badge svg {
-		width: 17px;
-		height: 17px;
-		stroke-width: 2;
-	}
-
-	.kpi-icon-badge.green { background: #dcfce7; color: #16a34a; }
-	.kpi-icon-badge.amber { background: #fef3c7; color: #d97706; }
-	.kpi-icon-badge.slate { background: #e2e8f0; color: #475569; }
-
-	.kpi-value-row {
-		display: flex;
-		align-items: baseline;
-		gap: .35rem;
-		margin: .65rem 0 .6rem;
-	}
-
-	.dashboard-kpi-card .kpi-value {
-		color: #0f172a;
-		font-size: 1.9rem;
-		font-weight: 800;
-		line-height: 1;
-		word-break: break-word;
-	}
-
-	.kpi-unit {
-		font-size: .78rem;
-		color: #94a3b8;
-		font-weight: 600;
-	}
-
-	.kpi-progress {
-		height: 6px;
-		border-radius: 999px;
-		background: #f1f5f9;
-		overflow: hidden;
-		margin-bottom: .75rem;
-	}
-
-	.kpi-progress-bar {
-		height: 100%;
-		width: 0%;
-		border-radius: 999px;
-		transition: width .4s ease;
-	}
-
-	.kpi-progress-bar.green { background: #22c55e; }
-	.kpi-progress-bar.amber { background: #f59e0b; }
-
-	.kpi-stats-row {
-		display: flex;
-		gap: 1.25rem;
-		font-size: .78rem;
-		color: #64748b;
-	}
-
-	.kpi-stats-row strong {
-		color: #0f172a;
-		font-weight: 700;
-		margin-right: .25rem;
-	}
-
-	.kpi-dot {
-		width: 7px;
-		height: 7px;
-		border-radius: 50%;
-		display: inline-block;
-		margin-right: .35rem;
-	}
-
-	.kpi-dot.green { background: #22c55e; }
-	.kpi-dot.red { background: #ef4444; }
-
-	.kpi-alert-pill {
-		display: inline-flex;
-		align-items: center;
-		gap: .35rem;
-		background: #fee2e2;
-		color: #dc2626;
-		font-weight: 700;
-		font-size: .76rem;
-		padding: .3rem .65rem;
-		border-radius: 999px;
-		width: fit-content;
-	}
-
-	.kpi-alert-pill.ok {
-		background: #dcfce7;
-		color: #16a34a;
-	}
-
-	.kpi-card-caption {
-		color: #94a3b8;
-		font-size: .76rem;
-		margin-top: .5rem;
-	}
-
-	.dashboard-mini-list {
-		display: grid;
-		grid-template-columns: repeat(3, minmax(0, 1fr));
-		gap: .75rem;
-	}
-
-	.dashboard-mini-item {
-		border: 1px solid #eef0f4;
-		border-radius: 14px;
-		padding: 1rem;
-		background: #fff;
-	}
-
-	.dashboard-mini-head {
-		display: flex;
-		align-items: flex-start;
-		justify-content: space-between;
-		gap: .5rem;
-		margin-bottom: .55rem;
-	}
-
-	.dashboard-mini-icon {
-		width: 30px;
-		height: 30px;
-		border-radius: 50%;
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		flex-shrink: 0;
-	}
-
-	.dashboard-mini-icon svg {
-		width: 15px;
-		height: 15px;
-		stroke-width: 2;
-	}
-
-	.dashboard-mini-icon.gray { background: #f1f5f9; color: #64748b; }
-	.dashboard-mini-icon.green { background: #dcfce7; color: #16a34a; }
-	.dashboard-mini-icon.red { background: #fee2e2; color: #dc2626; }
-
-	.dashboard-mini-label,
-	.dashboard-alert-desc {
-		color: #94a3b8;
-		font-size: .7rem;
-		font-weight: 700;
-		letter-spacing: .05em;
-		text-transform: uppercase;
-	}
-
-	.dashboard-mini-value {
-		color: #0f172a;
-		font-size: 1.25rem;
-		font-weight: 800;
-	}
-
-	.dashboard-mini-sub {
-		color: #94a3b8;
-		font-size: .74rem;
-		margin-top: .35rem;
-	}
-
-	.dashboard-mini-progress {
-		width: 60px;
-		height: 5px;
-		border-radius: 999px;
-		background: #f1f5f9;
-		overflow: hidden;
-		margin-top: .3rem;
-	}
-
-	.dashboard-mini-progress-bar {
-		height: 100%;
-		width: 0%;
-		background: #22c55e;
-		border-radius: 999px;
-		transition: width .4s ease;
-	}
-
-	.dashboard-card-title-icon {
-		width: 28px;
-		height: 28px;
-		border-radius: 8px;
-		background: #dcfce7;
-		color: #16a34a;
-		display: inline-flex;
-		align-items: center;
-		justify-content: center;
-		margin-right: .5rem;
-	}
-
-	.dashboard-card-title-icon svg {
-		width: 15px;
-		height: 15px;
-		stroke-width: 2;
-	}
-
-	.dashboard-alert-item {
-		border: 1px solid #ebe9f1;
-		border-radius: 8px;
-		padding: .8rem .9rem;
-		margin-bottom: .75rem;
-		background: #fff;
-	}
-
-	.dashboard-alert-item:last-child {
-		margin-bottom: 0;
-	}
-
-	.dashboard-alert-head {
-		display: flex;
-		align-items: center;
-		justify-content: space-between;
-		gap: .75rem;
-	}
-
-	.dashboard-alert-value {
-		font-weight: 700;
-		font-size: 1.05rem;
-	}
-
-	.dashboard-alert-danger {
-		border-left: 4px solid #ea5455;
-	}
-
-	.dashboard-alert-warning {
-		border-left: 4px solid #ff9f43;
-	}
-
-	.dashboard-alert-info {
-		border-left: 4px solid #00cfe8;
-	}
-
-	.card-header .chart-dropdown,
-	.card-header .chart-dropdown .dropdown-menu {
-		overflow: visible !important;
-	}
-
-	.content-body > .row,
-	.content-body > .row > [class*="col-"] {
-		overflow: visible;
-	}
-
-	.card-header .chart-dropdown .dropdown-menu {
-		z-index: 2050;
-	}
-
-	@media (max-width: 1199.98px) {
-		.dashboard-kpi-grid,
-		.dashboard-mini-list {
-			grid-template-columns: repeat(2, minmax(0, 1fr));
-		}
-	}
-
-	@media (max-width: 767.98px) {
-		.dashboard-kpi-grid,
-		.dashboard-mini-list {
-			grid-template-columns: 1fr;
-		}
-	}
-
-	.activity-feed {
-		max-height: 420px;
-	}
-</style>
 <!-- BEGIN: Content-->
-<div class="app-content content ">
-	<div class="content-overlay"></div>
-	<div class="header-navbar-shadow"></div>
-	<div class="content-wrapper">
-		<div class="content-header row"></div>
-		<div class="content-body">
-			<div class="dashboard-header-row">
-				<div>
-					<h2>Dashboard</h2>
-					<p class="dashboard-subtitle">Real-time operational and sales monitoring</p>
-				</div>
-				<div class="dashboard-period-pills" id="filter-statistik-pills">
-					<input type="month" id="filter-bulan" class="btn active" max="<?= date('Y-m') ?>" value="<?= date('Y-m') ?>" onclick="try { this.showPicker(); } catch(e) {}">
-					<button type="button" id="filter-6bulan" class="btn" data-val="<?= date("Y") ?>">Per Tahun <?= date("Y") ?></button>
-					<button type="button" id="filter-1tahun" class="btn" data-val="<?= date("Y", strtotime("-1 year")) ?>">Per Tahun <?= date("Y", strtotime("-1 year")) ?></button>
-				</div>
-			</div>
-			<div class="row match-height pb-1">
-				<div class="col-12">
-					<div class="dashboard-kpi-grid">
-						<div class="dashboard-kpi-card cursor-pointer" onclick="window.location.href='<?= base_url('keuangan/hasil-akad/list') ?>'">
-							<div class="kpi-card-head">
-								<div class="kpi-label">Perhitungan Hasil Akad</div>
-								<div class="kpi-icon-badge green"><i data-feather="dollar-sign"></i></div>
-							</div>
-							<div class="kpi-value-row">
-								<div class="kpi-value" id="dash_ha_total" style="font-size:1.5rem">Rp 0</div>
-							</div>
-							<div class="kpi-stats-row mt-1" style="flex-direction: column; gap: 0.5rem;">
-								<div class="d-flex justify-content-between w-100">
-									<span>Pengajuan:</span>
-									<strong id="dash_ha_pengajuan">Rp 0</strong>
-								</div>
-								<div class="d-flex justify-content-between w-100">
-									<span>Sudah Cair:</span>
-									<strong id="dash_ha_sudah_cair" class="text-success">Rp 0</strong>
-								</div>
-								<div class="d-flex justify-content-between w-100">
-									<span>Sisa Cair:</span>
-									<strong id="dash_ha_sisa" class="text-danger">Rp 0</strong>
-								</div>
-							</div>
-						</div>
-						<div class="dashboard-kpi-card cursor-pointer" onclick="window.location.href='<?= base_url('list-kavling') ?>'">
-							<div class="kpi-card-head">
-								<div class="kpi-label">Sales Periode</div>
-								<div class="kpi-icon-badge amber"><i data-feather="tag"></i></div>
-							</div>
-							<div class="kpi-value-row">
-								<div class="kpi-value" id="st_booking">-</div>
-								<div class="kpi-unit">booking</div>
-							</div>
-							<div class="kpi-progress"><div class="kpi-progress-bar amber" id="sales-progress-bar"></div></div>
-							<div class="kpi-stats-row">
-								<div><strong id="st_booking_akad">-</strong>akad</div>
-								<div><strong id="st_booking_aktif">-</strong>booking</div>
-							</div>
-							<div class="kpi-card-caption"><span id="st_sp3k">-</span> SP3K &middot; <span id="st_booking_batal">-</span> batal &middot; Konversi <span id="dash_sales_rate">0%</span></div>
-						</div>
-						<div class="dashboard-kpi-card cursor-pointer" onclick="window.location.href='<?= base_url('tagihan/list') ?>'">
-							<div class="kpi-card-head">
-								<div class="kpi-label">Keuangan</div>
-								<div class="kpi-icon-badge slate"><i data-feather="credit-card"></i></div>
-							</div>
-							<div class="kpi-card-caption" style="margin-top:.5rem">Total Belum Dibayar</div>
-							<div class="kpi-value-row">
-								<div class="kpi-value" id="dash_finance_unpaid" style="font-size:1.5rem">Rp 0</div>
-							</div>
-							<div class="kpi-alert-pill" id="finance-overdue-pill"><i data-feather="alert-circle"></i> <span id="dash_finance_overdue">0</span> overdue</div>
-							<div class="kpi-card-caption">Masuk periode: <span id="dash_payment_in">Rp 0</span></div>
-						</div>
-						<div class="dashboard-kpi-card cursor-pointer" onclick="window.location.href='<?= base_url('list-kavling') ?>'">
-							<div class="kpi-card-head">
-								<div class="kpi-label">Produksi</div>
-								<div class="kpi-icon-badge green"><i data-feather="tool"></i></div>
-							</div>
-							<div class="kpi-value-row">
-								<div class="kpi-value"><span id="dash_prod_progress">0</span></div>
-								<div class="kpi-unit">%</div>
-							</div>
-							<div class="kpi-stats-row">
-								<div><span class="kpi-dot green"></span><strong id="dash_prod_active">0</strong>ongoing</div>
-								<div><span class="kpi-dot red"></span><strong id="st_telat">0</strong>delayed</div>
-							</div>
-						</div>
-					</div>
-				</div>
-			</div>
+<div class="app-content content dashboard-page">
+    <div class="content-overlay"></div>
+    <div class="header-navbar-shadow"></div>
+    <div class="content-wrapper">
+        <div class="content-header row"></div>
+        <div class="content-body">
 
-			<div class="row match-height">
-				<div class="col-lg-8 col-12">
-					<div class="card" style="height:420px;max-height:420px">
-						<div class="card-header d-flex justify-content-between align-items-start pb-1">
-							<div>
-								<h4 id="chart-judul" class="card-title mb-25">Trend Sales Tahun <?= date('Y') ?></h4>
-								<p class="card-text font-small-2 text-muted mb-0">Booking dibanding Akad</p>
-							</div>
-							<div class="dropdown chart-dropdown">
-								<i data-feather="more-vertical" class="font-medium-3 cursor-pointer" data-toggle="dropdown"></i>
-								<div class="dropdown-menu dropdown-menu-right">
-									<a id="filter-chart-tahun-sekarang" class="dropdown-item" href="javascript:void(0);">Per <?= date("Y") ?></a>
-									<a id="filter-chart-tahun-lalu" class="dropdown-item" href="javascript:void(0);">Per <?= date("Y", strtotime("-1 year")) ?></a>
-								</div>
-							</div>
-						</div>
-						<div class="card-body">
-							<div id="sales-visit-chart" class="mt-50" style="height:100%">
-								<canvas id="myLineChart"></canvas>
-							</div>
-						</div>
-					</div>
-				</div>
-				<div class="col-lg-4 col-12">
-					<div class="card" style="height:420px;max-height:420px">
-						<div class="card-header">
-							<h4 class="card-title">Alert Perlu Tindakan</h4>
-						</div>
-						<div class="card-body" id="dashboard-alerts" style="overflow-y:auto">
-							<div class="dashboard-alert-item">
-								<div class="dashboard-alert-head">
-									<span>Pilih proyek</span>
-									<span class="dashboard-alert-value">-</span>
-								</div>
-								<div class="dashboard-alert-desc">Data alert akan dimuat otomatis</div>
-							</div>
-						</div>
-					</div>
-				</div>
-			</div>
+            <!-- 1. Dashboard Header & Period Filter Pills -->
+            <div class="dashboard-header-row">
+                <div>
+                    <h2>Dashboard</h2>
+                    <p class="dashboard-subtitle" id="dashboard-active-proyek">Real-time operational and sales monitoring</p>
+                </div>
+                <div class="dashboard-period-pills" id="filter-statistik-pills">
+                    <input type="month" id="filter-bulan" class="btn active" max="<?= date('Y-m') ?>" value="<?= date('Y-m') ?>" onclick="try { this.showPicker(); } catch(e) {}">
+                    <button type="button" id="filter-6bulan" class="btn" data-val="<?= date('Y') ?>">Per Tahun <?= date('Y') ?></button>
+                    <button type="button" id="filter-1tahun" class="btn" data-val="<?= date('Y', strtotime('-1 year')) ?>">Per Tahun <?= date('Y', strtotime('-1 year')) ?></button>
+                </div>
+            </div>
 
-			<div class="row match-height">
-				<div class="col-lg-8 col-12">
-					<div class="card">
-						<div class="card-header">
-							<div class="d-flex align-items-center">
-								<div class="dashboard-card-title-icon"><i data-feather="bar-chart-2"></i></div>
-								<h4 class="card-title">Rincian Operasional</h4>
-							</div>
-						</div>
-						<div class="card-body">
-							<div class="dashboard-mini-list">
-								<div class="dashboard-mini-item">
-									<div class="dashboard-mini-head">
-										<div class="dashboard-mini-label">Batal Periode</div>
-										<div class="dashboard-mini-icon gray"><i data-feather="x-circle"></i></div>
-									</div>
-									<div class="dashboard-mini-value" id="st_batal">-</div>
-								</div>
-								<div class="dashboard-mini-item">
-									<div class="dashboard-mini-head">
-										<div class="dashboard-mini-label">Pembangunan Periode</div>
-										<div class="dashboard-mini-icon green"><i data-feather="home"></i></div>
-									</div>
-									<div class="dashboard-mini-value" id="st_pembangunan">-</div>
-								</div>
-								<div class="dashboard-mini-item">
-									<div class="dashboard-mini-head">
-										<div class="dashboard-mini-label">Bangunan 100%</div>
-										<div class="dashboard-mini-icon green"><i data-feather="check-circle"></i></div>
-									</div>
-									<div class="dashboard-mini-value" id="st_100persen">-</div>
-								</div>
-								<div class="dashboard-mini-item">
-									<div class="dashboard-mini-head">
-										<div class="dashboard-mini-label">Tagihan Belum Dibayar</div>
-										<div class="dashboard-mini-icon red"><i data-feather="file-text"></i></div>
-									</div>
-									<div class="dashboard-mini-value"><span id="detail_tagihan_belum_bayar">-</span> item</div>
-								</div>
-								<div class="dashboard-mini-item">
-									<div class="dashboard-mini-head">
-										<div class="dashboard-mini-label">Cashout Periode</div>
-										<div class="dashboard-mini-icon green"><i data-feather="dollar-sign"></i></div>
-									</div>
-									<div class="dashboard-mini-value" id="detail_cashout_total">Rp 0</div>
-								</div>
-								<div class="dashboard-mini-item">
-									<div class="dashboard-mini-head">
-										<div class="dashboard-mini-label">Target <span id="dash_target_year"><?= date('Y') ?></span></div>
-										<div class="dashboard-mini-progress"><div class="dashboard-mini-progress-bar" id="target-progress-bar"></div></div>
-									</div>
-									<div class="dashboard-mini-value"><span id="dash_target_percent">0</span>%</div>
-									<div class="dashboard-mini-sub"><span id="dash_target_realization">0</span> / <span id="dash_target_count">0</span> kavling</div>
-								</div>
-							</div>
-						</div>
-					</div>
-				</div>
-				<div class="col-lg-4 col-12">
-					<div class="card card-user-timeline" style="max-height:500px">
-						<div class="card-header">
-							<div class="d-flex align-items-center">
-								<i data-feather="list" class="user-timeline-title-icon"></i>
-								<h4 class="card-title">Aktivitas Terakhir</h4>
-							</div>
-						</div>
-						<div class="card-body p-0" style="overflow-y:scroll" id="aktivitas-body">
-							<div class="activity-feed" id="aktivitas-here">
-								<div class="activity-empty">Pilih proyek untuk melihat aktivitas terbaru</div>
-							</div>
-						</div>
-						<div class="card-footer text-center py-50">
-							<a href="javascript:void(0)" id="dashboard-view-all-activity">Lihat semua aktivitas</a>
-						</div>
-					</div>
-				</div>
-			</div>
-		</div>
-			<div class="row match-height">
-				<div class="col-12">
-					<div class="card">
-						<div class="card-header border-bottom">
-							<h4 class="card-title">Riwayat Tiket Masalah (Update Terakhir)</h4>
-						</div>
-						<div class="table-responsive">
-							<table class="table table-hover mb-0">
-								<thead>
-									<tr>
-										<th>Waktu</th>
-										<th>Lokasi</th>
-										<th>Keterangan</th>
-										<th>Prioritas</th>
-										<th>Status</th>
-									</tr>
-								</thead>
-								<tbody id="dashboard-tiket-masalah-body">
-									<tr>
-										<td colspan="5" class="text-center">Pilih proyek untuk memuat data</td>
-									</tr>
-								</tbody>
-							</table>
-						</div>
-					</div>
-				</div>
-			</div>
-	</div>
-	</div>
+            <!-- 2. Project Stock & Target Strip -->
+            <div class="project-stock-target-card">
+                <div class="stock-target-header">
+                    <h5 class="stock-target-title">
+                        <i data-feather="pie-chart"></i>
+                        <span>Status Stok Kavling & Realisasi Target</span>
+                    </h5>
+                    <div class="text-muted font-small-3">
+                        Tahun Target: <strong id="target-tahun-label" class="text-primary"><?= date('Y') ?></strong> &middot; Target: <strong id="target-total-kavling">0</strong> unit
+                    </div>
+                </div>
+
+                <!-- 6 Mini Stock Cards -->
+                <div class="stock-grid">
+                    <div class="stock-item stock-total">
+                        <div class="stock-label">Total Kavling</div>
+                        <div class="stock-value" id="stock-val-total">-</div>
+                    </div>
+                    <div class="stock-item stock-tersedia">
+                        <div class="stock-label">Tersedia</div>
+                        <div class="stock-value" id="stock-val-tersedia">-</div>
+                    </div>
+                    <div class="stock-item stock-booking">
+                        <div class="stock-label">Booking</div>
+                        <div class="stock-value" id="stock-val-booking">-</div>
+                    </div>
+                    <div class="stock-item stock-akad">
+                        <div class="stock-label">Akad</div>
+                        <div class="stock-value" id="stock-val-akad">-</div>
+                    </div>
+                    <div class="stock-item stock-lunas">
+                        <div class="stock-label">Lunas</div>
+                        <div class="stock-value" id="stock-val-lunas">-</div>
+                    </div>
+                    <div class="stock-item stock-batal">
+                        <div class="stock-label">Batal</div>
+                        <div class="stock-value" id="stock-val-batal">-</div>
+                    </div>
+                </div>
+
+                <!-- Target Progress Bars -->
+                <div class="target-bar-section">
+                    <div class="target-bar-wrapper">
+                        <!-- Realisasi Booking -->
+                        <div class="target-col-item">
+                            <div class="target-col-header">
+                                <span class="target-col-label"><i data-feather="bookmark" style="width:13px;height:13px;"></i> Realisasi Booking</span>
+                                <span class="target-col-metric"><span id="target-real-booking">0</span> unit (<span id="target-pct-booking">0%</span>)</span>
+                            </div>
+                            <div class="target-col-progress">
+                                <div class="target-col-progress-bar bar-booking" id="target-bar-booking"></div>
+                            </div>
+                        </div>
+                        <!-- Realisasi Akad -->
+                        <div class="target-col-item">
+                            <div class="target-col-header">
+                                <span class="target-col-label"><i data-feather="check-square" style="width:13px;height:13px;"></i> Realisasi Akad</span>
+                                <span class="target-col-metric"><span id="target-real-akad">0</span> unit (<span id="target-pct-akad">0%</span>)</span>
+                            </div>
+                            <div class="target-col-progress">
+                                <div class="target-col-progress-bar bar-akad" id="target-bar-akad"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 3. Action Queue Strip (Tugas Saya & Persetujuan Mendesak) -->
+            <div id="dashboard-action-queue-section" class="dashboard-action-queue" style="display: none;">
+                <div class="divider divider-left">
+                    <div class="divider-text"><i data-feather="bell" class="mr-50"></i> Tugas Saya & Menunggu Persetujuan</div>
+                </div>
+                <div class="action-queue-grid" id="dashboard-action-queue-list"></div>
+            </div>
+
+            <!-- 4. Primary KPI Grid (Role-Aware) -->
+            <div class="dashboard-kpi-grid" id="dashboard-primary-kpi-grid">
+                <!-- Rendered dynamically by renderRoleKpiCards(r) -->
+                <div class="dashboard-kpi-card text-center py-3">
+                    <div class="spinner-border spinner-border-sm text-primary mb-1" role="status"></div>
+                    <div class="text-muted font-small-3">Memuat indikator utama...</div>
+                </div>
+            </div>
+
+            <!-- 5. Chart & Actionable Alerts Row -->
+            <div class="row match-height">
+                <!-- Sales Trend Chart -->
+                <div class="col-lg-8 col-12">
+                    <div class="card chart-card">
+                        <div class="card-header d-flex justify-content-between align-items-start pb-1">
+                            <div>
+                                <h4 id="chart-judul" class="card-title mb-25">Trend Sales Tahun <?= date('Y') ?></h4>
+                                <p class="card-text font-small-2 text-muted mb-0">Booking dibanding Akad (klik titik data untuk rincian unit)</p>
+                            </div>
+                            <div class="dropdown chart-dropdown">
+                                <i data-feather="more-vertical" class="font-medium-3 cursor-pointer" data-toggle="dropdown"></i>
+                                <div class="dropdown-menu dropdown-menu-right">
+                                    <a id="filter-chart-tahun-sekarang" class="dropdown-item" href="javascript:void(0);">Per <?= date('Y') ?></a>
+                                    <a id="filter-chart-tahun-lalu" class="dropdown-item" href="javascript:void(0);">Per <?= date('Y', strtotime('-1 year')) ?></a>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <div id="sales-visit-chart" class="mt-50" style="height:100%">
+                                <canvas id="myLineChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Alert Perlu Tindakan (Clickable) -->
+                <div class="col-lg-4 col-12">
+                    <div class="card alerts-card">
+                        <div class="card-header border-bottom pb-1">
+                            <h4 class="card-title mb-0">Alert Perlu Tindakan</h4>
+                        </div>
+                        <div class="card-body py-1" id="dashboard-alerts" style="overflow-y:auto">
+                            <div class="dashboard-alert-item">
+                                <div class="dashboard-alert-head">
+                                    <span class="dashboard-alert-label">Memuat alert...</span>
+                                    <span class="dashboard-alert-value">-</span>
+                                </div>
+                                <div class="dashboard-alert-desc">Data alert akan dimuat otomatis sesuai proyek aktif</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 6. Department Workspace Tabs & Panels -->
+            <div class="divider divider-left mt-1 mb-1">
+                <div class="divider-text"><i data-feather="layers" class="mr-50"></i> Workspace & Rincian Departemen</div>
+            </div>
+
+            <div class="dashboard-dept-nav-wrapper">
+                <ul class="nav nav-tabs dashboard-dept-tabs" id="dashboard-dept-tabs" role="tablist">
+                    <?php if (in_array('mkdt_sales', $visibleTabs, true)): ?>
+                        <li class="nav-item" id="tab-mkdt_sales">
+                            <a class="nav-link dashboard-dept-tab-link <?= $defaultTab === 'mkdt_sales' ? 'active' : '' ?>" id="tab-btn-mkdt_sales" data-toggle="tab" href="#panel-mkdt_sales" role="tab" aria-controls="panel-mkdt_sales">
+                                <i data-feather="users"></i> MKDT & Sales
+                            </a>
+                        </li>
+                    <?php endif; ?>
+
+                    <?php if (in_array('produksi', $visibleTabs, true)): ?>
+                        <li class="nav-item">
+                            <a class="nav-link dashboard-dept-tab-link <?= $defaultTab === 'produksi' ? 'active' : '' ?>" id="tab-btn-produksi" data-toggle="tab" href="#panel-produksi" role="tab" aria-controls="panel-produksi">
+                                <i data-feather="tool"></i> Produksi & Lapangan
+                            </a>
+                        </li>
+                    <?php endif; ?>
+
+                    <?php if ($canViewFinance && in_array('keuangan', $visibleTabs, true)): ?>
+                        <li class="nav-item">
+                            <a class="nav-link dashboard-dept-tab-link <?= $defaultTab === 'keuangan' ? 'active' : '' ?>" id="tab-btn-keuangan" data-toggle="tab" href="#panel-keuangan" role="tab" aria-controls="panel-keuangan">
+                                <i data-feather="dollar-sign"></i> Keuangan & Cashflow
+                            </a>
+                        </li>
+                    <?php endif; ?>
+
+                    <?php if (in_array('legal', $visibleTabs, true)): ?>
+                        <li class="nav-item">
+                            <a class="nav-link dashboard-dept-tab-link <?= $defaultTab === 'legal' ? 'active' : '' ?>" id="tab-btn-legal" data-toggle="tab" href="#panel-legal" role="tab" aria-controls="panel-legal">
+                                <i data-feather="file-text"></i> Legalitas & Sertifikat
+                            </a>
+                        </li>
+                    <?php endif; ?>
+
+                    <?php if (in_array('planning', $visibleTabs, true)): ?>
+                        <li class="nav-item">
+                            <a class="nav-link dashboard-dept-tab-link <?= $defaultTab === 'planning' ? 'active' : '' ?>" id="tab-btn-planning" data-toggle="tab" href="#panel-planning" role="tab" aria-controls="panel-planning">
+                                <i data-feather="map"></i> Planning & Master Data
+                            </a>
+                        </li>
+                    <?php endif; ?>
+
+                    <?php if (in_array('operasional', $visibleTabs, true)): ?>
+                        <li class="nav-item">
+                            <a class="nav-link dashboard-dept-tab-link <?= $defaultTab === 'operasional' ? 'active' : '' ?>" id="tab-btn-operasional" data-toggle="tab" href="#panel-operasional" role="tab" aria-controls="panel-operasional">
+                                <i data-feather="activity"></i> Operasional
+                            </a>
+                        </li>
+                    <?php endif; ?>
+                </ul>
+            </div>
+
+            <!-- Tab Panels Content -->
+            <div class="tab-content" id="dashboard-dept-tab-content">
+
+                <!-- 6.1 Panel MKDT & Sales -->
+                <?php if (in_array('mkdt_sales', $visibleTabs, true)): ?>
+                    <div class="tab-pane fade <?= $defaultTab === 'mkdt_sales' ? 'show active' : '' ?>" id="panel-mkdt_sales" role="tabpanel">
+                        <div class="dept-panel-card">
+                            <h5 class="mb-50 font-weight-bold text-primary"><i data-feather="filter" class="mr-50"></i> Funnel Pipeline Penjualan & MKDT</h5>
+                            <p class="text-muted font-small-3 mb-1">Tahapan proses penjualan konsumen dari NUP hingga siap akad kredit.</p>
+
+                            <!-- Funnel Steps -->
+                            <div class="funnel-grid">
+                                <div class="funnel-step">
+                                    <div class="funnel-step-label">1. NUP Aktif</div>
+                                    <div class="funnel-step-val" id="mkdt-funnel-nup">0</div>
+                                </div>
+                                <div class="funnel-step">
+                                    <div class="funnel-step-label">2. Booking Aktif</div>
+                                    <div class="funnel-step-val" id="mkdt-funnel-booking">0</div>
+                                </div>
+                                <div class="funnel-step">
+                                    <div class="funnel-step-label">3. Wawancara</div>
+                                    <div class="funnel-step-val" id="mkdt-funnel-wawancara">0</div>
+                                </div>
+                                <div class="funnel-step">
+                                    <div class="funnel-step-label">4. Sudah SP3K</div>
+                                    <div class="funnel-step-val" id="mkdt-funnel-sp3k">0</div>
+                                </div>
+                                <div class="funnel-step">
+                                    <div class="funnel-step-label">5. Perintah Bangun</div>
+                                    <div class="funnel-step-val" id="mkdt-funnel-spk">0</div>
+                                </div>
+                                <div class="funnel-step">
+                                    <div class="funnel-step-label">6. Sudah Akad</div>
+                                    <div class="funnel-step-val text-success" id="mkdt-funnel-akad">0</div>
+                                </div>
+                            </div>
+
+                            <!-- Composition Breakdown -->
+                            <div class="composition-grid">
+                                <div class="composition-card">
+                                    <div class="font-weight-bold font-small-3 text-dark mb-50"><i data-feather="home" class="mr-50" style="width:14px;height:14px;"></i> Komposisi Unit Penjualan</div>
+                                    <div class="d-flex justify-content-between border-bottom py-50 font-small-3">
+                                        <span>Subsidi Pemerintah</span>
+                                        <strong id="mkdt-count-subsidi" class="text-primary">0</strong>
+                                    </div>
+                                    <div class="d-flex justify-content-between py-50 font-small-3">
+                                        <span>Komersil / Non-Subsidi</span>
+                                        <strong id="mkdt-count-komersil" class="text-info">0</strong>
+                                    </div>
+                                </div>
+                                <div class="composition-card">
+                                    <div class="font-weight-bold font-small-3 text-dark mb-50"><i data-feather="credit-card" class="mr-50" style="width:14px;height:14px;"></i> Skema Pembayaran Konsumen</div>
+                                    <div class="d-flex justify-content-between border-bottom py-50 font-small-3">
+                                        <span>KPR Bank</span>
+                                        <strong id="mkdt-count-kpr" class="text-primary">0</strong>
+                                    </div>
+                                    <div class="d-flex justify-content-between py-50 font-small-3">
+                                        <span>Tunai / Cash Bertahap</span>
+                                        <strong id="mkdt-count-tunai" class="text-success">0</strong>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                <?php endif; ?>
+
+                <!-- 6.3 Panel Produksi & Lapangan -->
+                <?php if (in_array('produksi', $visibleTabs, true)): ?>
+                    <div class="tab-pane fade <?= $defaultTab === 'produksi' ? 'show active' : '' ?>" id="panel-produksi" role="tabpanel">
+                        <div class="dept-panel-card">
+                            <h5 class="mb-50 font-weight-bold text-primary"><i data-feather="tool" class="mr-50"></i> Distribusi Tahapan Fisik Bangunan</h5>
+                            <p class="text-muted font-small-3 mb-1">Status dan sebaran tahapan konstruksi kavling di lapangan.</p>
+
+                            <!-- Stage Progress Distribution -->
+                            <div class="prod-progress-grid">
+                                <div class="prod-stage-box">
+                                    <div class="stage-percent">Tahap 0% (Fondasi)</div>
+                                    <div class="stage-count" id="prod-stage-0">0</div>
+                                </div>
+                                <div class="prod-stage-box">
+                                    <div class="stage-percent">Tahap 25% (Struktur)</div>
+                                    <div class="stage-count" id="prod-stage-25">0</div>
+                                </div>
+                                <div class="prod-stage-box">
+                                    <div class="stage-percent">Tahap 50% (Dinding/Atap)</div>
+                                    <div class="stage-count" id="prod-stage-50">0</div>
+                                </div>
+                                <div class="prod-stage-box">
+                                    <div class="stage-percent">Tahap 75% (Finishing)</div>
+                                    <div class="stage-count" id="prod-stage-75">0</div>
+                                </div>
+                                <div class="prod-stage-box">
+                                    <div class="stage-percent text-success font-weight-bold">Tahap 100% (Selesai)</div>
+                                    <div class="stage-count text-success" id="prod-stage-100">0</div>
+                                </div>
+                            </div>
+
+                            <!-- Readiness & Utilities -->
+                            <div class="prod-utility-grid">
+                                <div class="prod-utility-card">
+                                    <div class="prod-utility-icon slf"><i data-feather="check-circle"></i></div>
+                                    <div>
+                                        <div class="prod-utility-title">Kelaikan Fungsi (SLF)</div>
+                                        <div class="prod-utility-val" id="prod-util-slf">0</div>
+                                    </div>
+                                </div>
+                                <div class="prod-utility-card">
+                                    <div class="prod-utility-icon pln"><i data-feather="zap"></i></div>
+                                    <div>
+                                        <div class="prod-utility-title">Jaringan Listrik (PLN)</div>
+                                        <div class="prod-utility-val" id="prod-util-listrik">0</div>
+                                    </div>
+                                </div>
+                                <div class="prod-utility-card">
+                                    <div class="prod-utility-icon pdam"><i data-feather="droplet"></i></div>
+                                    <div>
+                                        <div class="prod-utility-title">Air Bersih (PDAM/Sumur)</div>
+                                        <div class="prod-utility-val" id="prod-util-air">0</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                <?php endif; ?>
+
+                <!-- 6.4 Panel Keuangan & Cashflow (Role-Guarded) -->
+                <?php if ($canViewFinance && in_array('keuangan', $visibleTabs, true)): ?>
+                    <div class="tab-pane fade <?= $defaultTab === 'keuangan' ? 'show active' : '' ?>" id="panel-keuangan" role="tabpanel">
+                        <div class="dept-panel-card">
+                            <h5 class="mb-50 font-weight-bold text-primary"><i data-feather="credit-card" class="mr-50"></i> Ringkasan Keuangan & Arus Kas</h5>
+                            <p class="text-muted font-small-3 mb-1">Status tagihan konsumen, pencairan akad bank, dan kewajiban pengeluaran proyek.</p>
+
+                            <div class="finance-grid">
+                                <div class="finance-box">
+                                    <div class="finance-box-label">Tagihan Belum Dibayar</div>
+                                    <div class="finance-box-val text-danger" id="fin-nominal-unpaid">Rp 0</div>
+                                    <div class="text-muted font-small-2"><span id="fin-tagihan-unpaid">0</span> berkas tagihan</div>
+                                </div>
+                                <div class="finance-box">
+                                    <div class="finance-box-label">Tagihan Lewat Tempo</div>
+                                    <div class="finance-box-val text-danger" id="fin-tagihan-overdue">0</div>
+                                    <div class="text-muted font-small-2">Jatuh tempo 7 hari: <strong id="fin-tagihan-due">0</strong></div>
+                                </div>
+                                <div class="finance-box">
+                                    <div class="finance-box-label">Pembayaran Masuk Periode</div>
+                                    <div class="finance-box-val text-success" id="fin-payment-in">Rp 0</div>
+                                    <div class="text-muted font-small-2">Kas masuk terverifikasi</div>
+                                </div>
+                                <div class="finance-box">
+                                    <div class="finance-box-label">Total Cashout Periode</div>
+                                    <div class="finance-box-val text-dark" id="fin-cashout-total">Rp 0</div>
+                                    <div class="text-muted font-small-2">Pengeluaran operasional & bahan</div>
+                                </div>
+                                <div class="finance-box">
+                                    <div class="finance-box-label">Subkon Jatuh Tempo</div>
+                                    <div class="finance-box-val text-warning" id="fin-cashout-subkon-due">0</div>
+                                    <div class="text-muted font-small-2">Termin pemborong perlu cair</div>
+                                </div>
+                                <div class="finance-box">
+                                    <div class="finance-box-label">Piutang Pencairan Akad</div>
+                                    <div class="finance-box-val text-info" id="fin-piutang-akad">Rp 0</div>
+                                    <div class="text-muted font-small-2">Dana akad menunggu pencairan bank</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                <?php endif; ?>
+
+                <!-- 6.5 Panel Legalitas & Sertifikat -->
+                <?php if (in_array('legal', $visibleTabs, true)): ?>
+                    <div class="tab-pane fade <?= $defaultTab === 'legal' ? 'show active' : '' ?>" id="panel-legal" role="tabpanel">
+                        <div class="dept-panel-card">
+                            <h5 class="mb-50 font-weight-bold text-primary"><i data-feather="file-text" class="mr-50"></i> Status Legalitas & Sertifikasi Unit</h5>
+                            <p class="text-muted font-small-3 mb-1">Monitoring pemecahan sertifikat, perizinan gedung, dan validasi pajak pembeli.</p>
+
+                            <div class="legal-docs-grid">
+                                <div class="legal-doc-item">
+                                    <div class="legal-doc-label">Unit Terjual Membutuhkan Legal</div>
+                                    <div class="legal-doc-value" id="legal-terjual">0</div>
+                                    <div class="text-muted font-small-2">Belum ada berkas: <strong class="text-danger" id="legal-belum">0</strong></div>
+                                </div>
+                                <div class="legal-doc-item">
+                                    <div class="legal-doc-label">Sertifikat Split HGB</div>
+                                    <div class="legal-doc-value text-success" id="legal-split">0</div>
+                                    <div class="text-muted font-small-2">Unit sudah pecah sertifikat</div>
+                                </div>
+                                <div class="legal-doc-item">
+                                    <div class="legal-doc-label">Sertifikat Balik Nama</div>
+                                    <div class="legal-doc-value text-info" id="legal-baliknama">0</div>
+                                    <div class="text-muted font-small-2">Atas nama pembeli</div>
+                                </div>
+                                <div class="legal-doc-item">
+                                    <div class="legal-doc-label">Persetujuan Bangunan (PBG)</div>
+                                    <div class="legal-doc-value text-primary" id="legal-pbg">0</div>
+                                    <div class="text-muted font-small-2">Izin mendirikan bangunan</div>
+                                </div>
+                                <div class="legal-doc-item">
+                                    <div class="legal-doc-label">Pecah NOP PBB</div>
+                                    <div class="legal-doc-value" id="legal-pbb">0</div>
+                                    <div class="text-muted font-small-2">Pajak bumi & bangunan per unit</div>
+                                </div>
+                                <div class="legal-doc-item">
+                                    <div class="legal-doc-label">Akta Jual Beli (AJB)</div>
+                                    <div class="legal-doc-value" id="legal-ajb">0</div>
+                                    <div class="text-muted font-small-2">Akta PPAT selesai</div>
+                                </div>
+                                <div class="legal-doc-item">
+                                    <div class="legal-doc-label">BPHTB Tervalidasi</div>
+                                    <div class="legal-doc-value text-success" id="legal-bphtb-valid">0</div>
+                                    <div class="text-muted font-small-2">Pajak perolehan hak sah</div>
+                                </div>
+                                <div class="legal-doc-item">
+                                    <div class="legal-doc-label">BPHTB Mendekati Jatuh Tempo</div>
+                                    <div class="legal-doc-value text-warning" id="legal-bphtb-tempo">0</div>
+                                    <div class="text-muted font-small-2">Perlu segera disetorkan</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                <?php endif; ?>
+
+                <!-- 6.6 Panel Planning & Master Data -->
+                <?php if (in_array('planning', $visibleTabs, true)): ?>
+                    <div class="tab-pane fade <?= $defaultTab === 'planning' ? 'show active' : '' ?>" id="panel-planning" role="tabpanel">
+                        <div class="dept-panel-card">
+                            <h5 class="mb-50 font-weight-bold text-primary"><i data-feather="map" class="mr-50"></i> Master Planning & Pemetaan Siteplan</h5>
+                            <p class="text-muted font-small-3 mb-1">Status persetujuan permohonan kavling baru dan data infrastruktur proyek.</p>
+
+                            <div class="planning-grid">
+                                <div class="planning-box">
+                                    <h6 class="font-weight-bold text-dark mb-1"><i data-feather="inbox" class="mr-50"></i> Permohonan Kavling (Approval Queue)</h6>
+                                    <div class="planning-stat-row">
+                                        <span>Menunggu Persetujuan (Pending)</span>
+                                        <strong class="badge badge-light-warning" id="plan-req-pending">0</strong>
+                                    </div>
+                                    <div class="planning-stat-row">
+                                        <span>Disetujui (Approved)</span>
+                                        <strong class="badge badge-light-success" id="plan-req-approved">0</strong>
+                                    </div>
+                                    <div class="planning-stat-row">
+                                        <span>Ditolak (Rejected)</span>
+                                        <strong class="badge badge-light-danger" id="plan-req-rejected">0</strong>
+                                    </div>
+                                    <div class="planning-stat-row">
+                                        <span>Total Riwayat Permohonan</span>
+                                        <strong id="plan-req-total">0</strong>
+                                    </div>
+                                </div>
+
+                                <div class="planning-box">
+                                    <h6 class="font-weight-bold text-dark mb-1"><i data-feather="grid" class="mr-50"></i> Infrastruktur & Koordinat Kavling</h6>
+                                    <div class="planning-stat-row">
+                                        <span>Total Cluster</span>
+                                        <strong id="plan-infra-cluster">0</strong>
+                                    </div>
+                                    <div class="planning-stat-row">
+                                        <span>Total Ruas Jalan</span>
+                                        <strong id="plan-infra-jalan">0</strong>
+                                    </div>
+                                    <div class="planning-stat-row">
+                                        <span>Tipe Desain Bangunan</span>
+                                        <strong id="plan-infra-tipe">0</strong>
+                                    </div>
+                                    <div class="planning-stat-row">
+                                        <span>Kavling Terpetakan Koordinat</span>
+                                        <strong class="text-success" id="plan-infra-terpetakan">0</strong>
+                                    </div>
+                                    <div class="planning-stat-row">
+                                        <span>Kavling Belum Terpetakan</span>
+                                        <strong class="text-danger" id="plan-infra-belum">0</strong>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                <?php endif; ?>
+
+                <!-- 6.7 Panel Operasional -->
+                <?php if (in_array('operasional', $visibleTabs, true)): ?>
+                    <div class="tab-pane fade <?= $defaultTab === 'operasional' ? 'show active' : '' ?>" id="panel-operasional" role="tabpanel">
+                        <div class="dept-panel-card">
+                            <h5 class="mb-50 font-weight-bold text-primary"><i data-feather="activity" class="mr-50"></i> Aktivitas Operasional Proyek</h5>
+                            <p class="text-muted font-small-3 mb-1">Ringkasan aktivitas harian dan pemantauan kendala lapangan.</p>
+                            <div class="alert alert-primary mb-0" role="alert">
+                                <div class="alert-body font-small-3">
+                                    Silakan gunakan tab departemen di atas atau pilih proyek pada bilah navigasi utama untuk melihat data operasional terperinci.
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                <?php endif; ?>
+
+            </div>
+
+            <!-- 7. Riwayat Tiket Masalah & Aktivitas Terakhir Row -->
+            <div class="row match-height">
+                <!-- Tiket Masalah -->
+                <div class="col-lg-8 col-12">
+                    <div class="card dashboard-table-card">
+                        <div class="card-header border-bottom">
+                            <h4 class="card-title">Riwayat Tiket Masalah (Update Terakhir)</h4>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="table table-hover mb-0">
+                                <thead>
+                                    <tr>
+                                        <th style="min-width: 170px;">Waktu & Lokasi</th>
+                                        <th>Keterangan</th>
+                                        <th style="width: 100px;">Prioritas</th>
+                                        <th style="width: 110px;">Status</th>
+                                        <th style="width: 90px;" class="text-center">Aksi</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="dashboard-tiket-masalah-body">
+                                    <tr>
+                                        <td colspan="5" class="text-center py-2">Pilih proyek untuk memuat data tiket masalah</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Aktivitas Terakhir -->
+                <div class="col-lg-4 col-12">
+                    <div class="card card-user-timeline" style="max-height: 500px;">
+                        <div class="card-header border-bottom pb-1">
+                            <div class="d-flex align-items-center">
+                                <i data-feather="list" class="mr-50 text-primary"></i>
+                                <h4 class="card-title mb-0">Aktivitas Terakhir</h4>
+                            </div>
+                        </div>
+                        <div class="card-body p-0" style="overflow-y: scroll;" id="aktivitas-body">
+                            <div class="activity-feed" id="aktivitas-here">
+                                <div class="activity-empty">Pilih proyek untuk melihat aktivitas terbaru</div>
+                            </div>
+                        </div>
+                        <div class="card-footer text-center py-50 border-top">
+                            <a href="javascript:void(0)" id="dashboard-view-all-activity" class="font-weight-bold text-primary font-small-3">Lihat semua notifikasi</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
 </div>
 <!-- END: Content-->
 
-<div class="modal fade" id="modal-chart-kavling">
-	<div class="modal-dialog modal-dialog-scrollable">
-		<div class="modal-content">
-			<div class="modal-header">
-				<h5 class="modal-title" id="modal-chart-kavling-title"></h5>
-				<button type="button" class="close" data-dismiss="modal" aria-label="Close">x</button>
-			</div>
-			<div class="modal-body">
-				<ul class="list-unstyled mb-0" id="modal-chart-kavling-list"></ul>
-			</div>
-		</div>
-	</div>
+<!-- Modal Pratinjau Kavling Chart (Clean & Scoped) -->
+<div class="modal fade" id="modal-chart-kavling" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modal-chart-kavling-title">Daftar Kavling</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <ul class="kavling-pill-list" id="modal-chart-kavling-list"></ul>
+            </div>
+        </div>
+    </div>
 </div>
 
-<!-- BEGIN: Vendor JS-->
-<script src="<?= base_url() ?>/app-assets/vendors/js/vendors.min.js"></script>
-<script src="<?= base_url() ?>/app-assets/vendors/js/pickers/flatpickr/flatpickr.min.js"></script>
-<!-- BEGIN Vendor JS-->
+<!-- Modal Tiket Masalah Partials -->
+<script>
+    var current_user_id = <?= (int) (user_id() ?? 0) ?>;
+</script>
+<?= view('siteplan/partials/modal_tiket_masalah_styles') ?>
+<?= view('siteplan/partials/modal_tiket_masalah') ?>
+
 <!-- BEGIN: Page Vendor JS-->
-<script src="<?= base_url() ?>/app-assets/vendors/js/forms/select/select2.full.min.js"></script>
-<script src="<?= base_url() ?>/app-assets/vendors/js/extensions/toastr.min.js"></script>
-<script src="<?= base_url() ?>/app-assets/js/scripts/charts/chart.js"></script>
-<script src="<?= base_url() ?>/app-assets/vendors/js/pickers/flatpickr/flatpickr.min.js"></script>
+<script src="<?= base_url('app-assets/vendors/js/vendors.min.js') ?>"></script>
+<script src="<?= base_url('app-assets/vendors/js/extensions/sweetalert2.all.min.js') ?>"></script>
+<script src="<?= base_url('app-assets/vendors/js/pickers/flatpickr/flatpickr.min.js') ?>"></script>
+<script src="<?= base_url('app-assets/vendors/js/forms/select/select2.full.min.js') ?>"></script>
+<script src="<?= base_url('app-assets/vendors/js/extensions/toastr.min.js') ?>"></script>
+<script src="<?= base_url('app-assets/js/scripts/charts/chart.js') ?>"></script>
 <!-- END: Page Vendor JS-->
 
-<script>
-	function getFirstDate(m = 0) {
-		const today = new Date();
-		var year = today.getFullYear();
-		var month = (today.getMonth() + 1) - m; // Months are zero-based
-		if(month < 0){
-			month = 12 + month;
-			year = year - 1;
-		}
+<script src="<?= base_url('assets/js/siteplan/tiket-masalah.js?v=' . filemtime(FCPATH . 'assets/js/siteplan/tiket-masalah.js')) ?>"></script>
 
-		return `${year}-${month.toString().padStart(2, '0')}-01`;
-	}
-
-	function getLastDate() {
-		const today = new Date();
-		var year = today.getFullYear();
-		var month = (today.getMonth() + 1); // Months are zero-based
-		const lastDay = new Date(year, month, 0).getDate();
-
-		return `${year}-${month.toString().padStart(2, '0')}-${lastDay.toString().padStart(2, '0')}`;
-	}
-
-	function formatNumber(value) {
-		return Number(value || 0).toLocaleString('id-ID');
-	}
-
-	function formatRupiah(value) {
-		return 'Rp ' + formatNumber(Math.round(Number(value || 0)));
-	}
-
-	function formatPercent(value) {
-		return Number(value || 0).toLocaleString('id-ID', {
-			minimumFractionDigits: 0,
-			maximumFractionDigits: 1
-		});
-	}
-
-	function escapeHtml(value) {
-		return $('<div>').text(value || '').html();
-	}
-
-	function updateDashboardCommandCenter(r) {
-		const summary = r.summary || {};
-		const finance = r.finance || {};
-		const production = r.production || {};
-		const target = r.target || {};
-
-		// Dashboard update untuk Hasil Akad
-		if (r.hasil_akad) {
-			$("#dash_ha_total").html(formatRupiah(r.hasil_akad.total_hasil_akad));
-			$("#dash_ha_pengajuan").html(formatRupiah(r.hasil_akad.pengajuan_pencairan));
-			$("#dash_ha_sudah_cair").html(formatRupiah(r.hasil_akad.sudah_cair));
-			$("#dash_ha_sisa").html(formatRupiah(r.hasil_akad.sisa_cair));
-		}
-
-		$("#dash_sales_rate").html(formatPercent(summary.booking_to_akad_rate) + '%');
-
-		$("#sales-progress-bar").css('width', Math.min(100, Number(summary.booking_to_akad_rate || 0)) + '%');
-
-		$("#st_booking_akad").html(formatNumber(r.akad));
-		$("#st_booking_batal").html(formatNumber(r.batal));
-		$("#st_booking_aktif").html(formatNumber(r.booking_aktif));
-
-		$("#dash_finance_unpaid").html(formatRupiah(finance.nominal_belum_bayar));
-		$("#dash_finance_overdue").html(formatNumber(finance.tagihan_lewat_tempo));
-		$("#dash_payment_in").html(formatRupiah(finance.pembayaran_masuk));
-		$("#detail_tagihan_belum_bayar").html(formatNumber(finance.tagihan_belum_bayar));
-		$("#detail_cashout_total").html(formatRupiah(finance.cashout_total));
-
-		const overdueCount = Number(finance.tagihan_lewat_tempo || 0);
-		$("#finance-overdue-pill")
-			.toggleClass('ok', overdueCount === 0)
-			.find('svg, i').attr('data-feather', overdueCount === 0 ? 'check-circle' : 'alert-circle');
-		if (window.feather) feather.replace({ width: 14, height: 14 });
-
-		$("#dash_prod_progress").html(formatPercent(production.progres_rata_rata));
-		$("#dash_prod_active").html(formatNumber(production.pembangunan_berjalan));
-
-		$("#dash_target_percent").html(formatPercent(target.persen_akad));
-		$("#dash_target_realization").html(formatNumber(target.realisasi_akad));
-		$("#dash_target_count").html(formatNumber(target.target_kavling));
-		$("#dash_target_year").html(target.tahun || thn);
-		$("#target-progress-bar").css('width', Math.min(100, Number(target.persen_akad || 0)) + '%');
-
-		renderDashboardAlerts(r.alerts || []);
-	}
-
-	function renderDashboardAlerts(alerts) {
-		if (!alerts.length) {
-			$("#dashboard-alerts").html(`
-				<div class="dashboard-alert-item">
-					<div class="dashboard-alert-head">
-						<span>Belum ada alert</span>
-						<span class="dashboard-alert-value">0</span>
-					</div>
-					<div class="dashboard-alert-desc">Tidak ada data yang perlu tindakan cepat</div>
-				</div>
-			`);
-			return;
-		}
-
-		let html = '';
-		$.each(alerts, function(i, item) {
-			const type = ['danger', 'warning', 'info'].includes(item.type) ? item.type : 'info';
-			html += `
-				<div class="dashboard-alert-item dashboard-alert-${type}">
-					<div class="dashboard-alert-head">
-						<span>${escapeHtml(item.label)}</span>
-						<span class="dashboard-alert-value">${formatNumber(item.value)}</span>
-					</div>
-					<div class="dashboard-alert-desc">${escapeHtml(item.description)}</div>
-				</div>
-			`;
-		});
-		$("#dashboard-alerts").html(html);
-	}
-
-	function renderDashboardTiketMasalah(tickets) {
-		if (!tickets || tickets.length === 0) {
-			$("#dashboard-tiket-masalah-body").html(`
-				<tr>
-					<td colspan="5" class="text-center text-muted">Belum ada tiket masalah.</td>
-				</tr>
-			`);
-			return;
-		}
-
-		let html = '';
-		$.each(tickets, function(i, item) {
-			let badgeClass = 'badge-light-secondary';
-			if (item.prioritas === 'urgent') badgeClass = 'badge-light-danger';
-			else if (item.prioritas === 'medium') badgeClass = 'badge-light-warning';
-			else if (item.prioritas === 'normal') badgeClass = 'badge-light-primary';
-			
-			let statusClass = 'badge-light-secondary';
-			if (item.status === 'selesai') statusClass = 'badge-light-success';
-			else if (item.status === 'dalam_proses') statusClass = 'badge-light-info';
-			else if (item.status === 'dibuat') statusClass = 'badge-light-primary';
-			else if (item.status === 'batal') statusClass = 'badge-light-danger';
-
-			let waktu = item.updated_at ? item.updated_at : item.created_at;
-
-			html += `
-				<tr>
-					<td style="white-space: nowrap;">${escapeHtml(waktu)}</td>
-					<td>${escapeHtml(item.lokasi || '-')}</td>
-					<td>${escapeHtml(item.keterangan)}</td>
-					<td><span class="badge ${badgeClass}">${escapeHtml(item.prioritas)}</span></td>
-					<td><span class="badge ${statusClass}">${escapeHtml(item.status)}</span></td>
-				</tr>
-			`;
-		});
-		$("#dashboard-tiket-masalah-body").html(html);
-	}
-
-	let sdate = getFirstDate(0),
-		edate = getLastDate(),
-		thn = "<?=date("Y")?>";
-	let aktStart = 0,
-		aktIsLoading = false;
-
-	let bookingKavlingByMonth = Array.from({length: 12}, () => []);
-	let akadKavlingByMonth = Array.from({length: 12}, () => []);
-
-	function showChartKavlingModal(seriesLabel, monthLabel, list) {
-		$("#modal-chart-kavling-title").text(seriesLabel + ' — ' + monthLabel);
-		$("#modal-chart-kavling-list").html(
-			list.length
-				? list.map(k => `<li>${escapeHtml(k)}</li>`).join('')
-				: '<li class="text-muted">Tidak ada kavling</li>'
-		);
-		$("#modal-chart-kavling").modal('show');
-	}
-
-	if (window.SIGAPP && window.SIGAPP.activeProyekName) {
-		$("#dashboard-active-proyek").text("Proyek: " + window.SIGAPP.activeProyekName);
-	}
-
-	$(document).ready(function() {
-		if (activeProyekId()) {
-			load_dashboard(true, true, true);
-		}
-	});
-
-
-	$("#filter-statistik-pills .btn").click(function() {
-		$("#filter-statistik-pills .btn").removeClass('active')
-		$(this).addClass('active')
-	})
-
-	$("#dashboard-view-all-activity").click(function() {
-		$("#header-notif").dropdown('toggle');
-	})
-
-	$("#filter-bulan").on("change", function() {
-		$("#filter-statistik-pills .btn").removeClass('active');
-		$(this).addClass('active');
-
-		let val = $(this).val();
-		if (!val) {
-			val = "<?= date('Y-m') ?>";
-			$(this).val(val);
-		}
-		let parts = val.split('-');
-		let year = parts[0];
-		let month = parts[1];
-		
-		sdate = `${year}-${month}-01`;
-		let lastDay = new Date(year, month, 0).getDate();
-		edate = `${year}-${month}-${lastDay.toString().padStart(2, '0')}`;
-		thn = year;
-
-		load_dashboard(true, false, false);
-	});
-	
-	$("#filter-6bulan").click(function() {
-		$("#filter-statistik-pills .btn").removeClass('active');
-		$(this).addClass('active');
-		$("#chart-judul").html("Trend Sales Tahun <?=date("Y")?>")
-		thn = "<?=date("Y")?>"
-
-		edate = $("#filter-6bulan").attr('data-val') + "-12-31"
-		sdate = $("#filter-6bulan").attr('data-val') + "-01-01"
-
-		load_dashboard(true, false, true)
-	})
-
-	$("#filter-1tahun").click(function() {
-		$("#filter-statistik-pills .btn").removeClass('active');
-		$(this).addClass('active');
-		$("#chart-judul").html("Trend Sales Tahun <?= date("Y", strtotime("-1 year")) ?>")
-
-		thn = "<?= date("Y", strtotime("-1 year")) ?>"
-
-		edate = $("#filter-1tahun").attr('data-val') + "-12-31"
-		sdate = $("#filter-1tahun").attr('data-val') + "-01-01"
-
-		load_dashboard(true, false, true)
-	})
-	$("#filter-chart-tahun-sekarang").click(function() {
-		$("#chart-judul").html("Trend Sales Tahun <?=date("Y")?>")
-
-		thn = "<?=date("Y")?>"
-
-		load_dashboard(false, false, true)
-	})
-	$("#filter-chart-tahun-lalu").click(function() {
-		$("#chart-judul").html("Trend Sales Tahun <?= date("Y", strtotime("-1 year")) ?>")
-
-		thn = "<?= date("Y", strtotime("-1 year")) ?>"
-
-		load_dashboard(false, false, true)
-	})
-
-	function load_dashboard(statistik = false, aktivitas = false, chart = false) {
-		if (!activeProyekId()) {
-			return toastr['error']('Belum ada proyek aktif. Pilih proyek dari navbar.', 'Terjadi Kesalahan!', {
-				timeOut: 3000,
-				closeButton: true,
-				tapToDismiss: true,
-				progressBar: true,
-				positionClass: 'toast-bottom-right',
-			});
-		}
-
-		$.ajax({
-			type: "post",
-			url: base_url + "get-dashboard",
-			data: {
-				[csrfName]: csrfHash,
-				id_proyek: activeProyekId(),
-				statistik: statistik,
-				aktivitas: aktivitas,
-				chart: chart,
-				sdate: sdate,
-				edate: edate,
-				tahun: thn
-			},
-			dataType: "json",
-			beforeSend: function() {
-				if (statistik) {
-					$("#st_booking").html("-")
-					$("#st_batal").html("-")
-					$("#st_booking_akad").html("-")
-					$("#st_booking_batal").html("-")
-					$("#st_booking_aktif").html("-")
-					$("#st_sp3k").html("-")
-
-					$("#st_turun_pembangunan").html("-")
-					$("#st_pembangunan").html("-")
-					$("#st_100persen").html("-")
-					$("#st_telat").html("-")
-					$("#dash_ha_total").html("Rp 0")
-					$("#dash_ha_pengajuan").html("Rp 0")
-					$("#dash_ha_sudah_cair").html("Rp 0")
-					$("#dash_ha_sisa").html("Rp 0")
-					$("#dash_sales_rate").html("0%")
-					$("#dash_finance_unpaid").html("Rp 0")
-					$("#dash_finance_overdue").html("0")
-					$("#dash_payment_in").html("Rp 0")
-					$("#detail_tagihan_belum_bayar").html("-")
-					$("#detail_cashout_total").html("Rp 0")
-					$("#dash_prod_progress").html("0")
-					$("#dash_prod_active").html("0")
-					$("#dash_target_percent").html("0")
-					$("#dash_target_realization").html("0")
-					$("#dash_target_count").html("0")
-					$("#dash_target_year").html(thn)
-					$("#dashboard-tiket-masalah-body").html('<tr><td colspan="5" class="text-center">Memuat data...</td></tr>')
-				}
-
-				if (aktivitas)
-					$("#aktivitas-here").html("<div class='activity-empty'>Memuat data</div>")
-			},
-			success: function(r) {
-				if (statistik) {
-					$("#st_booking").html(r.booking)
-					$("#st_batal").html(r.batal)
-					$("#st_sp3k").html(r.sp3k)
-
-					// $("#st_turun_pembangunan").html(r.perintah_bangun)
-					$("#st_pembangunan").html(r.pembangunan)
-					$("#st_100persen").html(r.pembangunan_selesai)
-					$("#st_telat").html(r.pembangunan_telat)
-					updateDashboardCommandCenter(r)
-					
-					if (r.tiket_masalah) {
-						renderDashboardTiketMasalah(r.tiket_masalah.recent_tickets);
-					}
-				}
-
-				if (aktivitas) {
-					let ac = r.aktivitas || []
-					let aktivitas = ""
-					$.each(ac, function(i, v) {
-						aktivitas += renderActivityItem(v)
-					});
-					if (!aktivitas) {
-						aktivitas = "<div class='activity-empty'>Belum ada aktivitas pada proyek ini</div>"
-					}
-					$("#aktivitas-here").html(aktivitas)
-					aktStart = ac.length
-				}
-
-				if (chart) {
-					// Update the chart data
-					let booking = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
-					let akad = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
-					bookingKavlingByMonth = Array.from({length: 12}, () => []);
-					akadKavlingByMonth = Array.from({length: 12}, () => []);
-					$.each(r.cbooking || [], function(i, v) {
-						booking[parseInt(v.bulan) - 1] = v.jumlah;
-						bookingKavlingByMonth[parseInt(v.bulan) - 1] = v.kavling || [];
-					});
-					$.each(r.cakad || [], function(i, v) {
-						akad[parseInt(v.bulan) - 1] = v.jumlah;
-						akadKavlingByMonth[parseInt(v.bulan) - 1] = v.kavling || [];
-					});
-					myLineChart.data.datasets[0].data = booking;
-					myLineChart.data.datasets[1].data = akad;
-
-					// Update the chart
-					myLineChart.update();
-				}
-
-			},
-			error: function() {
-				return toastr['error']('Galat mengambil data dari server.', 'Terjadi Kesalahan!', {
-					timeOut: 3000,
-					closeButton: true,
-					tapToDismiss: true,
-					progressBar: true,
-					positionClass: 'toast-bottom-right',
-				})
-			}
-		});
-	}
-
-	function load_aktivitas() {
-		aktIsLoading = true;
-		$.ajax({
-			url: base_url + 'loadaktivitas',
-			method: 'GET',
-			data: {
-				[csrfName]: csrfHash,
-				offset: aktStart,
-				id_proyek: activeProyekId()
-			},
-			success: function(r) {
-				let ac = r.aktivitas || []
-				let aktivitas = ""
-				$.each(ac, function(i, v) {
-					aktivitas += renderActivityItem(v)
-				});
-
-				$("#aktivitas-here").append(aktivitas)
-
-				aktStart += ac.length;
-				aktIsLoading = false;
-
-			},
-			error: function() {
-				aktIsLoading = false;
-				console.log('Error loading data');
-			}
-		});
-	}
-
-	// Deteksi scroll pada div
-	$('#aktivitas-body').scroll(function() {
-		if ($(this).scrollTop() + $(this).innerHeight() >= $(this)[0].scrollHeight && !aktIsLoading) {
-			load_aktivitas();
-		}
-	});
-	// Sample data for the line chart
-
-	var data = {
-		labels: ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Ags', 'Sep', 'Okt', 'Nov', 'Des'],
-		datasets: [{
-			label: 'Booking',
-			backgroundColor: '#fca103', // fill color
-			borderColor: '#fca103', // line color
-			data: [],
-			fill: false // no fill beneath the line
-			},
-			{
-				label: 'Akad',
-				backgroundColor: '#03fcb6', // fill color
-				borderColor: '#03fcb6', // line color
-				data: [],
-				fill: false // no fill beneath the line
-			},
-		]
-	};
-
-	// Configuration options
-	var options = {
-		responsive: true,
-		maintainAspectRatio: false,
-		onClick: function(evt, elements) {
-			if (!elements.length) return;
-			const el = elements[0];
-			const label = el.datasetIndex === 0 ? 'Booking' : 'Akad';
-			const list = (el.datasetIndex === 0 ? bookingKavlingByMonth : akadKavlingByMonth)[el.index] || [];
-			showChartKavlingModal(label, data.labels[el.index], list);
-		},
-		plugins: {
-			tooltip: {
-				callbacks: {
-					afterBody: function(items) {
-						if (!items.length) return [];
-						const it = items[0];
-						const list = (it.datasetIndex === 0 ? bookingKavlingByMonth : akadKavlingByMonth)[it.dataIndex] || [];
-						if (!list.length) return [];
-						const preview = list.slice(0, 8);
-						const lines = preview.map(k => '• ' + k);
-						if (list.length > preview.length) lines.push(`+${list.length - preview.length} lainnya`);
-						return lines;
-					}
-				}
-			}
-		},
-		scales: {
-			x: {
-				type: 'category', // category scale for X-axis
-				title: {
-					display: true,
-					text: 'Bulan'
-				}
-			},
-			y: {
-				title: {
-					display: true,
-					text: 'Penjualan'
-				}
-			}
-		}
-	};
-
-	// Get the canvas element
-	var ctx = document.getElementById('myLineChart').getContext('2d');
-
-	// Create the line chart
-	var myLineChart = new Chart(ctx, {
-		type: 'line',
-		data: data,
-		options: options
-	});
-</script>
+<!-- BEGIN: Module JS (SIGAPP 3-Tier Architecture & filemtime Cache Busting) -->
+<script src="<?= base_url('assets/js/dashboard.js') ?>?v=<?= filemtime(FCPATH . 'assets/js/dashboard.js') ?>"></script>
+<!-- END: Module JS -->

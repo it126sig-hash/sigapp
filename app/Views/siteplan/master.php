@@ -5,6 +5,9 @@ foreach (user()->getRoles() as $key => $val) {
     $k = $key;
     $v = $val;
 }
+$canAccessRequestKavling  = in_array((int) $k, [1, 4, 6], true);
+$canCreateRequestKavling  = in_array((int) $k, [1, 4], true);
+$canProcessRequestKavling = in_array((int) $k, [1, 6], true);
 
 ?>
 
@@ -35,7 +38,7 @@ foreach (user()->getRoles() as $key => $val) {
 <style>
     @media screen and (max-width: 1366px) {
         html {
-            font-size: 70%;
+            font-size: calc(70% * var(--sigapp-font-scale, 1));
             /* Mengurangi ukuran font global menjadi 90% */
         }
     }
@@ -1221,6 +1224,11 @@ foreach (user()->getRoles() as $key => $val) {
         line-height: 1.25;
     }
 </style>
+<link rel="stylesheet" type="text/css" href="<?= base_url('assets/css/siteplan-target.css') ?>?v=<?= filemtime(FCPATH . 'assets/css/siteplan-target.css') ?>">
+<link rel="stylesheet" type="text/css" href="<?= base_url('assets/css/siteplan-export.css') ?>?v=<?= filemtime(FCPATH . 'assets/css/siteplan-export.css') ?>">
+<?php if ($canAccessRequestKavling): ?>
+    <link rel="stylesheet" type="text/css" href="<?= base_url('assets/css/siteplan-request-kavling.css') ?>?v=<?= filemtime(FCPATH . 'assets/css/siteplan-request-kavling.css') ?>">
+<?php endif; ?>
 <!-- END: Vendor CSS-->
 
 <!-- BEGIN: Content-->
@@ -1246,6 +1254,23 @@ foreach (user()->getRoles() as $key => $val) {
                             <div id="threshold"></div>
                         </div>
                         <div class="col-md-9 siteplan-canvas-col">
+                            <div id="siteplan-export-crop-bar" hidden>
+                                <div class="export-crop-bar-info">
+                                    <span class="export-crop-bar-badge" id="export-crop-bar-size">0 &times; 0 px</span>
+                                    <span class="export-crop-bar-hint">Geser kotak atau tarik titik tepi untuk menentukan area export</span>
+                                </div>
+                                <div class="export-crop-bar-actions">
+                                    <button type="button" class="btn btn-sm btn-outline-secondary" id="btn-export-crop-reset">
+                                        <i class="fas fa-undo mr-25"></i>Reset
+                                    </button>
+                                    <button type="button" class="btn btn-sm btn-outline-danger" id="btn-export-crop-cancel">
+                                        Batal
+                                    </button>
+                                    <button type="button" class="btn btn-sm btn-primary" id="btn-export-crop-apply">
+                                        <i class="fas fa-check mr-25"></i>Gunakan Area Ini
+                                    </button>
+                                </div>
+                            </div>
                             <div id="stage-parent">
                                 <div class="canvas" id="konva-holder"></div>
                             </div>
@@ -1253,7 +1278,7 @@ foreach (user()->getRoles() as $key => $val) {
                                 <div>
                                     <button id="menu-btn-lihat_detail">Detail</button>
                                 </div>
-                                <?php if ($k != 6): ?>
+                                <?php if ($canCreateRequestKavling): ?>
                                     <div>
                                         <button id="menu-btn-request-kavling" type="button" onclick="handleContextRequestKavling()">Request Ubah Tipe</button>
                                     </div>
@@ -1262,17 +1287,22 @@ foreach (user()->getRoles() as $key => $val) {
                             </div>
                         </div>
                         <div class="col-md-3 d-md-block" style="overflow-y:auto" id="filter-side">
-                            <?php if ($k != 6): ?>
+                            <?php if ($canAccessRequestKavling): ?>
                                 <div class="mb-2">
-                                    <button type="button" class="btn btn-outline-primary btn-sm btn-block" onclick="openModalRequestKavling()">
-                                        <i class="fa fa-plus-circle mr-1"></i> Request Kavling / Tipe
+                                    <button type="button" id="btn-open-request-kavling" class="btn btn-outline-primary btn-sm btn-block d-flex align-items-center justify-content-center" onclick="openModalRequestKavling()">
+                                        <i class="fas fa-exchange-alt"></i>
+                                        <span>Request Kavling</span>
+                                        <span id="badge-request-kavling-pending" class="badge badge-warning" hidden>0</span>
                                     </button>
                                 </div>
                             <?php endif; ?>
-                            <?php if ($k == 6 || $k == 1): ?>
-                                <div class="mb-2">
-                                    <button type="button" class="btn btn-outline-primary btn-sm btn-block" onclick="openModalListRequestKavling()">
-                                        <i class="fa fa-list-alt mr-1"></i> List Request Kavling
+                            <?php if (in_array($k, [1, 3, 4, 8])): ?>
+                                <div class="mb-2 d-flex" style="gap:.4rem;">
+                                    <button type="button" class="btn btn-primary btn-sm flex-grow-1" onclick="window.SIGAPP_NUP && window.SIGAPP_NUP.openListModal()">
+                                        <i class="fa fa-ticket-alt mr-50"></i> Daftar NUP <span class="badge badge-light badge-nup-count ml-25">0</span>
+                                    </button>
+                                    <button type="button" class="btn btn-success btn-sm" onclick="window.SIGAPP_NUP && window.SIGAPP_NUP.openFormModal(0)" title="Input Konsumen NUP Baru">
+                                        <i class="fa fa-user-plus"></i> Input NUP
                                     </button>
                                 </div>
                             <?php endif; ?>
@@ -1299,19 +1329,72 @@ foreach (user()->getRoles() as $key => $val) {
                                             <option value="10" class="dropdown-item">Pajak</option>
                                             <option value="3" class="dropdown-item">Keuangan</option>
                                             <option value="6" class="dropdown-item">Planning</option>
-                                            <option value="11" class="dropdown-item">Target</option>
+
                                             <!-- <option value="9" class="dropdown-item">Management</option> -->
                                         </optgroup>
                                     </select>
                                 </div>
                                 <div class="form-group">
-                                    <select id="filter-id_cluster" name="id_cluster[]" multiple class="select2 select-sm form-control-sm"></select>
+                                    <select id="filter-id_cluster" name="id_cluster[]" multiple class="select2 select-sm form-control-sm">
+                                        <option value="all">Semua Cluster</option>
+                                    </select>
                                     <small id="siteplan-cluster-hint" class="form-text text-muted">
                                         Pilih minimal satu cluster untuk menampilkan data siteplan.
                                     </small>
                                 </div>
                                 <div class="form-group">
                                     <select disabled id="filter-id_jalan" name="id_jalan" class="select-sm form-control-sm select2"></select>
+                                </div>
+
+                                <div class="siteplan-target-filter-box">
+                                    <div class="siteplan-target-header-row">
+                                        <div class="custom-control custom-switch siteplan-target-switch-wrap">
+                                            <input type="checkbox" class="custom-control-input" id="toggle-tampilkan-target">
+                                            <label class="custom-control-label siteplan-target-switch-label" for="toggle-tampilkan-target">Tampilkan Target</label>
+                                        </div>
+                                        <button type="button"
+                                            id="btn-toggle-target-border-settings"
+                                            class="btn btn-sm siteplan-target-settings-btn"
+                                            title="Pengaturan toleransi border target"
+                                            aria-label="Pengaturan toleransi border target"
+                                            aria-expanded="false"
+                                            aria-controls="target-border-settings-panel">
+                                            <i class="fas fa-sliders-h" aria-hidden="true"></i>
+                                        </button>
+                                    </div>
+                                    <div id="target-border-settings-panel" class="siteplan-target-settings-panel" style="display:none;">
+                                        <div class="siteplan-target-settings-row">
+                                            <label for="input-target-gap-bridge" class="siteplan-target-subfilter-label mb-0">Toleransi Celah</label>
+                                            <span id="target-gap-bridge-value" class="siteplan-target-settings-value">2 px</span>
+                                        </div>
+                                        <div class="siteplan-target-settings-controls">
+                                            <input type="range" id="input-target-gap-bridge-range" class="custom-range siteplan-target-gap-range" min="0" max="12" step="0.5" value="2" aria-label="Toleransi celah border target">
+                                            <input type="number" id="input-target-gap-bridge" class="form-control form-control-sm siteplan-target-gap-input" min="0" max="12" step="0.5" value="2" inputmode="decimal" aria-label="Nilai toleransi celah dalam piksel">
+                                        </div>
+                                    </div>
+                                    <div id="filter-target-tahun-container" class="siteplan-target-year-box" style="display:none;">
+                                        <label for="filter-tahun-target" class="siteplan-target-year-label">Tahun Target</label>
+                                        <select id="filter-tahun-target" name="tahun_target" class="form-control form-control-sm siteplan-target-year-select">
+                                            <option value="">Belum ada target</option>
+                                        </select>
+                                        <div class="siteplan-target-subfilter">
+                                            <label for="filter-target-other-mode" class="siteplan-target-subfilter-label">Selain Target</label>
+                                            <select id="filter-target-other-mode" name="target_other_mode" class="form-control form-control-sm siteplan-target-subfilter-select">
+                                                <option value="default">Default (3 Segmen Seperti Saat Buka)</option>
+                                                <option value="split_4">Akad &amp; Booking (Subsidi / Komersil)</option>
+                                                <option value="merge_2">Sudah Akad &amp; Booking (Gabung Subsidi &amp; Komersil)</option>
+                                                <option value="single_1">1 Warna Konsumen (Gabung Akad &amp; Booking)</option>
+                                            </select>
+                                        </div>
+                                        <div class="siteplan-target-subfilter">
+                                            <label for="filter-target-kavling-mode" class="siteplan-target-subfilter-label">Kavling Target</label>
+                                            <select id="filter-target-kavling-mode" name="target_kavling_mode" class="form-control form-control-sm siteplan-target-subfilter-select">
+                                                <option value="default">Default (Border Hitam, Warna Keadaan Kavling)</option>
+                                                <option value="single_color">Border Hitam + 1 Warna Target (Kecuali Berkonsumen)</option>
+                                                <option value="by_tipe">Border Hitam + Kelompokkan per Tipe (Kecuali Berkonsumen)</option>
+                                            </select>
+                                        </div>
+                                    </div>
                                 </div>
 
                                 <div id="filter-periode-container" style="display:none;">
@@ -1397,7 +1480,10 @@ foreach (user()->getRoles() as $key => $val) {
 <script src="<?= base_url() ?>assets/js/siteplan/interaction-highlight.js?v=<?= filemtime(FCPATH . 'assets/js/siteplan/interaction-highlight.js') ?>"></script>
 <script src="<?= base_url() ?>assets/js/siteplan/filter-state.js?v=<?= filemtime(FCPATH . 'assets/js/siteplan/filter-state.js') ?>"></script>
 <script src="<?= base_url() ?>assets/js/siteplan/shape-filter.js?v=<?= filemtime(FCPATH . 'assets/js/siteplan/shape-filter.js') ?>"></script>
-<script src="<?= base_url() ?>assets/js/siteplan/master.js?v=999<?= time() ?>"></script>
+<script src="<?= base_url() ?>assets/js/siteplan/tiket-overlay.js?v=<?= filemtime(FCPATH . 'assets/js/siteplan/tiket-overlay.js') ?>"></script>
+<script src="<?= base_url() ?>assets/js/siteplan/export-helper.js?v=<?= filemtime(FCPATH . 'assets/js/siteplan/export-helper.js') ?>"></script>
+<script src="<?= base_url() ?>assets/js/siteplan/target-overlay.js?v=<?= filemtime(FCPATH . 'assets/js/siteplan/target-overlay.js') ?>"></script>
+<script src="<?= base_url() ?>assets/js/siteplan/master.js?v=<?= filemtime(FCPATH . 'assets/js/siteplan/master.js') ?>"></script>
 <script src="<?= base_url() ?>assets/js/siteplan-detail-modal.js?<?= filemtime(FCPATH . 'assets/js/siteplan-detail-modal.js') ?>"></script>
 
 
@@ -1405,14 +1491,17 @@ foreach (user()->getRoles() as $key => $val) {
 <!-- Modal to add new record -->
 <?php if ($k == 1 || $k == 6): ?>
     <?php echo view('siteplan/planning'); ?>
-    <?php echo view('siteplan/modal_list_request_kavling', isset($data) ? ['data' => $data] : []); ?>
 <?php endif; ?>
 
-<?php if ($k != 6): ?>
-    <?php echo view('siteplan/request_kavling_modal', isset($data) ? ['data' => $data] : []); ?>
+<?php if ($canAccessRequestKavling): ?>
+    <?php echo view('siteplan/request_kavling_modal', [
+        'data'                     => $data ?? [],
+        'canCreateRequestKavling'  => $canCreateRequestKavling,
+        'canProcessRequestKavling' => $canProcessRequestKavling,
+    ]); ?>
 <?php endif; ?>
 
-<?php if ($k == 1 || $k == 11): ?>
+<?php if (in_array((int) $k, [1, 4, 6, 11], true)): ?>
     <?php echo view('siteplan/target'); ?>
 <?php endif; ?>
 
@@ -1931,27 +2020,161 @@ foreach (user()->getRoles() as $key => $val) {
     </div>
 </div>
 
+<div class="modal fade text-left" id="modal-export-siteplan" tabindex="-1" role="dialog"
+    aria-labelledby="modal-export-siteplan-title" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="export-title-wrap">
+                    <span class="export-title-icon"><i class="fas fa-file-export"></i></span>
+                    <div>
+                        <h5 class="modal-title" id="modal-export-siteplan-title">Export Siteplan</h5>
+                        <p class="export-subtitle">Pilih area, skala resolusi, dan format file sebelum mengunduh</p>
+                    </div>
+                </div>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Tutup">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-md-7 mb-1 mb-md-0">
+                        <div class="export-panel-card">
+                            <div class="divider divider-left">
+                                <div class="divider-text">Pengaturan Export</div>
+                            </div>
+
+                            <div class="form-group mb-1">
+                                <label class="export-field-label">1. Area Export</label>
+                                <div class="export-option-grid" id="export-area-options">
+                                    <label class="export-option-card is-selected" data-export-area="full">
+                                        <input type="radio" name="export_area" value="full" checked>
+                                        <span class="export-option-title"><i class="fas fa-expand"></i> Seluruh Siteplan</span>
+                                        <span class="export-option-desc">Seluruh peta siteplan dari ujung ke ujung</span>
+                                    </label>
+                                    <label class="export-option-card" data-export-area="viewport">
+                                        <input type="radio" name="export_area" value="viewport">
+                                        <span class="export-option-title"><i class="fas fa-desktop"></i> Tampilan Layar</span>
+                                        <span class="export-option-desc">Area sesuai posisi zoom &amp; geser saat ini</span>
+                                    </label>
+                                    <label class="export-option-card" data-export-area="filtered">
+                                        <input type="radio" name="export_area" value="filtered">
+                                        <span class="export-option-title"><i class="fas fa-filter"></i> Kavling Terfilter</span>
+                                        <span class="export-option-desc">Fokus ke area kavling yang sedang tampil</span>
+                                    </label>
+                                    <label class="export-option-card" data-export-area="custom">
+                                        <input type="radio" name="export_area" value="custom">
+                                        <span class="export-option-title"><i class="fas fa-crop-alt"></i> Pilih Area Manual</span>
+                                        <span class="export-option-desc">Tarik kotak seleksi langsung di kanvas</span>
+                                    </label>
+                                </div>
+
+                                <div class="export-custom-crop-actions" id="export-custom-crop-box" hidden>
+                                    <span class="export-custom-crop-status" id="export-custom-crop-status">Belum ada area manual dipilih</span>
+                                    <button type="button" class="btn btn-sm btn-outline-primary" id="btn-open-export-crop">
+                                        <i class="fas fa-crop-alt mr-25"></i>Pilih / Ubah Area di Kanvas
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div class="form-group mb-1">
+                                <label class="export-field-label">2. Format File</label>
+                                <div class="export-format-grid" id="export-format-options">
+                                    <label class="export-option-card is-selected" data-export-format="png">
+                                        <input type="radio" name="export_format" value="png" checked>
+                                        <span class="export-option-title"><i class="fas fa-file-image"></i> PNG</span>
+                                        <span class="export-option-desc">Tajam (Lossless)</span>
+                                    </label>
+                                    <label class="export-option-card" data-export-format="jpeg">
+                                        <input type="radio" name="export_format" value="jpeg">
+                                        <span class="export-option-title"><i class="fas fa-image"></i> JPG</span>
+                                        <span class="export-option-desc">Ukuran lebih ringan</span>
+                                    </label>
+                                    <label class="export-option-card" data-export-format="pdf">
+                                        <input type="radio" name="export_format" value="pdf">
+                                        <span class="export-option-title"><i class="fas fa-file-pdf"></i> PDF</span>
+                                        <span class="export-option-desc">Siap cetak / bagikan</span>
+                                    </label>
+                                </div>
+                            </div>
+
+                            <div class="form-group mb-1">
+                                <label for="export-quality-select" class="export-field-label">3. Ukuran &amp; Ketajaman Resolusi</label>
+                                <select id="export-quality-select" class="form-control form-control-sm">
+                                    <option value="standard">Standar (2x Vektor Shape &amp; Teks)</option>
+                                    <option value="hd" selected>HD — Direkomendasikan (3x Vektor Shape &amp; Teks)</option>
+                                    <option value="ultra">Ultra HD — Cetak Besar (4x Vektor Shape &amp; Teks)</option>
+                                </select>
+                            </div>
+
+                            <div id="export-pdf-options" class="row" hidden>
+                                <div class="col-sm-6">
+                                    <div class="form-group mb-0">
+                                        <label for="export-pdf-paper" class="export-field-label">Ukuran Kertas PDF</label>
+                                        <select id="export-pdf-paper" class="form-control form-control-sm">
+                                            <option value="a3" selected>A3 (297 &times; 420 mm)</option>
+                                            <option value="a4">A4 (210 &times; 297 mm)</option>
+                                            <option value="fit">Sesuai Proporsi Area Gambar</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="col-sm-6 mt-1 mt-sm-0">
+                                    <div class="form-group mb-0">
+                                        <label for="export-pdf-orientation" class="export-field-label">Orientasi Kertas</label>
+                                        <select id="export-pdf-orientation" class="form-control form-control-sm">
+                                            <option value="auto" selected>Otomatis (Ikuti Rasio Area)</option>
+                                            <option value="landscape">Landscape (Mendatar)</option>
+                                            <option value="portrait">Portrait (Tegak)</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-5">
+                        <div class="export-panel-card">
+                            <div class="divider divider-left">
+                                <div class="divider-text">Pratinjau &amp; Info Output</div>
+                            </div>
+                            <div class="export-preview-stage" id="export-preview-stage">
+                                <div class="export-preview-empty" id="export-preview-empty">Memuat pratinjau area...</div>
+                                <img id="export-preview-img" class="export-preview-img" src="" alt="Pratinjau Export Siteplan" hidden>
+                            </div>
+
+                            <div class="export-meta-grid">
+                                <div class="export-meta-box">
+                                    <span class="export-meta-label">Area Sumber</span>
+                                    <span class="export-meta-val" id="export-meta-source">-</span>
+                                </div>
+                                <div class="export-meta-box">
+                                    <span class="export-meta-label">Estimasi Output</span>
+                                    <span class="export-meta-val" id="export-meta-output">-</span>
+                                </div>
+                            </div>
+
+                            <div class="export-hint-note" id="export-meta-note">
+                                Shape kavling &amp; nomor kavling dirender ulang sebagai vektor beresolusi tinggi agar tetap tajam saat diperbesar.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary btn-sm" data-dismiss="modal">Batal</button>
+                <button type="button" class="btn btn-primary btn-sm" id="btn-confirm-export-siteplan">
+                    <i class="fas fa-download mr-25"></i>Export Sekarang
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <?php echo view('siteplan/partials/modal_tiket_masalah'); ?>
 <script src="<?= base_url() ?>assets/js/vendor/browser-image-compression.js"></script>
 <script src="<?= base_url() ?>assets/js/siteplan/tiket-masalah.js?v=<?= time() ?>"></script>
-<script src="<?= base_url() ?>assets/js/siteplan/request-kavling.js?v=<?= filemtime(FCPATH . 'assets/js/siteplan/request-kavling.js') ?>"></script>
-<?php if ($k != 6): ?>
-    <script>
-        function handleContextRequestKavling() {
-            if (typeof currentShape !== 'undefined' && currentShape && currentShape.target && currentShape.target.attrs) {
-                let shapeId = currentShape.target.attrs.id;
-                if (shapeId && shapeId.startsWith('kav')) {
-                    let kavId = shapeId.substring(3);
-                    openModalRequestKavling(kavId);
-                    let $select = $('#req-id_kavling');
-                    let kavData = currentShape.target.attrs.data || {};
-                    let kavText = (kavData.nama_jalan ? kavData.nama_jalan + ' ' : '') + 'No. ' + (kavData.no_kavling || kavId);
-                    let option = new Option(kavText, kavId, true, true);
-                    $select.append(option).trigger('change');
-                    return;
-                }
-            }
-            openModalRequestKavling();
-        }
-    </script>
+<?php if ($canAccessRequestKavling): ?>
+    <script src="<?= base_url() ?>assets/js/siteplan/request-kavling.js?v=<?= filemtime(FCPATH . 'assets/js/siteplan/request-kavling.js') ?>"></script>
 <?php endif; ?>
+<?= view('siteplan/modal/nup-modals') ?>
+<script src="<?= base_url() ?>assets/js/siteplan/nup.js?v=<?= filemtime(FCPATH . 'assets/js/siteplan/nup.js') ?>"></script>

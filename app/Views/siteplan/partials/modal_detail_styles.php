@@ -1720,3 +1720,495 @@
             text-align: left;
         }
     }
+
+    /* Riwayat Perubahan Kavling */
+    #modal_detail .detail-kavling-history-wrap {
+        max-height: calc(100vh - 22rem);
+        min-height: 200px;
+        overflow-y: auto;
+        padding-right: .35rem;
+    }
+
+    #modal_detail .detail-kavling-history-item {
+        border-left: 4px solid #2057a3;
+        margin-bottom: .85rem;
+        padding: .75rem 1rem;
+        background: #f8fafc;
+        border-radius: 0 .5rem .5rem 0;
+        box-shadow: 0 1px 3px rgba(0,0,0,.05);
+        transition: transform .15s ease, box-shadow .15s ease;
+    }
+
+    #modal_detail .detail-kavling-history-item:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 3px 6px rgba(0,0,0,.08);
+    }
+
+    #modal_detail .detail-kavling-history-item.module-mkdt {
+        border-left-color: #2057a3;
+    }
+
+    #modal_detail .detail-kavling-history-item.module-produksi {
+        border-left-color: #f59e0b;
+    }
+
+    #modal_detail .detail-kavling-history-item.module-dana_jaminan,
+    #modal_detail .detail-kavling-history-item.module-pencairan_akad {
+        border-left-color: #10b981;
+    }
+
+    #modal_detail .detail-kavling-history-item.module-cashout_subkon {
+        border-left-color: #06b6d4;
+    }
+
+    #modal_detail .detail-kavling-history-title {
+        color: #1e293b;
+        font-size: .95rem;
+        font-weight: 700;
+    }
+
+    #modal_detail .detail-kavling-history-meta {
+        color: #64748b;
+        font-size: .8rem;
+    }
+
+    #modal_detail .detail-kavling-history-summary {
+        color: #334155;
+        font-size: .875rem;
+        line-height: 1.5;
+        white-space: pre-wrap;
+    }
+
+    #modal_detail .badge-module-mkdt {
+        background-color: #e0e7ff;
+        color: #3730a3;
+    }
+
+    #modal_detail .badge-module-produksi {
+        background-color: #fef3c7;
+        color: #92400e;
+    }
+
+    #modal_detail .badge-module-dana_jaminan,
+    #modal_detail .badge-module-pencairan_akad {
+        background-color: #d1fae5;
+        color: #065f46;
+    }
+
+    #modal_detail .badge-module-cashout_subkon {
+        background-color: #cffafe;
+        color: #155e75;
+    }
+
+    #modal_detail .detail-kavling-json-view {
+        max-height: 200px;
+        overflow-y: auto;
+        font-size: .75rem;
+        background: #f1f5f9;
+        border: 1px solid #cbd5e1;
+        border-radius: 6px;
+        padding: .5rem;
+        color: #0f172a;
+    }
+
+    .dark-layout #modal_detail .detail-kavling-history-item {
+        background: #1e293b;
+        box-shadow: 0 1px 3px rgba(0,0,0,.3);
+    }
+
+    .dark-layout #modal_detail .detail-kavling-history-title {
+        color: #e2e8f0;
+    }
+
+    .dark-layout #modal_detail .detail-kavling-history-meta {
+        color: #94a3b8;
+    }
+
+    .dark-layout #modal_detail .detail-kavling-history-summary {
+        color: #cbd5e1;
+    }
+
+    .dark-layout #modal_detail .detail-kavling-json-view {
+        background: #0f172a;
+        border-color: #334155;
+        color: #e2e8f0;
+    }
+
+    /* =========================================================
+       REDESIGN TAB RINGKASAN: WARNING, STATUS BAR, & TIMELINE
+       ========================================================= */
+
+    /* Warning Banner (Perlu Perhatian) */
+    #modal_detail .detail-warning-banner {
+        background-color: #fffbeb;
+        border: 1px solid #fde68a;
+        border-radius: 10px;
+        padding: 0.85rem 1rem;
+    }
+
+    #modal_detail .detail-warning-title {
+        color: #b45309;
+        font-size: 0.88rem;
+        letter-spacing: 0.5px;
+    }
+
+    #modal_detail .detail-warning-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 0.75rem;
+    }
+
+    #modal_detail .detail-warning-card {
+        background: #ffffff;
+        border: 1px solid #fef08a;
+        border-radius: 8px;
+        padding: 0.75rem 0.85rem;
+        display: flex;
+        align-items: center;
+        transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+        cursor: pointer;
+    }
+
+    #modal_detail .detail-warning-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(245, 158, 11, 0.12);
+        border-color: #f59e0b;
+    }
+
+    #modal_detail .detail-warning-icon {
+        font-size: 1.25rem;
+        margin-right: 0.75rem;
+        flex-shrink: 0;
+    }
+
+    #modal_detail .detail-warning-item-title {
+        font-size: 0.84rem;
+        color: #1e293b;
+        line-height: 1.25;
+    }
+
+    #modal_detail .detail-warning-item-sub {
+        font-size: 0.75rem;
+        line-height: 1.25;
+        margin-top: 2px;
+    }
+
+    #modal_detail .detail-warning-arrow {
+        font-size: 0.8rem;
+        flex-shrink: 0;
+    }
+
+    /* Top Card: Status Konsumen Bar */
+    #modal_detail .detail-summary-status-bar {
+        border-radius: 8px;
+        background: #fff;
+    }
+
+    #modal_detail .detail-summary-bar-icon {
+        width: 38px;
+        height: 38px;
+        border-radius: 8px;
+        background: #edf4ff;
+        color: #2056a4;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.1rem;
+        flex-shrink: 0;
+    }
+
+    #modal_detail .detail-summary-bar-cols {
+        gap: 0.75rem 1.5rem;
+    }
+
+    #modal_detail .detail-summary-bar-col {
+        display: flex;
+        flex-direction: column;
+        min-width: 120px;
+    }
+
+    #modal_detail #s-status_konsumen_badge {
+        display: inline-block;
+        padding: 0.35rem 1.35rem;
+        border-radius: 20px;
+        font-size: 0.82rem;
+        font-weight: 700;
+        letter-spacing: 0.5px;
+        min-width: 110px;
+        text-align: center;
+        white-space: nowrap;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+    }
+
+    #modal_detail #s-status_konsumen_badge.badge-primary {
+        background-color: #2056a4;
+        color: #fff;
+    }
+
+    #modal_detail #s-status_konsumen_badge.badge-success {
+        background-color: #28c76f;
+        color: #fff;
+    }
+
+    #modal_detail #s-status_konsumen_badge.badge-warning {
+        background-color: #ff9f43;
+        color: #fff;
+    }
+
+    #modal_detail #s-status_konsumen_badge.badge-danger {
+        background-color: #ea5455;
+        color: #fff;
+    }
+
+    #modal_detail #s-status_konsumen_badge.badge-info {
+        background-color: #00cfe8;
+        color: #fff;
+    }
+
+    #modal_detail #s-status_konsumen_badge.badge-secondary {
+        background-color: #82868b;
+        color: #fff;
+    }
+
+    #modal_detail #s-status_konsumen_tgl {
+        font-size: 0.78rem;
+        color: #64748b;
+        margin-top: 0.25rem;
+        font-weight: 500;
+    }
+
+    #modal_detail .detail-summary-section-card {
+        border-radius: 8px;
+        background: #fff;
+    }
+
+    #modal_detail #s-pa_sisa_bar,
+    #modal_detail .progress-bar.bg-transparent {
+        background: transparent !important;
+        background-color: transparent !important;
+        background-image: none !important;
+        box-shadow: none !important;
+    }
+
+    #modal_detail .detail-dot.bg-secondary {
+        background: var(--sigapp-secondary, #64748b) !important;
+        background-color: var(--sigapp-secondary, #64748b) !important;
+        background-image: none !important;
+    }
+
+    #modal_detail .detail-card-icon-pill {
+        width: 30px;
+        height: 30px;
+        border-radius: 6px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.88rem;
+    }
+
+    #modal_detail .detail-see-more {
+        transition: color 0.15s ease;
+    }
+
+    #modal_detail .detail-see-more:hover {
+        color: #1a4482 !important;
+        text-decoration: underline;
+    }
+
+    #modal_detail .amenity-item {
+        flex: 1;
+        padding: 0 0.25rem;
+    }
+
+    #modal_detail .amenity-item i.fa-check {
+        font-family: 'Font Awesome 5 Free' !important;
+        font-weight: 900 !important;
+        font-style: normal !important;
+        font-size: 0.95rem;
+        color: #28c76f !important;
+        display: inline-block;
+    }
+
+    /* Horizontal Stepper Timeline with Connecting Line */
+    #modal_detail .kavling-timeline-wrapper {
+        overflow-x: auto;
+        padding: 0.5rem 0.25rem;
+    }
+
+    #modal_detail .kavling-timeline {
+        display: flex;
+        position: relative;
+        justify-content: space-between;
+        align-items: flex-start;
+        min-width: 600px;
+        padding: 0.5rem 0;
+    }
+
+    #modal_detail .kavling-timeline-item {
+        flex: 1;
+        position: relative;
+        text-align: center;
+        padding: 0 0.5rem;
+    }
+
+    /* Connecting horizontal line */
+    #modal_detail .kavling-timeline-item::after {
+        content: '';
+        position: absolute;
+        top: 17px;
+        left: 50%;
+        width: 100%;
+        height: 3px;
+        background-color: #e2e8f0;
+        z-index: 1;
+    }
+
+    #modal_detail .kavling-timeline-item:last-child::after {
+        display: none;
+    }
+
+    #modal_detail .kavling-timeline-item.is-completed::after {
+        background-color: #2056a4;
+    }
+
+    #modal_detail .kavling-timeline-circle {
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        margin: 0 auto 0.5rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+        z-index: 2;
+        background: #fff;
+        border: 2px solid #cbd5e1;
+        color: #94a3b8;
+        font-size: 0.85rem;
+        transition: all 0.2s ease;
+    }
+
+    #modal_detail .kavling-timeline-item.is-completed .kavling-timeline-circle {
+        background: #2056a4;
+        border-color: #2056a4;
+        color: #fff;
+    }
+
+    #modal_detail .kavling-timeline-item.is-active .kavling-timeline-circle {
+        background: #fff;
+        border-color: #2056a4;
+        color: #2056a4;
+        box-shadow: 0 0 0 4px rgba(32, 86, 164, 0.2);
+    }
+
+    #modal_detail .kavling-timeline-item.is-batal .kavling-timeline-circle {
+        background: #ea5455;
+        border-color: #ea5455;
+        color: #fff;
+    }
+
+    #modal_detail .kavling-timeline-title {
+        font-weight: 700;
+        font-size: 0.84rem;
+        color: #1e293b;
+        margin-bottom: 0.15rem;
+    }
+
+    #modal_detail .kavling-timeline-date {
+        font-size: 0.76rem;
+        color: #64748b;
+        margin-bottom: 0.15rem;
+        font-weight: 500;
+    }
+
+    #modal_detail .kavling-timeline-desc {
+        font-size: 0.72rem;
+        color: #94a3b8;
+    }
+
+    /* Dark Mode Support */
+    .dark-layout #modal_detail .detail-warning-banner {
+        background-color: rgba(245, 158, 11, 0.12);
+        border-color: rgba(245, 158, 11, 0.35);
+    }
+
+    .dark-layout #modal_detail .detail-warning-title {
+        color: #fbbf24;
+    }
+
+    .dark-layout #modal_detail .detail-warning-card {
+        background: #1e293b;
+        border-color: rgba(245, 158, 11, 0.25);
+    }
+
+    .dark-layout #modal_detail .detail-warning-item-title {
+        color: #f1f5f9;
+    }
+
+    .dark-layout #modal_detail .detail-warning-item-sub {
+        color: #94a3b8;
+    }
+
+    .dark-layout #modal_detail .detail-summary-status-bar,
+    .dark-layout #modal_detail .detail-summary-section-card {
+        background: #242b3d;
+        border-color: rgba(255, 255, 255, 0.08);
+    }
+
+    .dark-layout #modal_detail #s-pa_sisa_bar,
+    .dark-layout #modal_detail .progress-bar.bg-transparent {
+        background: transparent !important;
+        background-color: transparent !important;
+        background-image: none !important;
+        box-shadow: none !important;
+    }
+
+    .dark-layout #modal_detail .detail-dot.bg-secondary {
+        background: #94a3b8 !important;
+        background-color: #94a3b8 !important;
+        background-image: none !important;
+    }
+
+    .dark-layout #modal_detail #s-pa_sisa_pct.text-secondary {
+        color: #94a3b8 !important;
+    }
+
+    .dark-layout #modal_detail .detail-summary-bar-icon {
+        background: rgba(32, 86, 164, 0.2);
+        color: #60a5fa;
+    }
+
+    .dark-layout #modal_detail .kavling-timeline-item::after {
+        background-color: #334155;
+    }
+
+    .dark-layout #modal_detail .kavling-timeline-item.is-completed::after {
+        background-color: #3b82f6;
+    }
+
+    .dark-layout #modal_detail .kavling-timeline-circle {
+        background: #1e293b;
+        border-color: #475569;
+        color: #64748b;
+    }
+
+    .dark-layout #modal_detail .kavling-timeline-item.is-completed .kavling-timeline-circle {
+        background: #3b82f6;
+        border-color: #3b82f6;
+        color: #fff;
+    }
+
+    .dark-layout #modal_detail .kavling-timeline-item.is-active .kavling-timeline-circle {
+        background: #1e293b;
+        border-color: #60a5fa;
+        color: #60a5fa;
+        box-shadow: 0 0 0 4px rgba(96, 165, 250, 0.25);
+    }
+
+    .dark-layout #modal_detail .kavling-timeline-title {
+        color: #f1f5f9;
+    }
+
+    .dark-layout #modal_detail .kavling-timeline-date {
+        color: #94a3b8;
+    }

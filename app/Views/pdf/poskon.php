@@ -55,8 +55,11 @@
 <body>
     <?php
     $tgl = date('d F Y');
+    $projectTitle = (!empty($poskon) && !empty($poskon[0]->nama_proyek))
+        ? $poskon[0]->nama_proyek
+        : (!empty($nama_proyek) ? $nama_proyek : 'Semua Proyek');
     ?>
-    <h2>List Konsumen <?= $status ?> - <?= $poskon[0]->nama_proyek ?><br>
+    <h2>List Konsumen <?= esc((string) ($status ?? '')) ?> - <?= esc((string) $projectTitle) ?><br>
         <span style="font-size: 11pt;">Per <?= $tgl; ?></span>
     </h2>
 
@@ -114,8 +117,13 @@
             </tr>
         </thead>
         <tbody>
-            <?php $no = 1; $financialProgress = new \App\Services\MkdtFinancialBreakdownService(); ?>
-            <?php foreach ($poskon as $row): ?>
+            <?php if (empty($poskon)): ?>
+                <tr>
+                    <td colspan="27" class="center">Tidak ada data sesuai filter</td>
+                </tr>
+            <?php else: ?>
+                <?php $no = 1; $financialProgress = new \App\Services\MkdtFinancialBreakdownService(); ?>
+                <?php foreach ($poskon as $row): ?>
                 <?php
                 $total = $row->um + $row->adm + $row->bb;
                 $bayar = $row->total_um + $row->total_adm + $row->total_bb;
@@ -167,7 +175,8 @@
                     <td class="center"><?= $row->pbb_pecah_nop ? '✓' : ''; ?></td>
                     <td class="center"><?= $row->sikumbang ? '✓' : ''; ?></td>
                 </tr>
-            <?php endforeach; ?>
+                <?php endforeach; ?>
+            <?php endif; ?>
 
         </tbody>
     </table>

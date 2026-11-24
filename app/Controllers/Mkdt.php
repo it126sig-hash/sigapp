@@ -5,17 +5,21 @@ namespace App\Controllers;
 use App\Models\MkdtModel;
 use App\Models\KavlingModel;
 use App\Models\KonsumenModel;
-use App\Models\LogPembayaranModel;
-use CodeIgniter\HTTP\Response;
 use App\Models\KeuanganModel;
-use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 
+use App\Controllers\Api\Mkdt\MkdtOperationController;
 use App\Controllers\Notif;
+use App\Controllers\Web\Mkdt\StockController;
 use App\Services\FileAccessService;
-use App\Services\MkdtHistoryService;
 use App\Services\BookingPaymentService;
+use CodeIgniter\HTTP\RequestInterface;
+use CodeIgniter\HTTP\ResponseInterface;
+use Psr\Log\LoggerInterface;
 
+/**
+ * @deprecated Zero-Downtime legacy shim. Use App\Controllers\Web\Mkdt\* or App\Controllers\Api\Mkdt\* (and App\Controllers\Api\Transaksi\* for transaction endpoints).
+ */
 class Mkdt extends BaseController
 {
     protected $db;
@@ -24,12 +28,11 @@ class Mkdt extends BaseController
     protected $kavlingModel;
     protected $konsumenModel;
     protected $validation;
-    protected $lpModel;
     protected $notif;
-    protected $username;
     protected $fileAccessService;
-    protected $mkdtHistoryService;
     protected BookingPaymentService $bookingPaymentService;
+    protected StockController $stockController;
+    protected MkdtOperationController $operationController;
 
     public function __construct()
     {
@@ -39,15 +42,26 @@ class Mkdt extends BaseController
         $this->kavlingModel = new KavlingModel();
         $this->konsumenModel = new KonsumenModel();
         $this->validation = \Config\Services::validation();
-        $this->lpModel = new LogPembayaranModel();
         $this->db = db_connect();
-        $this->username = $this->db->table('users')->select('username')->get()->getRow();
         $this->fileAccessService = new FileAccessService();
-        $this->mkdtHistoryService = new MkdtHistoryService();
         $this->bookingPaymentService = new BookingPaymentService($this->db);
+        $this->stockController = new StockController();
+        $this->operationController = new MkdtOperationController();
     }
+
+    public function initController(RequestInterface $request, ResponseInterface $response, LoggerInterface $logger)
+    {
+        parent::initController($request, $response, $logger);
+        $this->stockController->initController($request, $response, $logger);
+        $this->operationController->initController($request, $response, $logger);
+    }
+
+    /**
+     * @deprecated Legacy endpoint. Use App\Controllers\Api\Transaksi\TransaksiController.
+     */
     function get_data_by_id($st = null)
     {
+        log_message('warning', 'DEPRECATED_MKDT_HIT: ' . __METHOD__ . ' called by user ' . (function_exists('user_id') ? (user_id() ?? 'guest') : 'cli') . '. Use App\Controllers\Api\Transaksi\TransaksiController.');
         $hj = [];
         $id_hargajual = $this->request->getVar('id_hargajual');
         if ($id_hargajual) {
@@ -161,156 +175,20 @@ class Mkdt extends BaseController
         return $this->response->setJSON($r);
     }
 
+    /**
+     * @deprecated Legacy shim. Use App\Controllers\Api\Mkdt\MkdtOperationController::simpanBatal().
+     */
     function simpan_batal()
     {
-        $response['token'] = csrf_hash();
-        $id_mkdt = $this->request->getVar('batal-id_mkdt');
-        $id_kavling = $this->request->getVar('batal-id_kavling');
-        $id_konsumen = $this->request->getVar('batal-id_konsumen');
-
-
-        foreach (user()->getRoles() as $key => $val) {
-            $roleid = $key;
-        }
-
-        if ($roleid == 3) {
-            $f['keuangan_batal_oleh'] = user_id();
-            $f['keuangan_batal_tgl'] = date('Y-m-d H:i:s');
-        } else {
-            $f['mkdt_batal_oleh'] = user_id();
-            $f['mkdt_batal_tgl'] = date('Y-m-d H:i:s');
-        }
-
-        $f['keterangan_batal'] = $this->request->getPost('batal-keterangan_batal'); //keterangan batal dari mkdt
-        $f['perlu_refund'] = (int) (($this->request->getPost('batal-perlu_refund') ?? 0) == 1);
-
-        $f['is_batal'] = 1; //status batal dari mkdt
-        $f['is_batal'] = 1; //status batal dari mkdt
-
-        $f['status_mkdt'] = "Batal"; //status batal dari mkdt
-
-        $q = $this->db->table('mkdt')->update($f, ['id_mkdt' => $id_mkdt]);
-        /************************ upload KTP *****************************/
-        if ($this->request->getFile('file_surat_batal')->getSize() > 0) {
-            $img = $this->request->getFile('file_surat_batal');
-
-            $name = $img->getRandomName();
-
-            $lok = 'uploads/batal/' . date('Ymd') . '/';
-
-            $this->fileAccessService->storeAs($img, $lok, $name);
-
-            $f['surat_batal'] = $lok . $name;
-        }
-
-        if ($q) {
-            //insert ke log
-            $notif = 'Membatalkan booking';
-            $this->notif->tambah_notif("3;4;9", $notif, user_id(), $id_kavling, $id_konsumen, \App\Enums\NotificationEvent::BATAL_BOOKING, null, "siteplan/view?id_kavling=" . $id_kavling . "&tab=konsumen"); //4 mkdt 9 direksi
-
-            $this->mkdtHistoryService->log(
-                (int) $id_kavling,
-                (int) $id_mkdt,
-                MkdtHistoryService::ACTION_BATAL_BOOKING,
-                $this->mkdtHistoryService->buildBatalSummary($f),
-                null,
-                $f,
-                user_id()
-            );
-
-            $response['success'] = true;
-            $response['messages'] = '';
-        } else {
-            $response['success'] = false;
-            $response['messages'] = 'Terjadi kesalahan saat melakukan penambahan konsumen';
-        }
-        return $this->response->setJSON($response);
+        return $this->operationController->simpanBatal();
     }
 
+    /**
+     * @deprecated Legacy shim. Use App\Controllers\Api\Mkdt\MkdtOperationController::getBatal().
+     */
     function batal_mkdt()
     {
-        $hj = [];
-        $id_hargajual = $this->request->getVar('id_hargajual');
-        $id_kavling = $this->request->getVar('id_kavling');
-        $id_mkdt = $this->request->getVar('id_mkdt');
-
-
-
-        if ($id_mkdt) {
-            $r = (object) [];
-            $x = $this->mkdtModel
-                ->select('
-                    mkdt.*,
-
-                    konsumen.no_spptb,
-                    konsumen.nama_konsumen, 
-                    konsumen.nik as nik_konsumen,
-                    konsumen.npwp as npwp_konsumen,
-                    konsumen.email_konsumen,
-                    konsumen.hp_konsumen,
-                    konsumen.alamat_konsumen,
-                    konsumen.status_konsumen,
-                    konsumen.sales,
-                    username as mkdt_batal_oleh_u,
-                ')
-                ->join('konsumen', 'konsumen.id_konsumen = mkdt.id_konsumen')
-                ->join('users', 'users.id = mkdt.mkdt_batal_oleh', 'left')
-                ->where('id_mkdt', $id_mkdt)
-                ->first();
-
-            if ($x) {
-                $total_um = $x->harga_uang_muka + $x->harga_administrasi - $x->harga_penambahan_um - $x->harga_diskon_uang_muka;
-                $total_bb = $x->harga_ppn + $x->harga_bphtb + $x->harga_biaya_proses;
-
-                $r->data = $x;
-                $r->token = csrf_hash();
-
-                $sudah_bayar = $this->db->table('log_pembayaran')
-                    ->select("*")
-                    ->where("id_mkdt", $x->id_mkdt)
-                    ->get()->getResult();
-                $sb_um = 0;
-                $sb_bb = 0;
-                foreach ($sudah_bayar as $v) {
-                    if ($v->payment_type == 'UangMuka')
-                        $sb_um += $v->nominal;
-                    elseif ($v->payment_type == 'BiayaBiaya')
-                        $sb_bb += $v->nominal;
-                }
-
-                $r->sudah_bayar = [
-                    'uang_muka' => $sb_um,
-                    'biaya_biaya' => $sb_bb,
-                ];
-                $r->total_biaya = [
-                    'uang_muka' => $total_um,
-                    'biaya_biaya' => $total_bb,
-                ];
-            } else {
-                $r['data'] = null;
-                $r['token'] = csrf_hash();
-                $r['sudah_bayar'] = [
-                    'uang_muka' => 0,
-                    'biaya_biaya' => 0,
-                ];
-                $r['total_biaya'] = [
-                    'uang_muka' => 0,
-                    'biaya_biaya' => 0,
-                ];
-            }
-        } else {
-            $r['data'] = null;
-            $r['token'] = csrf_hash();
-            $r['sudah_bayar'] = [
-                'uang_muka' => 0,
-                'biaya_biaya' => 0,
-            ];
-            $r['total_biaya'] = [
-                'uang_muka' => 0,
-                'biaya_biaya' => 0,
-            ];
-        }
-        return $this->response->setJSON($r);
+        return $this->operationController->getBatal();
     }
     // function inst(){
     //     $ft['berita_acara'] = "ewean kuda";
@@ -324,8 +202,12 @@ class Mkdt extends BaseController
 
     //     // $this->db->table("keuangan")->insert($ft);
     // }
+    /**
+     * @deprecated Legacy endpoint. Use App\Controllers\Api\Transaksi\TransaksiController.
+     */
     function save()
     {
+        log_message('warning', 'DEPRECATED_MKDT_HIT: ' . __METHOD__ . ' called by user ' . (function_exists('user_id') ? (user_id() ?? 'guest') : 'cli') . '. Use App\Controllers\Api\Transaksi\TransaksiController.');
         $response['token'] = csrf_hash();
         $id_kavling = $this->request->getVar('id_kavling');
 
@@ -690,8 +572,12 @@ class Mkdt extends BaseController
 
         return $this->response->setJSON($response);
     }
+    /**
+     * @deprecated Legacy endpoint. Use App\Controllers\Api\Transaksi\HargajualController::set_harga().
+     */
     function set_harga()
     {
+        log_message('warning', 'DEPRECATED_MKDT_HIT: ' . __METHOD__ . ' called by user ' . (function_exists('user_id') ? (user_id() ?? 'guest') : 'cli') . '. Use App\Controllers\Api\Transaksi\HargajualController::set_harga().');
         $response = array();
         $response['token'] = csrf_hash();
 
@@ -748,1048 +634,29 @@ class Mkdt extends BaseController
         }
         return $this->response->setJSON($response);
     }
-    protected function get_kavling($id_kavling)
-    {
-        return $q = $this->kavlingModel
-            ->select('
-                        kavling.*, 
-                        jalan.nama_jalan, 
-                        cluster.id_cluster, 
-                        cluster.nama_cluster,
-                        tipe.id_tipe,
-                        tipe.tipe_rumah,
-                        tipe.no_tipe_rumah,
-                        tipe.id_gambar_kerja,
-                        config_shape.config_name, 
-                        config_shape.fill, 
-                        config_shape.stroke, 
-                        config_shape.strokeWidth, 
-                        config_shape.dashed, 
-                        config_shape.keterangan as conf_ket')
-            ->join('jalan', 'jalan.id_jalan = kavling.id_jalan')
-            ->join('cluster', 'cluster.id_cluster = jalan.id_cluster')
-            ->join('proyek', 'proyek.id_proyek = cluster.id_proyek')
-            ->join('tipe', 'kavling.id_tipe = tipe.id_tipe')
-            // ->join('config_shape', 'config_shape.id_config = kavling.'.$conf)
-            ->join('config_shape', 'config_shape.id_config = kavling.id_config')
-            ->where('kavling.id_kavling', $id_kavling)
-            ->first();
-    }
-    protected function get_kavling_konsumen($id_kavling)
-    {
-        return $q = $this->kavlingModel
-            ->select('
-                        kavling.*, 
-                        konsumen.nama_konsumen,
-                        jalan.nama_jalan, 
-                        cluster.id_cluster, 
-                        cluster.nama_cluster,
-                        tipe.id_tipe,
-                        tipe.tipe_rumah,
-                        tipe.no_tipe_rumah,
-                        tipe.id_gambar_kerja,
-                       ')
-            ->join('jalan', 'jalan.id_jalan = kavling.id_jalan')
-            ->join('cluster', 'cluster.id_cluster = jalan.id_cluster')
-            ->join('proyek', 'proyek.id_proyek = cluster.id_proyek')
-            ->join('tipe', 'kavling.id_tipe = tipe.id_tipe')
-            ->join('mkdt', 'kavling.id_mkdt = mkdt.id_mkdt')
-            ->join('konsumen', 'konsumen.id_konsumen = mkdt.id_konsumen')
-            ->where('kavling.id_kavling', $id_kavling)
-            ->first();
-    }
-    // function list_kavling_akad()
-    // {
-    //     $data['content'] = 'kavling/list-kavling-akad';
-    //     $data['data']['controller'] = 'Mkdt';
-    //     $data['data']['title'] = 'List Kavling';
 
-    //     return view('template', $data);
-    // }
-    // function getListKavlingAkad()
-    // {
-    //     $data['token'] = csrf_hash();
-    //     $data['data'] = array();
-
-    //     $var = $this->request->getVar();
-
-    //     $colum = ['nama_konsumen', 'nama_jalan', 'no_kavling'];
-    //     $condition = [
-    //         'mkdt.status_mkdt ' => "Akad"
-    //     ];
-
-    //     if ($var['sp3k'] != "")
-    //         $condition = array_merge($condition, ["sp3k" => $var['sp3k']]);
-    //     if ($var['wawancara'] != "")
-    //         $condition = array_merge($condition, ["wawancara" => $var['wawancara']]);
-    //     if ($var['akad'] != "")
-    //         $condition = array_merge($condition, ["akad" => $var['akad']]);
-
-    //     //get mkdt query 
-    //     $query = $this->db->table('mkdt')
-    //         ->select('
-    //             mkdt.*,
-    //             kavling.no_kavling,
-    //             kavling.luas_tanah,
-
-    //             jalan.id_jalan,
-    //             jalan.nama_jalan,
-    //             cluster.id_cluster,
-    //             cluster.nama_cluster,
-    //             proyek.id_proyek,
-    //             proyek.nama_proyek,
-    //             tipe.tipe_rumah,
-    //             produksi.progres_bangunan,
-    //             produksi.st_air,
-    //             produksi.st_jalan,
-    //             produksi.lpa,
-
-    //             konsumen.nama_konsumen,
-    //             konsumen.hp_konsumen,
-    //             konsumen.sales,
-    //             pbb_pecah_nop,
-    //             pbg_no,
-    //             sertifikat_split_no_hgb,
-    //             (select sum(nominal) from log_pembayaran where log_pembayaran.id_mkdt = mkdt.id_mkdt and payment_type like "%Uang Muka%") as sudah_bayar_um,
-    //             (select sum(nominal) from log_pembayaran where log_pembayaran.id_mkdt = mkdt.id_mkdt and (payment_type LIKE "%Biaya Proses%" OR payment_type LIKE "%BPHTB%" OR payment_type LIKE "%PPN%")) sudah_bayar_bb,
-
-    //             a.username as uadd_by,
-    //             b.username as uedit_by,
-    //         ')
-    //         ->join('kavling', "kavling.id_mkdt = mkdt.id_mkdt")
-    //         ->join('produksi', "kavling.id_produksi = produksi.id_produksi", 'left')
-    //         ->join('tipe', "tipe.id_tipe = kavling.id_tipe")
-    //         ->join('konsumen', "konsumen.id_konsumen = mkdt.id_konsumen", 'left')
-    //         ->join('legal', "kavling.id_legal = legal.id_legal", 'left')
-    //         ->join('jalan', "jalan.id_jalan = kavling.id_jalan")
-    //         ->join('cluster', "jalan.id_cluster = cluster.id_cluster")
-    //         ->join('proyek', "proyek.id_proyek = cluster.id_proyek")
-    //         ->join('users a', "a.id = mkdt.add_by")
-    //         ->join('users b', "b.id = mkdt.edit_by");
-
-    //     if ($var['id_jalan'])
-    //         $condition = array_merge($condition, ["jalan.id_jalan" => $var['id_jalan']]);
-    //     elseif ($var['id_cluster'])
-    //         $condition = array_merge($condition, ["cluster.id_cluster" => $var['id_cluster']]);
-    //     else
-    //         $condition = array_merge($condition, ["proyek.id_proyek" => $var['id_proyek']]);
-
-    //     $result = $this->if_where($var, $colum, $condition, $query);
-
-    //     $result
-    //         ->offset($var['start'])
-    //         ->limit($var['length']);
-
-    //     $x = $result->get();
-
-    //     $data['draw'] = $var['draw'];
-
-    //     //count filtered
-    //     $countfiltered = $this->db->table("mkdt")
-    //         ->select('
-    //             mkdt.*,
-
-    //             kavling.no_kavling,
-
-    //             jalan.id_jalan,
-    //             jalan.nama_jalan,
-    //             cluster.id_cluster,
-    //             cluster.nama_cluster,
-    //             proyek.id_proyek,
-    //             proyek.nama_proyek,
-    //             tipe.tipe_rumah,
-    //             produksi.progres_bangunan,
-    //             pbb_pecah_nop,
-    //             pbg_no,
-    //             sertifikat_split_no_hgb,
-
-    //             konsumen.nama_konsumen,
-    //             konsumen.hp_konsumen,
-    //             konsumen.sales,
-    //         ')
-    //         ->join('kavling', "kavling.id_mkdt = mkdt.id_mkdt")
-    //         ->join('produksi', "kavling.id_produksi = produksi.id_produksi", 'left')
-    //         ->join('tipe', "tipe.id_tipe = kavling.id_tipe")
-    //         ->join('konsumen', "konsumen.id_konsumen = mkdt.id_konsumen", 'left')
-    //         ->join('legal', "kavling.id_legal = legal.id_legal", 'left')
-    //         ->join('jalan', "jalan.id_jalan = kavling.id_jalan")
-    //         ->join('cluster', "jalan.id_cluster = cluster.id_cluster")
-    //         ->join('proyek', "proyek.id_proyek = cluster.id_proyek");
-
-    //     // $countTotal = $countfiltered;
-
-    //     $countfiltered = $this->if_where($var, $colum, $condition, $countfiltered);
-    //     $data['recordsFiltered'] = count($countfiltered->get()->getResult());
-
-    //     //count total
-    //     $condition = [
-    //         'mkdt.status_mkdt ' => "Booking"
-    //     ];
-    //     $countTotal = $this->db->table("mkdt")
-    //         ->select("count(mkdt.id_mkdt) as count")
-    //         ->join('kavling', "kavling.id_mkdt = mkdt.id_mkdt")
-    //         ->join('produksi', "kavling.id_produksi = produksi.id_produksi", 'left')
-    //         ->join('tipe', "tipe.id_tipe = kavling.id_tipe")
-    //         ->join('konsumen', "konsumen.id_konsumen = mkdt.id_konsumen", 'left')
-    //         ->join('legal', "kavling.id_legal = legal.id_legal", 'left')
-    //         ->join('jalan', "jalan.id_jalan = kavling.id_jalan")
-    //         ->join('cluster', "jalan.id_cluster = cluster.id_cluster")
-    //         ->join('proyek', "proyek.id_proyek = cluster.id_proyek")
-    //         ->where($condition);
-
-    //     $data['recordsTotal'] = $countTotal->get()->getResult()[0]->count;
-
-    //     //looping data untuk datatable
-    //     $no = $var['start'];
-    //     foreach ($x->getResult() as $key => $v) {
-    //         $no++;
-
-    //         $ops = '<div class="btn-group">';
-    //         $ops .= '	<button type="button" class="btn btn-sm btn-info" onclick="edit(' . $v->id_mkdt . ')"><i class="fa fa-edit"></i></button>';
-    //         $ops .= '	<button type="button" class="btn btn-sm btn-danger" onclick="remove(' . $v->id_mkdt . ')"><i class="fa ' . $no . '"></i></button>';
-    //         $ops .= '</div>';
-
-    //         $um = $v->harga_uang_muka ? $v->harga_uang_muka : 0;
-    //         $bb = $v->harga_bphtb + $v->harga_biaya_proses + $v->harga_ppn;
-
-    //         $tunai = $v->sudah_bayar_um > 0 ? $v->sudah_bayar_um / $um * 100 : 0;
-
-
-
-    //         $sudah_bayar_bb = $v->sudah_bayar_bb > 0 ? $v->sudah_bayar_bb : 0;
-    //         $sudah_bayar_um = $v->sudah_bayar_um > $um ? $um : $v->sudah_bayar_um;
-
-    //         $um_pers = "";
-    //         $bb_pers = "";
-
-    //         $um_pers = 0;
-    //         $bb_pers = 0;
-
-    //         if ($sudah_bayar_bb > 0 && $bb > 0) {
-    //             $bb_pers = $sudah_bayar_bb / $bb * 100;
-    //         }
-    //         // $bb_pers = $v->sudah_bayar_bb > 0 ? $v->sudah_bayar_bb / $bb * 100 : 0;
-    //         if ($v->is_kpr == 1) {
-    //             $tunai = "";
-    //             $um_pers = $sudah_bayar_um > 0 ? $sudah_bayar_um / $um * 100 : 0;
-    //         }
-
-    //         // echo $v->is_kpr;    
-    //         // echo $v->sudah_bayar_um;
-    //         // echo "<br>";
-    //         // echo $um;
-    //         // die();
-
-    //         $data['data'][$key] = array(
-
-    //             $no,
-    //             $v->nama_jalan,
-    //             $v->no_kavling,
-    //             $v->tipe_rumah . "(" . $v->luas_tanah . ")",
-
-    //             $v->nama_konsumen,
-    //             $v->sales,
-
-
-    //             $this->format_tgl($v->booking_tgl),
-    //             $this->format_tgl($v->wawancara_tgl),
-
-    //             $this->is_active($v->is_kpr, "KPR", "TUNAI"),
-    //             $v->bank,
-    //             $v->keterangan,
-
-    //             $this->format_tgl($v->sp3k_tgl),
-    //             $this->format_tgl($v->sp3k_tgl_exp),
-    //             "", //sikasep
-
-    //             $tunai ? number_format((float) $tunai, 2, '.', '') . "%" : "-",
-    //             $um_pers ? number_format((float) $um_pers, 2, '.', '') . "%" : "-",
-    //             $bb_pers ? number_format((float) $bb_pers, 2, '.', '') . "%" : "-",
-
-
-    //             number_format($v->harga_jual),
-    //             number_format($v->harga_kpr),
-    //             $this->format_tgl($v->tgl_harga),
-
-
-    //             $v->progres_bangunan ? $v->progres_bangunan . "%" : '-',
-
-    //             $v->lpa ? '&#10004;' : '-', //lpa
-    //             $v->st_jalan ? '&#10004;' : '-', //listrik
-    //             '', //jalan
-
-    //             $v->sertifikat_split_no_hgb,
-    //             $v->pbg_no,
-    //             $v->pbb_pecah_nop,
-
-    //             '', //sikumbang
-
-    //             $v->uadd_by,
-    //             date_format(date_create($v->created_at), "d-M-Y H:i"),
-    //             $v->uedit_by,
-    //             date_format(date_create($v->updated_at), "d-M-Y H:i"),
-    //             $ops
-    //         );
-    //     }
-    //     return $this->response->setJSON($data);
-    // }
-    // function list_kavling()
-    // {
-    //     $data['content'] = 'kavling/list-kavling';
-    //     $data['data']['controller'] = 'Mkdt';
-    //     $data['data']['title'] = 'List Kavling';
-
-    //     return view('template', $data);
-    // }
-
-    //sudah dipindah ke service
-    // function getListKavling()
-    // {
-    //     $data['token'] = csrf_hash();
-    //     $data['data'] = array();
-
-    //     $var = $this->request->getVar();
-
-    //     $colum = ['nama_konsumen', 'nama_jalan', 'no_kavling'];
-    //     $condition = [
-    //         'mkdt.status_mkdt ' => "Booking"
-    //     ];
-
-    //     if ($var['sp3k'] != "")
-    //         $condition = array_merge($condition, ["sp3k" => $var['sp3k']]);
-    //     if ($var['wawancara'] != "")
-    //         $condition = array_merge($condition, ["wawancara" => $var['wawancara']]);
-    //     // if ($var['akad'] != "")
-    //     //     $condition = array_merge($condition, ["akad" => $var['akad']]);
-
-    //     //get mkdt query 
-    //     $query = $this->db->table('mkdt')
-    //         ->select('
-    //             mkdt.*,
-    //             kavling.no_kavling,
-    //             kavling.luas_tanah,
-
-    //             jalan.id_jalan,
-    //             jalan.nama_jalan,
-    //             cluster.id_cluster,
-    //             cluster.nama_cluster,
-    //             proyek.id_proyek,
-    //             proyek.nama_proyek,
-    //             tipe.tipe_rumah,
-    //             produksi.progres_bangunan,
-    //             produksi.st_air,
-    //             produksi.st_jalan,
-    //             produksi.lpa,
-
-    //             konsumen.nama_konsumen,
-    //             konsumen.hp_konsumen,
-    //             konsumen.sales,
-    //             pbb_pecah_nop,
-    //             pbg_no,
-    //             sertifikat_split_no_hgb,
-    //             (select sum(nominal) from log_pembayaran where log_pembayaran.id_mkdt = mkdt.id_mkdt and payment_type like "%Uang Muka%") as sudah_bayar_um,
-    //             (select sum(nominal) from log_pembayaran where log_pembayaran.id_mkdt = mkdt.id_mkdt and payment_type not like "%Booking%") as total_sudah_bayar,
-    //             (select sum(nominal) from log_pembayaran where log_pembayaran.id_mkdt = mkdt.id_mkdt and (payment_type LIKE "%Biaya Proses%" OR payment_type LIKE "%BPHTB%" OR payment_type LIKE "%PPN%")) sudah_bayar_bb,
-
-    //             a.username as uadd_by,
-    //             b.username as uedit_by,
-    //         ')
-    //         ->join('kavling', "kavling.id_mkdt = mkdt.id_mkdt")
-    //         ->join('produksi', "kavling.id_produksi = produksi.id_produksi", 'left')
-    //         ->join('tipe', "tipe.id_tipe = kavling.id_tipe")
-    //         ->join('konsumen', "konsumen.id_konsumen = mkdt.id_konsumen", 'left')
-    //         ->join('legal', "kavling.id_legal = legal.id_legal", 'left')
-    //         ->join('jalan', "jalan.id_jalan = kavling.id_jalan")
-    //         ->join('cluster', "jalan.id_cluster = cluster.id_cluster")
-    //         ->join('proyek', "proyek.id_proyek = cluster.id_proyek")
-    //         ->join('users a', "a.id = mkdt.add_by")
-    //         ->join('users b', "b.id = mkdt.edit_by");
-
-    //     if ($var['id_jalan'])
-    //         $condition = array_merge($condition, ["jalan.id_jalan" => $var['id_jalan']]);
-    //     elseif ($var['id_cluster'])
-    //         $condition = array_merge($condition, ["cluster.id_cluster" => $var['id_cluster']]);
-    //     else
-    //         $condition = array_merge($condition, ["proyek.id_proyek" => $var['id_proyek']]);
-
-    //     $result = $this->if_where($var, $colum, $condition, $query);
-
-    //     $result
-    //         ->offset($var['start'])
-    //         ->limit($var['length']);
-
-    //     $x = $result->get();
-
-    //     $data['draw'] = $var['draw'];
-
-    //     //count filtered
-    //     $countfiltered = $this->db->table("mkdt")
-    //         ->select('
-    //             mkdt.*,
-
-    //             kavling.no_kavling,
-
-    //             jalan.id_jalan,
-    //             jalan.nama_jalan,
-    //             cluster.id_cluster,
-    //             cluster.nama_cluster,
-    //             proyek.id_proyek,
-    //             proyek.nama_proyek,
-    //             tipe.tipe_rumah,
-    //             produksi.progres_bangunan,
-    //             pbb_pecah_nop,
-    //             pbg_no,
-    //             sertifikat_split_no_hgb,
-
-    //             konsumen.nama_konsumen,
-    //             konsumen.hp_konsumen,
-    //             konsumen.sales,
-    //         ')
-    //         ->join('kavling', "kavling.id_mkdt = mkdt.id_mkdt")
-    //         ->join('produksi', "kavling.id_produksi = produksi.id_produksi", 'left')
-    //         ->join('tipe', "tipe.id_tipe = kavling.id_tipe")
-    //         ->join('konsumen', "konsumen.id_konsumen = mkdt.id_konsumen", 'left')
-    //         ->join('legal', "kavling.id_legal = legal.id_legal", 'left')
-    //         ->join('jalan', "jalan.id_jalan = kavling.id_jalan")
-    //         ->join('cluster', "jalan.id_cluster = cluster.id_cluster")
-    //         ->join('proyek', "proyek.id_proyek = cluster.id_proyek");
-
-    //     // $countTotal = $countfiltered;
-
-    //     $countfiltered = $this->if_where($var, $colum, $condition, $countfiltered);
-    //     $data['recordsFiltered'] = count($countfiltered->get()->getResult());
-
-    //     //count total
-    //     $condition = [
-    //         'mkdt.status_mkdt ' => "Booking"
-    //     ];
-    //     $countTotal = $this->db->table("mkdt")
-    //         ->select("count(mkdt.id_mkdt) as count")
-    //         ->join('kavling', "kavling.id_mkdt = mkdt.id_mkdt")
-    //         ->join('produksi', "kavling.id_produksi = produksi.id_produksi", 'left')
-    //         ->join('tipe', "tipe.id_tipe = kavling.id_tipe")
-    //         ->join('konsumen', "konsumen.id_konsumen = mkdt.id_konsumen", 'left')
-    //         ->join('legal', "kavling.id_legal = legal.id_legal", 'left')
-    //         ->join('jalan', "jalan.id_jalan = kavling.id_jalan")
-    //         ->join('cluster', "jalan.id_cluster = cluster.id_cluster")
-    //         ->join('proyek', "proyek.id_proyek = cluster.id_proyek")
-    //         ->where($condition);
-
-    //     $data['recordsTotal'] = $countTotal->get()->getResult()[0]->count;
-
-    //     //looping data untuk datatable
-    //     $no = $var['start'];
-    //     foreach ($x->getResult() as $key => $v) {
-    //         $no++;
-
-    //         $ops = '<div class="btn-group">';
-    //         $ops .= '	<button type="button" class="btn btn-sm btn-info" onclick="edit(' . $v->id_mkdt . ')"><i class="fa fa-edit"></i></button>';
-    //         $ops .= '	<button type="button" class="btn btn-sm btn-danger" onclick="remove(' . $v->id_mkdt . ')"><i class="fa ' . $no . '"></i></button>';
-    //         $ops .= '</div>';
-
-    //         $um = $v->harga_uang_muka - $v->harga_diskon_uang_muka ?: 0;
-    //         $badm = $v->harga_administrasi + $v->harga_penambahan_um + $v->harga_penambahan + $v->harga_penambahan_tanah ?: 0; //biaya adm + hook + kelebihan tanah + turun kpr
-    //         $bb = $v->harga_bphtb + $v->harga_biaya_proses + $v->harga_ppn;
-
-    //         $tunai = $v->sudah_bayar_um > 0 ? $v->sudah_bayar_um / $um * 100 : 0;
-
-
-
-    //         $sudah_bayar_bb = $v->sudah_bayar_bb > 0 ? $v->sudah_bayar_bb : 0;
-    //         $sudah_bayar_um = $v->sudah_bayar_um > $um ? $um : $v->sudah_bayar_um;
-    //         $sudah_bayar_adm = $v->total_sudah_bayar - $sudah_bayar_bb - $sudah_bayar_um ?: 0;
-
-    //         $um_pers = 0;
-    //         $bb_pers = 0;
-    //         $badm_pers = 0;
-
-    //         if ($sudah_bayar_bb > 0 && $bb > 0) {
-    //             $bb_pers = $sudah_bayar_bb / $bb * 100;
-    //         }
-    //         // $bb_pers = $v->sudah_bayar_bb > 0 ? $v->sudah_bayar_bb / $bb * 100 : 0;
-    //         if ($v->is_kpr == 1) {
-    //             $tunai = "";
-    //             $um_pers = $sudah_bayar_um > 0 ? $sudah_bayar_um / $um * 100 : 0;
-    //         }
-
-    //         if ($sudah_bayar_um > 0 && $badm > 0) {
-    //             $badm_pers  = $sudah_bayar_um / $badm * 100;
-    //         }
-    //         // echo $v->is_kpr;    
-    //         // echo $v->sudah_bayar_um;
-    //         // echo "<br>";
-    //         // echo $um;
-    //         // die();
-
-    //         $is_subsidi = $v->is_subsidi ? '<span >(Subsidi)</span>' : '<span >(Non-Subsidi)</span>';
-
-    //         $data['data'][$key] = array(
-
-    //             $no,
-    //             $v->nama_jalan,
-    //             $v->no_kavling,
-    //             $v->tipe_rumah . "(" . $v->luas_tanah . ")",
-
-    //             $v->nama_konsumen,
-    //             $v->sales,
-
-
-    //             $this->format_tgl($v->booking_tgl),
-    //             $this->format_tgl($v->wawancara_tgl),
-
-    //             $this->is_active($v->is_kpr, "KPR " . $is_subsidi, "TUNAI " . $is_subsidi),
-    //             $v->bank,
-    //             $v->keterangan,
-
-    //             $this->format_tgl($v->sp3k_tgl),
-    //             $this->format_tgl($v->sp3k_tgl_exp),
-    //             "", //sikasep
-
-    //             $tunai ? number_format((float) $tunai, 2, '.', '') . "%" : "-",
-    //             $um_pers ? number_format((float) $um_pers, 2, '.', '') . "%" : "-",
-    //             $badm_pers ? number_format((float) $badm_pers, 2, '.', '') . "%" : "-",
-    //             $bb_pers ? number_format((float) $bb_pers, 2, '.', '') . "%" : "-",
-
-
-    //             number_format($v->harga_jual),
-    //             number_format($v->harga_kpr),
-    //             $this->format_tgl($v->tgl_harga),
-
-
-    //             $v->progres_bangunan ? $v->progres_bangunan . "%" : '-',
-
-    //             $v->lpa ? '&#10004;' : '-', //lpa
-    //             $v->st_jalan ? '&#10004;' : '-', //listrik
-    //             '', //jalan
-
-    //             $v->sertifikat_split_no_hgb,
-    //             $v->pbg_no,
-    //             $v->pbb_pecah_nop,
-
-    //             '', //sikumbang
-
-    //             $v->uadd_by,
-    //             date_format(date_create($v->created_at), "d-M-Y H:i"),
-    //             $v->uedit_by,
-    //             date_format(date_create($v->updated_at), "d-M-Y H:i"),
-    //             $ops
-    //         );
-    //     }
-    //     return $this->response->setJSON($data);
-    // }
-
-    // sudah dipindah ke service
-    // function list_batal()
-    // {
-    //     $data['content'] = 'kavling/list-batal';
-    //     $data['data']['controller'] = 'Mkdt';
-    //     $data['data']['title'] = 'List Konsumen Batal';
-
-    //     return view('template', $data);
-    // }
-    // function getListBatal()
-    // {
-    //     $data['token'] = csrf_hash();
-    //     $data['data'] = array();
-
-    //     $var = $this->request->getVar();
-
-    //     $colum = ['nama_konsumen', 'nama_jalan', 'no_kavling'];
-    //     $condition = [
-    //         'mkdt.status_mkdt ' => "Batal"
-    //     ];
-
-    //     if ($var['sp3k'] != "")
-    //         $condition = array_merge($condition, ["sp3k" => $var['sp3k']]);
-    //     if ($var['wawancara'] != "")
-    //         $condition = array_merge($condition, ["wawancara" => $var['wawancara']]);
-    //     if ($var['akad'] != "")
-    //         $condition = array_merge($condition, ["akad" => $var['akad']]);
-
-    //     //get mkdt query 
-    //     $query = $this->db->table('mkdt')
-    //         ->select('
-    //             mkdt.*,
-    //             kavling.no_kavling,
-    //             kavling.luas_tanah,
-
-    //             jalan.id_jalan,
-    //             jalan.nama_jalan,
-    //             cluster.id_cluster,
-    //             cluster.nama_cluster,
-    //             proyek.id_proyek,
-    //             proyek.nama_proyek,
-    //             tipe.tipe_rumah,
-    //             produksi.progres_bangunan,
-
-    //             konsumen.nama_konsumen,
-    //             konsumen.hp_konsumen,
-    //             pbb_pecah_nop,
-    //             pbg_no,
-    //             sertifikat_split_no_hgb,
-    //             (select sum(nominal) from log_pembayaran where log_pembayaran.id_mkdt = mkdt.id_mkdt and payment_type = "UangMuka") as sudah_bayar_um,
-    //             (select sum(nominal) from log_pembayaran where log_pembayaran.id_mkdt = mkdt.id_mkdt and payment_type = "BiayaBiaya") sudah_bayar_bb,
-
-    //             a.username as uadd_by,
-    //             b.username as uedit_by,
-    //         ')
-    //         ->join('kavling', "kavling.id_mkdt = mkdt.id_mkdt")
-    //         ->join('produksi', "kavling.id_produksi = produksi.id_produksi", 'left')
-    //         ->join('tipe', "tipe.id_tipe = kavling.id_tipe")
-    //         ->join('konsumen', "konsumen.id_konsumen = mkdt.id_konsumen", 'left')
-    //         ->join('legal', "kavling.id_legal = legal.id_legal", 'left')
-    //         ->join('jalan', "jalan.id_jalan = kavling.id_jalan")
-    //         ->join('cluster', "jalan.id_cluster = cluster.id_cluster")
-    //         ->join('proyek', "proyek.id_proyek = cluster.id_proyek")
-    //         ->join('users a', "a.id = mkdt.add_by")
-    //         ->join('users b', "b.id = mkdt.edit_by");
-
-    //     if ($var['id_jalan'])
-    //         $condition = array_merge($condition, ["jalan.id_jalan" => $var['id_jalan']]);
-    //     elseif ($var['id_cluster'])
-    //         $condition = array_merge($condition, ["cluster.id_cluster" => $var['id_cluster']]);
-    //     else
-    //         $condition = array_merge($condition, ["proyek.id_proyek" => $var['id_proyek']]);
-
-    //     $result = $this->if_where($var, $colum, $condition, $query);
-
-    //     $result
-    //         ->offset($var['start'])
-    //         ->limit($var['length']);
-
-    //     $x = $result->get();
-
-    //     $data['draw'] = $var['draw'];
-
-
-    //     //count filtered
-    //     $countfiltered = $this->db->table("mkdt")
-    //         ->select('
-    //             mkdt.*,
-
-    //             kavling.no_kavling,
-
-    //             jalan.id_jalan,
-    //             jalan.nama_jalan,
-    //             cluster.id_cluster,
-    //             cluster.nama_cluster,
-    //             proyek.id_proyek,
-    //             proyek.nama_proyek,
-    //             tipe.tipe_rumah,
-    //             produksi.progres_bangunan,
-    //             pbb_pecah_nop,
-    //             pbg_no,
-    //             sertifikat_split_no_hgb,
-
-    //             konsumen.nama_konsumen,
-    //             konsumen.hp_konsumen
-    //         ')
-    //         ->join('kavling', "kavling.id_mkdt = mkdt.id_mkdt")
-    //         ->join('produksi', "kavling.id_produksi = produksi.id_produksi", 'left')
-    //         ->join('tipe', "tipe.id_tipe = kavling.id_tipe")
-    //         ->join('konsumen', "konsumen.id_konsumen = mkdt.id_konsumen", 'left')
-    //         ->join('legal', "kavling.id_legal = legal.id_legal", 'left')
-    //         ->join('jalan', "jalan.id_jalan = kavling.id_jalan")
-    //         ->join('cluster', "jalan.id_cluster = cluster.id_cluster")
-    //         ->join('proyek', "proyek.id_proyek = cluster.id_proyek");
-
-    //     // $countTotal = $countfiltered;
-
-
-
-    //     $countfiltered = $this->if_where($var, $colum, $condition, $countfiltered);
-    //     $data['recordsFiltered'] = count($countfiltered->get()->getResult());
-
-    //     //count total
-    //     $condition = [
-    //         'mkdt.status_mkdt ' => "Booking"
-    //     ];
-    //     $countTotal = $this->db->table("mkdt")
-    //         ->select("count(mkdt.id_mkdt) as count")
-    //         ->join('kavling', "kavling.id_mkdt = mkdt.id_mkdt")
-    //         ->join('produksi', "kavling.id_produksi = produksi.id_produksi", 'left')
-    //         ->join('tipe', "tipe.id_tipe = kavling.id_tipe")
-    //         ->join('konsumen', "konsumen.id_konsumen = mkdt.id_konsumen", 'left')
-    //         ->join('legal', "kavling.id_legal = legal.id_legal", 'left')
-    //         ->join('jalan', "jalan.id_jalan = kavling.id_jalan")
-    //         ->join('cluster', "jalan.id_cluster = cluster.id_cluster")
-    //         ->join('proyek', "proyek.id_proyek = cluster.id_proyek")
-    //         ->where($condition);
-
-    //     $data['recordsTotal'] = $countTotal->get()->getResult()[0]->count;
-
-
-    //     //looping data untuk datatable
-    //     $no = $var['start'];
-    //     foreach ($x->getResult() as $key => $v) {
-    //         $no++;
-
-    //         $ops = '<div class="btn-group">';
-    //         $ops .= '	<button type="button" class="btn btn-sm btn-info" onclick="edit(' . $v->id_mkdt . ')"><i class="fa fa-edit"></i></button>';
-    //         $ops .= '	<button type="button" class="btn btn-sm btn-danger" onclick="remove(' . $v->id_mkdt . ')"><i class="fa ' . $no . '"></i></button>';
-    //         $ops .= '</div>';
-
-
-
-
-
-    //         if ($v->harga_jual > 0)
-    //             $um = $v->harga_jual - $v->harga_kpr + $v->harga_penambahan_um;
-    //         else {
-    //             $um = 0;
-    //         }
-
-
-
-    //         $bb = $v->harga_bphtb + $v->harga_administrasi + $v->harga_biaya_proses + $v->harga_ppn;
-
-    //         $turun_kpr = ($v->harga_kpr_acc > 0) ? $v->harga_jual - $v->harga_kpr_acc : 0;
-
-    //         $tot = $um + $bb;
-    //         $pers = ($v->sudah_bayar_um + $v->sudah_bayar_bb > 0 && $tot > 0) ? ($v->sudah_bayar_um + $v->sudah_bayar_bb) / $tot * 100 : 0;
-
-    //         if ($tot < 0) {
-    //             $tot = 0;
-    //             $pers = 0;
-    //         }
-
-
-
-    //         $surat_batal = $v->surat_batal ? "<br><a target=_blank href='" . base_url($v->surat_batal) . "'>Klik untuk melihat surat batal</a>" : "";
-
-    //         $data['data'][$key] = array(
-    //             $no,
-    //             $v->keterangan_batal . ' ' . $surat_batal, //keterangan batal
-    //             number_format($v->refund), //Nominal Refund
-    //             $v->nama_jalan,
-    //             $v->no_kavling,
-    //             $v->tipe_rumah,
-    //             $v->luas_tanah,
-
-    //             $v->nama_konsumen,
-    //             $this->format_tgl($v->booking_tgl),
-
-    //             $this->is_active($v->is_kpr, "KPR", "TUNAI"),
-    //             $v->bank,
-    //             $v->keterangan,
-
-    //             $this->format_tgl($v->wawancara_tgl),
-    //             number_format($v->harga_kpr),
-    //             number_format($v->harga_kpr_acc),
-    //             number_format($v->harga_penambahan_um),
-    //             $this->format_tgl($v->sp3k_tgl),
-    //             $this->format_tgl($v->sp3k_tgl_exp),
-
-    //             number_format($v->harga_jual),
-    //             number_format($v->harga_diskon_hargajual),
-    //             number_format($v->harga_jual_net),
-    //             number_format($um), //uang muka
-    //             number_format($bb), //biaya-biaya
-    //             number_format($tot), //total harus bayar
-
-    //             number_format($v->sudah_bayar_um), //um
-    //             number_format($v->sudah_bayar_bb), //bb
-
-    //             number_format($um + $bb - $v->sudah_bayar_um - $v->sudah_bayar_bb), //sisa
-
-    //             number_format($pers) . "%",
-    //             number_format($turun_kpr),
-
-    //             $this->format_tgl($v->perintah_bangun_tgl),
-    //             $v->progres_bangunan . "%",
-
-    //             $v->sertifikat_split_no_hgb,
-    //             $v->pbg_no,
-    //             $v->pbb_pecah_nop,
-
-    //             $v->uadd_by,
-    //             date_format(date_create($v->created_at), "d-M-Y H:i"),
-    //             $v->uedit_by,
-    //             date_format(date_create($v->updated_at), "d-M-Y H:i"),
-    //             $ops,
-
-    //         );
-    //         // var_dump($data );die();
-    //     }
-    //     return $this->response->setJSON($data);
-    // }
-
+    /**
+     * @deprecated Legacy shim. Use App\Controllers\Web\Mkdt\StockController::index().
+     */
     function list_stock()
     {
-        $data['content'] = 'kavling/list-stock';
-        $data['data']['controller'] = 'Mkdt';
-        $data['data']['title'] = 'List Kavling Stock';
-
-        return view('template', $data);
+        return $this->stockController->index();
     }
+
+    /**
+     * @deprecated Legacy shim. Use App\Controllers\Api\Mkdt\MkdtOperationController::getListStock().
+     */
     function getListStock()
     {
-        $response = array();
-        $data['token'] = csrf_hash();
-        $data['data'] = array();
-
-        $var = $this->request->getVar();
-
-        // $arr = ['mkdt.status_mkdt' => "Batal", 'mkdt.status_mkdt' => "", 'mkdt.status_mkdt' => null];
-        $colum = ['nama_konsumen', 'nama_jalan', 'no_kavling'];
-        $condition = [
-            "mkdt.status_mkdt" => "Batal",
-            "mkdt.status_mkdt" => null,
-            // "mkdt.status_mkdt" => null,
-            "produksi.progres_bangunan" => 100,
-            // "produksi.progres_bangunan" => 100,
-        ];
-
-        $query = $this->db->table('kavling')
-            ->select('
-                kavling.*,
-
-                mkdt.status_mkdt,
-
-                produksi.progres_bangunan,
-                produksi.tanggal_pembangunan,
-                produksi.tanggal_selesai_pembangunan,
-                
-                jalan.id_jalan,
-                jalan.nama_jalan,
-                cluster.id_cluster,
-                cluster.nama_cluster,
-                proyek.id_proyek,
-                proyek.nama_proyek,
-                tipe.tipe_rumah,                
-
-                konsumen.nama_konsumen,
-                konsumen.hp_konsumen,
-                konsumen.keterangan as keterangan_batal,
-
-                a.username as uadd_by,
-                b.username as uedit_by,
-            ')
-            ->join('tipe', "tipe.id_tipe = kavling.id_tipe")
-            ->join('jalan', "jalan.id_jalan = kavling.id_jalan")
-            ->join('cluster', "jalan.id_cluster = cluster.id_cluster")
-            ->join('proyek', "proyek.id_proyek = cluster.id_proyek")
-
-            ->join('produksi', "kavling.id_produksi = produksi.id_produksi")
-            ->join('mkdt', "kavling.id_mkdt = mkdt.id_mkdt", "left")
-
-            ->join('users a', "produksi.add_by = a.id")
-            ->join('users b', "produksi.edit_by = b.id")
-
-            ->join('konsumen', "konsumen.id_konsumen = mkdt.id_konsumen", 'left');
-
-        if ($var['id_jalan'])
-            $query->where(["jalan.id_jalan" => $var['id_jalan']]);
-        elseif ($var['id_cluster'])
-            $query->where(["cluster.id_cluster" => $var['id_cluster']]);
-        else
-            $query->where(["proyek.id_proyek" => $var['id_proyek']]);
-
-        if (!empty($var['tgl_pembangunan'])) {
-            $dates = explode(' to ', $var['tgl_pembangunan']);
-            if (count($dates) == 2) {
-                $query->where('produksi.tanggal_pembangunan >=', $dates[0]);
-                $query->where('produksi.tanggal_pembangunan <=', $dates[1]);
-            } else {
-                $query->where('produksi.tanggal_pembangunan', $dates[0]);
-            }
-        }
-
-        if (!empty($var['tgl_selesai'])) {
-            $dates = explode(' to ', $var['tgl_selesai']);
-            if (count($dates) == 2) {
-                $query->where('produksi.tanggal_selesai_pembangunan >=', $dates[0]);
-                $query->where('produksi.tanggal_selesai_pembangunan <=', $dates[1]);
-            } else {
-                $query->where('produksi.tanggal_selesai_pembangunan', $dates[0]);
-            }
-        }
-
-        $query->where('produksi.progres_bangunan', 100);
-        $query->groupStart()
-            ->where('mkdt.status_mkdt', 'Batal')
-            ->orWhere('mkdt.status_mkdt IS NULL', null, false)
-            ->groupEnd();
-
-        // Jika ada parameter pencarian
-        $search = isset($var['search']['value']) ? $var['search']['value'] : '';
-        if (!empty($search)) {
-            $query->groupStart()
-                ->like('nama_konsumen', $search)
-                ->orLike('nama_jalan', $search)
-                ->orLike('no_kavling', $search)
-                ->groupEnd();
-        }
-
-        // $result = $this->if_where($var, $colum, $condition, $query);
-        $result = $query;
-
-        $result
-            ->offset($var['start'])
-            ->limit($var['length']);
-
-        // echo $result->getCompiledSelect();
-        // die();
-
-        $x = $result->get();
-
-
-
-        //count filtered
-        $countfiltered = $this->db->table("kavling")
-            ->select("kavling.*")
-            ->join('tipe', "tipe.id_tipe = kavling.id_tipe")
-            ->join('jalan', "jalan.id_jalan = kavling.id_jalan")
-            ->join('cluster', "jalan.id_cluster = cluster.id_cluster")
-            ->join('proyek', "proyek.id_proyek = cluster.id_proyek")
-
-            ->join('produksi', "kavling.id_produksi = produksi.id_produksi")
-            ->join('mkdt', "kavling.id_mkdt = mkdt.id_mkdt", "left")
-
-            ->join('users a', "produksi.add_by = a.id")
-            ->join('users b', "produksi.edit_by = b.id")
-
-            ->join('konsumen', "konsumen.id_konsumen = mkdt.id_konsumen", 'left');
-
-        if ($var['id_jalan'])
-            $countfiltered->where(["jalan.id_jalan" => $var['id_jalan']]);
-        elseif ($var['id_cluster'])
-            $countfiltered->where(["cluster.id_cluster" => $var['id_cluster']]);
-        else
-            $countfiltered->where(["proyek.id_proyek" => $var['id_proyek']]);
-
-        if (!empty($var['tgl_pembangunan'])) {
-            $dates = explode(' to ', $var['tgl_pembangunan']);
-            if (count($dates) == 2) {
-                $countfiltered->where('produksi.tanggal_pembangunan >=', $dates[0]);
-                $countfiltered->where('produksi.tanggal_pembangunan <=', $dates[1]);
-            } else {
-                $countfiltered->where('produksi.tanggal_pembangunan', $dates[0]);
-            }
-        }
-
-        if (!empty($var['tgl_selesai'])) {
-            $dates = explode(' to ', $var['tgl_selesai']);
-            if (count($dates) == 2) {
-                $countfiltered->where('produksi.tanggal_selesai_pembangunan >=', $dates[0]);
-                $countfiltered->where('produksi.tanggal_selesai_pembangunan <=', $dates[1]);
-            } else {
-                $countfiltered->where('produksi.tanggal_selesai_pembangunan', $dates[0]);
-            }
-        }
-
-        $countfiltered->where('produksi.progres_bangunan', 100);
-        $countfiltered->groupStart()
-            ->where('mkdt.status_mkdt', 'Batal')
-            ->orWhere('mkdt.status_mkdt IS NULL', null, false)
-            ->groupEnd();
-
-        // Jika ada parameter pencarian
-        $search = isset($var['search']['value']) ? $var['search']['value'] : '';
-        if (!empty($search)) {
-            $countfiltered->groupStart()
-                ->like('nama_konsumen', $search)
-                ->orLike('nama_jalan', $search)
-                ->orLike('no_kavling', $search)
-                ->groupEnd();
-        }
-
-        // $countTotal = $countfiltered;
-
-        // $countfiltered = $this->if_where($var, $colum, $condition, $countfiltered);
-        $data['recordsFiltered'] = count($countfiltered->get()->getResult());
-
-        //count total
-        $condition = [
-            "mkdt.status_mkdt " => "Batal",
-            "mkdt.status_mkdt " => null,
-            "produksi.progres_bangunan" => 100,
-            // "produksi.progres_bangunan" => 100,
-        ];
-        $countTotal = $this->db->table("kavling")
-            ->select("count(kavling.id_kavling) as count")
-            ->join('tipe', "tipe.id_tipe = kavling.id_tipe")
-            ->join('jalan', "jalan.id_jalan = kavling.id_jalan")
-            ->join('cluster', "jalan.id_cluster = cluster.id_cluster")
-            ->join('proyek', "proyek.id_proyek = cluster.id_proyek")
-
-            ->join('produksi', "kavling.id_produksi = produksi.id_produksi")
-            ->join('mkdt', "kavling.id_mkdt = mkdt.id_mkdt", "left")
-
-            ->join('users a', "produksi.add_by = a.id")
-            ->join('users b', "produksi.edit_by = b.id")
-
-            ->join('konsumen', "konsumen.id_konsumen = mkdt.id_konsumen", 'left');
-        // ->where($condition);
-        if ($var['id_jalan'])
-            $countTotal->where(["jalan.id_jalan" => $var['id_jalan']]);
-        elseif ($var['id_cluster'])
-            $countTotal->where(["cluster.id_cluster" => $var['id_cluster']]);
-        else
-            $countTotal->where(["proyek.id_proyek" => $var['id_proyek']]);
-
-        if (!empty($var['tgl_pembangunan'])) {
-            $dates = explode(' to ', $var['tgl_pembangunan']);
-            if (count($dates) == 2) {
-                $countTotal->where('produksi.tanggal_pembangunan >=', $dates[0]);
-                $countTotal->where('produksi.tanggal_pembangunan <=', $dates[1]);
-            } else {
-                $countTotal->where('produksi.tanggal_pembangunan', $dates[0]);
-            }
-        }
-
-        if (!empty($var['tgl_selesai'])) {
-            $dates = explode(' to ', $var['tgl_selesai']);
-            if (count($dates) == 2) {
-                $countTotal->where('produksi.tanggal_selesai_pembangunan >=', $dates[0]);
-                $countTotal->where('produksi.tanggal_selesai_pembangunan <=', $dates[1]);
-            } else {
-                $countTotal->where('produksi.tanggal_selesai_pembangunan', $dates[0]);
-            }
-        }
-
-        $countTotal->where('produksi.progres_bangunan', 100);
-        $countTotal->groupStart()
-            ->where('mkdt.status_mkdt', 'Batal')
-            ->orWhere('mkdt.status_mkdt IS NULL', null, false)
-            ->groupEnd();
-
-        // Jika ada parameter pencarian
-        $search = isset($var['search']['value']) ? $var['search']['value'] : '';
-        if (!empty($search)) {
-            $countTotal->groupStart()
-                ->like('nama_konsumen', $search)
-                ->orLike('nama_jalan', $search)
-                ->orLike('no_kavling', $search)
-                ->groupEnd();
-        }
-
-        // echo $countTotal->getCompiledSelect();die();
-
-        $data['recordsTotal'] = $countTotal->get()->getResult()[0]->count;
-
-
-
-        $data['draw'] = $var['draw'];
-
-        //looping data untuk datatable
-        $no = $var['start'];
-        foreach ($x->getResult() as $key => $v) {
-            $no++;
-            $row_data = (array) $v;
-            $row_data['no_index'] = $no;
-            $row_data['tanggal_pembangunan_formatted'] = $this->format_tgl($v->tanggal_pembangunan);
-            $row_data['tanggal_selesai_pembangunan_formatted'] = $this->format_tgl($v->tanggal_selesai_pembangunan);
-            $row_data['terakhir_diperbarui'] = $v->uedit_by . '<br>' . date_format(date_create($v->updated_at), "d-M-Y H:i");
-            
-            $data['data'][] = $row_data;
-        }
-
-        return $this->response->setJSON($data);
+        return $this->operationController->getListStock();
     }
 
+    /**
+     * @deprecated Legacy orphan public helper. No active callers; kept for Zero-Downtime observation.
+     */
     function if_where($var, $column, $condition, $query)
     {
+        log_message('warning', 'DEPRECATED_MKDT_HIT: ' . __METHOD__ . ' called by user ' . (function_exists('user_id') ? (user_id() ?? 'guest') : 'cli') . '.');
         $x = 0;
         foreach ($column as $i) {
             if ($x === 0) {
@@ -1802,6 +669,10 @@ class Mkdt extends BaseController
         }
         return $query;
     }
+
+    /**
+     * @deprecated Internal helper used only by deprecated save()/set_harga().
+     */
     protected function num($d)
     {
         $d = str_replace('.', "", $d);
@@ -1809,117 +680,53 @@ class Mkdt extends BaseController
 
         return $d;
     }
+
+    /**
+     * @deprecated Legacy orphan public helper. No active callers; kept for Zero-Downtime observation.
+     */
     function format_tgl($tgl)
     {
+        log_message('warning', 'DEPRECATED_MKDT_HIT: ' . __METHOD__ . ' called by user ' . (function_exists('user_id') ? (user_id() ?? 'guest') : 'cli') . '.');
         if ($tgl == "" || $tgl == "0000-00-00" || $tgl == null)
             return "-";
         return date_format(date_create($tgl), "d-M-Y");
     }
 
+    /**
+     * @deprecated Legacy orphan public helper. No active callers; kept for Zero-Downtime observation.
+     */
     function is_active($id, $texts, $textf)
     {
+        log_message('warning', 'DEPRECATED_MKDT_HIT: ' . __METHOD__ . ' called by user ' . (function_exists('user_id') ? (user_id() ?? 'guest') : 'cli') . '.');
         $r = '<span class="btn btn-primary btn-sm" text-capitalized="">' . $textf . '</span>';
         if ($id == "1")
             $r = '<span class="btn btn-success btn-sm" text-capitalized="">' . $texts . '</span>';
         return $r;
     }
 
+    /**
+     * @deprecated Legacy shim. Use App\Controllers\Api\Mkdt\MkdtOperationController::getSi().
+     */
     function getsi()
     {
-        $id_kavling = $this->request->getVar('id_kavling');
-
-
-        $r['token'] = csrf_hash();
-        $r['data'] = $this->db->table('list_si')
-            ->select('list_si.nama, list_si.id as id_list_si_ori, si.*, a.username as uadd_by, b.username as uedit_by')
-            ->join('si', 'si.id_list_si = list_si.id and id_kavling = ' . $this->db->escape($id_kavling), 'left')
-            ->join('users a', 'a.id = si.add_by', 'left')
-            ->join('users b', 'b.id = si.edit_by', 'left')
-            ->get()->getResult();
-        $r['data'] = $this->fileAccessService->addAccessUrlsToRows($r['data'], 'si');
-
-        return $this->response->setJSON($r);
+        return $this->operationController->getSi();
     }
 
+    /**
+     * @deprecated Legacy shim. Use App\Controllers\Api\Mkdt\MkdtOperationController::saveSi().
+     */
     function saveSI()
     {
-        $response['token'] = csrf_hash();
-        $id_si = $this->request->getVar('id-si');
-        $id_kavling = $this->request->getVar('id_kavling');
-        $savedItems = [];
-
-        foreach ($id_si as $i => $v) {
-            $data = [
-                'id_kavling' => $id_kavling,
-                'tanggal_si' => $v['tanggal_si'],
-                'keterangan' => $v['keterangan'],
-            ];
-
-            if ($v['tanggal_si'] != "") {
-                $file = $this->request->getFile('id-si-file-' . $i);
-                if ($file && $file->isValid() && !$file->hasMoved() && $file->getSize() > 0) {
-                    $name = $file->getRandomName();
-                    $lok = 'uploads/si/' . date('Ymd') . '/';
-
-                    $this->fileAccessService->storeAs($file, $lok, $name);
-
-                    $data['file'] = $lok . $name;
-                }
-
-                if (strpos($i, 'n') === false) {
-                    $data['edit_by'] = user_id();
-                    $data['updated_at'] = date("Y-m-d H:i:s");
-
-                    $q = $this->db->table('si')
-                        ->where(['id' => $i])
-                        ->update($data);
-                } else {
-                    $data['id_list_si'] = substr($i, 1);
-
-                    $data['add_by'] = user_id();
-                    $data['created_at'] = date("Y-m-d H:i:s");
-
-                    $q = $this->db->table('si')
-                        ->insert($data);
-                }
-
-                $listSiId = strpos($i, 'n') === false
-                    ? ($this->db->table('si')->select('id_list_si')->where('id', $i)->get()->getRow('id_list_si') ?? null)
-                    : substr($i, 1);
-                $listSi = $listSiId
-                    ? $this->db->table('list_si')->select('nama')->where('id', $listSiId)->get()->getRow()
-                    : null;
-
-                $savedItems[] = [
-                    'nama'       => $listSi->nama ?? 'SI',
-                    'tanggal_si' => $v['tanggal_si'],
-                    'keterangan' => $v['keterangan'] ?? '',
-                ];
-            }
-        }
-
-        if (!empty($savedItems)) {
-            $kavling = $this->kavlingModel->select('id_mkdt')->find($id_kavling);
-            $this->mkdtHistoryService->log(
-                (int) $id_kavling,
-                $kavling ? (int) ($kavling->id_mkdt ?? 0) ?: null : null,
-                MkdtHistoryService::ACTION_STANDING_INSTRUCTION,
-                $this->mkdtHistoryService->buildStandingInstructionSummary($savedItems),
-                null,
-                $savedItems,
-                user_id()
-            );
-        }
-
-        $response['success'] = true;
-        $response['messages'] = 'Data berhasil diperbaharui';
-
-        return $this->response->setJSON($response);
+        return $this->operationController->saveSi();
     }
 
     /******************************** export *******************************/
+    /**
+     * @deprecated Legacy endpoint. No modular target exists yet; kept for Zero-Downtime observation.
+     */
     public function export_xlsx()
     {
+        log_message('warning', 'DEPRECATED_MKDT_HIT: ' . __METHOD__ . ' called by user ' . (function_exists('user_id') ? (user_id() ?? 'guest') : 'cli') . '. No modular replacement yet.');
         $table = $this->request->getVar('table');
 
         // $spreadsheet = new Spreadsheet();

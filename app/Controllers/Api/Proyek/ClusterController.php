@@ -4,7 +4,6 @@ namespace App\Controllers\Api\Proyek;
 
 use App\Controllers\Api\BaseApiController;
 use App\Services\Proyek\ClusterService;
-use CodeIgniter\Exceptions\PageNotFoundException;
 
 class ClusterController extends BaseApiController
 {
@@ -17,70 +16,88 @@ class ClusterController extends BaseApiController
 
     public function getDataTable()
     {
-        $result = $this->clusterService->getDataTables((array) $this->request->getVar());
-        $result['token'] = csrf_hash();
+        $params = (array) $this->request->getVar();
+        $params['format'] = $params['format'] ?? 'raw';
+        $result = $this->clusterService->getDataTables($params);
 
-        return $this->respond($result);
+        return $this->success($result, 'Data cluster berhasil dimuat');
     }
 
     public function getAll()
     {
-        $result = $this->clusterService->getAll((array) $this->request->getVar());
+        $params = (array) $this->request->getVar();
+        $params['format'] = $params['format'] ?? 'raw';
+        $result = $this->clusterService->getAll($params);
 
-        return $this->respond([
-            'data'  => $result,
-            'token' => csrf_hash(),
-        ]);
+        return $this->success($result, 'Data cluster berhasil dimuat');
     }
 
-    public function getOne()
+    public function getOne($id = null)
     {
-        $id = (int) $this->request->getPost('id_cluster');
+        $id = (int) ($id ?: ($this->request->getVar('id_cluster') ?: $this->request->getVar('id')));
 
         if ($id <= 0) {
-            throw new PageNotFoundException();
+            return $this->error('ID cluster tidak valid', 400);
         }
 
         $data = $this->clusterService->getOne($id);
         if (!$data) {
-            throw new PageNotFoundException();
+            return $this->error('Cluster tidak ditemukan', 404);
         }
 
-        $data->token = csrf_hash();
-
-        return $this->respond($data);
+        return $this->success($data);
     }
 
     public function add()
     {
-        $result = $this->clusterService->add((array) $this->request->getPost());
-        $result['token'] = csrf_hash();
+        $result = $this->clusterService->add($this->getRequestData());
 
-        return $this->respond($result);
+        if (!($result['success'] ?? false)) {
+            return $this->error($result['messages'] ?? 'Gagal menambahkan cluster', 400);
+        }
+
+        return $this->successCreated($result, $result['messages'] ?? 'Cluster berhasil ditambahkan');
     }
 
     public function edit($id = null)
     {
-        $postData = (array) $this->request->getPost();
-        if ($id !== null && empty($postData['idCluster'])) {
+        $postData = $this->getRequestData();
+        if ($id !== null && empty($postData['idCluster']) && empty($postData['id_cluster'])) {
             $postData['idCluster'] = $id;
         }
         $result = $this->clusterService->edit($postData);
-        $result['token'] = csrf_hash();
 
-        return $this->respond($result);
+        if (!($result['success'] ?? false)) {
+            return $this->error($result['messages'] ?? 'Gagal memperbarui cluster', 400);
+        }
+
+        return $this->success($result, $result['messages'] ?? 'Cluster berhasil diperbarui');
     }
 
     public function remove()
     {
-        $id = (int) $this->request->getPost('id_cluster');
+        $data = $this->getRequestData();
+        $id = (int) ($this->request->getVar('id_cluster') ?: ($data['id_cluster'] ?? $data['idCluster'] ?? 0));
         if ($id <= 0) {
-            throw new PageNotFoundException();
+            return $this->error('ID cluster tidak valid', 400);
         }
 
         $result = $this->clusterService->remove($id);
-        $result['token'] = csrf_hash();
 
-        return $this->respond($result);
+        if (!($result['success'] ?? false)) {
+            return $this->error($result['messages'] ?? 'Gagal menghapus cluster', 400);
+        }
+
+        return $this->success($result, $result['messages'] ?? 'Cluster berhasil dihapus');
+    }
+
+    private function getRequestData(): array
+    {
+        $json = $this->request->getJSON(true);
+        if (!empty($json) && is_array($json)) {
+            return $json;
+        }
+
+        return (array) $this->request->getPost();
     }
 }

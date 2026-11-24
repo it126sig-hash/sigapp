@@ -1,5 +1,15 @@
 [
     {
+        "layer": "Controller",
+        "file": "ProyekController.php",
+        "name": "getAccessible"
+    },
+    {
+        "layer": "Controller",
+        "file": "AksesProyekController.php",
+        "name": "getAkses"
+    },
+    {
         "layer": "Service",
         "file": "ProyekService.php",
         "name": "add"
@@ -7,16 +17,6 @@
     {
         "layer": "Service",
         "file": "ProyekService.php",
-        "name": "remove"
-    },
-    {
-        "layer": "Service",
-        "file": "TipeService.php",
-        "name": "add"
-    },
-    {
-        "layer": "Service",
-        "file": "TipeService.php",
         "name": "remove"
     }
 ]

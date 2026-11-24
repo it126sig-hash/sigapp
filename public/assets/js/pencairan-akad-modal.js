@@ -180,54 +180,152 @@ function renderPencairanAkadRetensiPicker() {
   $("#pa-retensi-picker").html(options);
 }
 
-function paRetensiRowHtml(idItem, idListDajam, namaJaminan, nominal, catatan, isLocked) {
-  const disabled = isLocked ? "disabled" : "";
-  const removeBtn = isLocked
-    ? '<span class="badge badge-light-secondary">Terpakai di pengajuan</span>'
-    : `<button type="button" class="btn btn-outline-danger btn-sm" onclick="removePencairanAkadRetensiRow(this)"><i class="fas fa-trash"></i></button>`;
+function paItemStatusBadge(isLocked, sudahCair, sisa, idItem) {
+  if (isLocked) {
+    if (parseFloat(sudahCair || 0) > 0 && parseFloat(sisa || 0) <= 0.01) {
+      return '<span class="badge badge-success font-weight-bold">Cair</span>';
+    }
+    return '<span class="badge badge-warning font-weight-bold">Dalam Pengajuan</span>';
+  }
+  if (idItem) {
+    return '<span class="badge badge-light-secondary font-weight-bold">Belum Diajukan</span>';
+  }
+  return '<span class="badge badge-light-info font-weight-bold">Draft Baru</span>';
+}
+
+function paRetensiRowHtml(idItem, idListDajam, namaJaminan, nominal, catatan, isLocked, sudahCair, sisa) {
+  const isSaved = !!idItem;
+  const disabled = (isLocked || isSaved) ? "disabled" : "";
+  const statusBadge = paItemStatusBadge(isLocked, sudahCair, sisa, idItem);
+
+  let actionBtns = "";
+  if (isLocked) {
+    actionBtns = '<span class="badge badge-light-secondary">Terkunci</span>';
+  } else {
+    const editBtn = isSaved
+      ? '<button type="button" class="btn btn-outline-primary btn-sm btn-edit-retensi mr-25" title="Edit Retensi"><i class="fas fa-edit"></i></button>'
+      : '';
+    const removeBtn = '<button type="button" class="btn btn-outline-danger btn-sm" onclick="removePencairanAkadRetensiRow(this)" title="Hapus"><i class="fas fa-trash"></i></button>';
+    actionBtns = `<div class="d-inline-flex align-items-center">${editBtn}${removeBtn}</div>`;
+  }
 
   return `
-    <div class="form-row align-items-end pa-retensi-row mb-1" data-id="${idItem || ""}" data-id-list-dajam="${idListDajam}">
-      <div class="col-md-3">${paEscape(namaJaminan)}</div>
-      <div class="col-md-3">
-        <input type="text" class="form-control form-control-sm num pa-retensi-nominal" value="${nominal || 0}" placeholder="Nominal retensi" ${disabled}>
-      </div>
-      <div class="col-md-4">
+    <tr class="pa-retensi-row" data-id="${idItem || ""}" data-id-list-dajam="${idListDajam}">
+      <td class="font-weight-bold text-dark align-middle">${paEscape(namaJaminan)}</td>
+      <td>
+        <div class="input-group input-group-sm">
+          <div class="input-group-prepend"><span class="input-group-text">Rp</span></div>
+          <input type="text" class="form-control form-control-sm num pa-retensi-nominal text-right" value="${nominal || 0}" placeholder="Nominal retensi" ${disabled}>
+        </div>
+      </td>
+      <td>
         <input type="text" class="form-control form-control-sm pa-retensi-catatan" value="${paEscape(catatan || "")}" placeholder="Catatan" ${disabled}>
-      </div>
-      <div class="col-md-2">${removeBtn}</div>
-    </div>`;
+      </td>
+      <td class="align-middle">${statusBadge}</td>
+      <td class="text-center align-middle">${actionBtns}</td>
+    </tr>`;
+}
+
+function paRetensiTotalInForm() {
+  let total = 0;
+  $("#pa-retensi_here .pa-retensi-row .pa-retensi-nominal").each(function () {
+    total += parseFloat(String($(this).val() || "0").replace(/,/g, "")) || 0;
+  });
+  return total;
+}
+
+function paClampRetensiInput(el) {
+  const $input = $(el);
+  const accKpr = parseFloat((pencairanAkadState.mkdt || {}).harga_kpr_acc || 0);
+  const totalTenor = paTenorTotalInForm();
+  let otherRetensi = 0;
+  $("#pa-retensi_here .pa-retensi-row .pa-retensi-nominal").not($input).each(function () {
+    otherRetensi += parseFloat(String($(this).val() || "0").replace(/,/g, "")) || 0;
+  });
+  const maxAllowed = Math.max(0, accKpr - totalTenor - otherRetensi);
+  const current = parseFloat(String($input.val() || "0").replace(/,/g, "")) || 0;
+  if (current > maxAllowed + 0.01) {
+    $input.val(maxAllowed);
+    $input.keyup();
+  }
 }
 
 function addPencairanAkadRetensiRow() {
   const idListDajam = parseInt($("#pa-retensi-picker").val());
-  if (!idListDajam) return;
+  if (!idListDajam) {
+    return swal("warning", "Pilih Item", "Silakan pilih item jaminan retensi terlebih dahulu.");
+  }
 
   const d = pencairanAkadState.listDajam.find(function (x) { return parseInt(x.id) === idListDajam; });
   if (!d) return;
 
-  $("#pa-retensi_here").append(paRetensiRowHtml(null, idListDajam, d.nama_jaminan, 0, "", false));
+  const accKpr = parseFloat((pencairanAkadState.mkdt || {}).harga_kpr_acc || 0);
+  const currentRetensi = paRetensiTotalInForm();
+  const currentTenor = paTenorTotalInForm();
+
+  if (accKpr > 0 && (currentRetensi + currentTenor >= accKpr - 0.01)) {
+    return swal("warning", "Batas Maksimal Tercapai", "Total Retensi dan Pencairan Dana Akad Bersih sudah mencapai batas maksimal Plafon KPR (Rp " + paMoney(accKpr) + "). Tidak dapat menambahkan retensi baru.");
+  }
+
+  if ($("#pa-retensi_here tr.pa-retensi-row").length === 0) {
+    $("#pa-retensi_here").empty();
+  }
+
+  $("#pa-retensi_here").append(paRetensiRowHtml(null, idListDajam, d.nama_jaminan, 0, "", false, 0, 0));
   $("#pa-retensi_here .num").keyup();
   renderPencairanAkadRetensiPicker();
 }
 
 function removePencairanAkadRetensiRow(btn) {
   $(btn).closest(".pa-retensi-row").remove();
+  if ($("#pa-retensi_here tr.pa-retensi-row").length === 0) {
+    $("#pa-retensi_here").html('<tr><td colspan="5" class="text-center text-muted py-2">Belum ada item retensi. Pilih item dari dropdown lalu klik Tambah.</td></tr>');
+  }
   renderPencairanAkadRetensiPicker();
+}
+
+function serializeRetensiFormData() {
+  const rows = [];
+  $("#pa-retensi_here .pa-retensi-row").each(function () {
+    rows.push({
+      id: $(this).data("id") || "",
+      id_list_dajam: $(this).data("id-list-dajam") || "",
+      nominal: parseFloat(String($(this).find(".pa-retensi-nominal").val() || "0").replace(/,/g, "")),
+      catatan: $(this).find(".pa-retensi-catatan").val() || ""
+    });
+  });
+  return JSON.stringify(rows);
+}
+
+function isPencairanAkadRetensiDirty() {
+  if (!$("#pa-retensi-pane").length) return false;
+  const current = serializeRetensiFormData();
+  return pencairanAkadState.savedRetensiSnapshot !== undefined && current !== pencairanAkadState.savedRetensiSnapshot;
 }
 
 function renderPencairanAkadRetensi() {
   const retensi = paItemsByJenis("retensi");
   let html = "";
   retensi.forEach(function (item) {
-    html += paRetensiRowHtml(item.id, item.id_list_dajam, item.nama_jaminan, item.nominal, item.catatan, !!item.is_locked);
+    html += paRetensiRowHtml(item.id, item.id_list_dajam, item.nama_jaminan, item.nominal, item.catatan, !!item.is_locked, item.sudah_cair, item.sisa);
   });
-  $("#pa-retensi_here").html(html || '<p class="text-muted">Belum ada item retensi. Pilih item dari dropdown lalu klik Tambah.</p>');
+  $("#pa-retensi_here").html(html || '<tr><td colspan="5" class="text-center text-muted py-2">Belum ada item retensi. Pilih item dari dropdown lalu klik Tambah.</td></tr>');
   $("#pa-retensi_here .num").keyup();
   renderPencairanAkadRetensiPicker();
+  pencairanAkadState.savedRetensiSnapshot = serializeRetensiFormData();
 }
 
-function savePencairanAkadRetensi() {
+function savePencairanAkadRetensi(callback) {
+  const accKpr = parseFloat((pencairanAkadState.mkdt || {}).harga_kpr_acc || 0);
+  const totalRetensi = paRetensiTotalInForm();
+  const totalTenor = paTenorTotalInForm();
+
+  if (accKpr > 0 && totalRetensi + totalTenor > accKpr + 0.01) {
+    swal("error", "Validasi Gagal", "Total Retensi dan Pencairan Dana Akad Bersih (Rp " + paMoney(totalRetensi + totalTenor) + ") tidak boleh melebihi Plafon KPR (Rp " + paMoney(accKpr) + ").");
+    if (typeof callback === "function") callback(false);
+    return;
+  }
+
   const retensi = [];
   $("#pa-retensi_here .pa-retensi-row").each(function () {
     retensi.push({
@@ -257,43 +355,218 @@ function savePencairanAkadRetensi() {
       if (r.success === true) {
         swal("success", r.messages || r.message || "Retensi berhasil disimpan");
         loadPencairanAkadData(false);
+        if (typeof callback === "function") callback(true);
       } else {
         swal("error", "Terjadi kesalahan", r.messages || r.message || "Terjadi kesalahan");
+        if (typeof callback === "function") callback(false);
       }
     },
     error: function () {
       $("#loading").addClass("hidden");
       swal("error", "Terjadi kesalahan", "Retensi gagal disimpan");
+      if (typeof callback === "function") callback(false);
     },
   });
 }
 
-function paTenorRowHtml(idItem, nominal, catatan, isLocked) {
-  const disabled = isLocked ? "disabled" : "";
-  const removeBtn = isLocked
-    ? '<span class="badge badge-light-secondary">Terpakai di pengajuan</span>'
-    : `<button type="button" class="btn btn-outline-danger btn-sm" onclick="removePencairanAkadTenorRow(this)"><i class="fas fa-trash"></i></button>`;
+function paTenorRowHtml(idItem, nominal, catatan, isLocked, sudahCair, sisa) {
+  const isSaved = !!idItem;
+  const disabled = (isLocked || isSaved) ? "disabled" : "";
+  const statusBadge = paItemStatusBadge(isLocked, sudahCair, sisa, idItem);
+
+  let actionBtns = "";
+  if (isLocked) {
+    actionBtns = '<span class="badge badge-light-secondary">Terkunci</span>';
+  } else {
+    const editBtn = isSaved
+      ? '<button type="button" class="btn btn-outline-primary btn-sm btn-edit-tenor mr-25" title="Edit Termin"><i class="fas fa-edit"></i></button>'
+      : '';
+    const removeBtn = '<button type="button" class="btn btn-outline-danger btn-sm" onclick="removePencairanAkadTenorRow(this)" title="Hapus"><i class="fas fa-trash"></i></button>';
+    actionBtns = `<div class="d-inline-flex align-items-center">${editBtn}${removeBtn}</div>`;
+  }
 
   return `
-    <div class="form-row align-items-end pa-tenor-row mb-1" data-id="${idItem || ""}">
-      <div class="col-md-4">
-        <input type="text" class="form-control form-control-sm num pa-tenor-nominal" value="${nominal || 0}" placeholder="Nominal termin" ${disabled}>
-      </div>
-      <div class="col-md-5">
+    <tr class="pa-tenor-row" data-id="${idItem || ""}">
+      <td>
+        <div class="input-group input-group-sm">
+          <div class="input-group-prepend"><span class="input-group-text">Rp</span></div>
+          <input type="text" class="form-control form-control-sm num pa-tenor-nominal text-right" value="${nominal || 0}" placeholder="Nominal termin" ${disabled}>
+        </div>
+      </td>
+      <td>
         <input type="text" class="form-control form-control-sm pa-tenor-catatan" value="${paEscape(catatan || "")}" placeholder="Catatan termin" ${disabled}>
-      </div>
-      <div class="col-md-3">${removeBtn}</div>
-    </div>`;
+      </td>
+      <td class="align-middle">${statusBadge}</td>
+      <td class="text-center align-middle">${actionBtns}</td>
+    </tr>`;
+}
+
+function serializeTenorFormData() {
+  const rows = [];
+  $("#pa-tenor_here .pa-tenor-row").each(function () {
+    rows.push({
+      id: $(this).data("id") || "",
+      nominal: parseFloat(String($(this).find(".pa-tenor-nominal").val() || "0").replace(/,/g, "")),
+      catatan: $(this).find(".pa-tenor-catatan").val() || ""
+    });
+  });
+  return JSON.stringify(rows);
+}
+
+function isPencairanAkadTenorDirty() {
+  if (!$("#pa-tenor-pane").length) return false;
+  const current = serializeTenorFormData();
+  return pencairanAkadState.savedTenorSnapshot !== undefined && current !== pencairanAkadState.savedTenorSnapshot;
+}
+
+function getPencairanAkadTenorSisa() {
+  const hasilAkad = paHasilAkadValue();
+  return hasilAkad - paTenorTotalInForm();
 }
 
 function addPencairanAkadTenorRow() {
-  $("#pa-tenor_here").append(paTenorRowHtml(null, 0, "", false));
-  $("#pa-tenor_here .num").keyup();
-  updatePencairanAkadTenorSisa();
+  const hasilAkad = paHasilAkadValue();
+  if (hasilAkad <= 0) {
+    return swal("warning", "Peringatan", "Dana Akad Bersih belum tersedia atau Rp 0.");
+  }
+  const sisa = getPencairanAkadTenorSisa();
+  if (sisa <= 0.01) {
+    return swal("warning", "Sisa Tagihan Habis", "Sisa Dana Akad Bersih sudah Rp 0. Tidak dapat menambahkan termin baru.");
+  }
+
+  showPencairanAkadTenorBreakdownModal();
+}
+
+function showPencairanAkadTenorBreakdownModal() {
+  const hasilAkad = paHasilAkadValue();
+  const n30 = Math.round(hasilAkad * 0.3);
+  const n60 = Math.round(hasilAkad * 0.6);
+  const n10 = Math.max(0, hasilAkad - n30 - n60);
+
+  const html = `
+    <div class="text-left py-50">
+      <div class="alert alert-light-primary p-1 mb-2">
+        <div class="d-flex justify-content-between align-items-center">
+          <span class="text-muted font-weight-bold" style="font-size: 0.8rem;">Dana Akad Bersih:</span>
+          <strong class="text-primary font-weight-bolder" style="font-size: 1rem;">${paRp(hasilAkad)}</strong>
+        </div>
+      </div>
+      <p class="text-muted mb-1" style="font-size: 0.84rem;">Pilih metode pembagian termin pencairan dana akad bersih:</p>
+      <div class="list-group">
+        <button type="button" class="list-group-item list-group-item-action d-flex align-items-center p-1 mb-75 border rounded btn-choose-breakdown" data-type="30-60-10">
+          <div class="mr-1 text-primary" style="font-size: 1.4rem;"><i class="fas fa-layer-group"></i></div>
+          <div class="flex-grow-1">
+            <strong class="text-dark d-block">30%, 60%, 10%</strong>
+            <small class="text-muted d-block">Otomatis 3 termin (${paRp(n30)}, ${paRp(n60)}, ${paRp(n10)})</small>
+          </div>
+          <span class="badge badge-light-primary badge-pill">3 Termin</span>
+        </button>
+        <button type="button" class="list-group-item list-group-item-action d-flex align-items-center p-1 mb-75 border rounded btn-choose-breakdown" data-type="100">
+          <div class="mr-1 text-success" style="font-size: 1.4rem;"><i class="fas fa-check-circle"></i></div>
+          <div class="flex-grow-1">
+            <strong class="text-dark d-block">Pencairan Sekaligus 100%</strong>
+            <small class="text-muted d-block">Otomatis 1 termin penuh (${paRp(hasilAkad)})</small>
+          </div>
+          <span class="badge badge-light-success badge-pill">1 Termin</span>
+        </button>
+        <button type="button" class="list-group-item list-group-item-action d-flex align-items-center p-1 border rounded btn-choose-breakdown" data-type="manual">
+          <div class="mr-1 text-secondary" style="font-size: 1.4rem;"><i class="fas fa-edit"></i></div>
+          <div class="flex-grow-1">
+            <strong class="text-dark d-block">Manual</strong>
+            <small class="text-muted d-block">Tambah baris termin kosong untuk diisi manual</small>
+          </div>
+          <span class="badge badge-light-secondary badge-pill">Manual</span>
+        </button>
+      </div>
+    </div>
+  `;
+
+  Swal.fire({
+    title: '<strong>Pilih Breakdown Termin</strong>',
+    html: html,
+    showConfirmButton: false,
+    showCancelButton: true,
+    cancelButtonText: 'Batal',
+    cancelButtonColor: '#82868b',
+    didOpen: function () {
+      $('.btn-choose-breakdown').on('click', function () {
+        const type = String($(this).data('type'));
+        Swal.close();
+        applyPencairanAkadTenorBreakdown(type);
+      });
+    }
+  });
+}
+
+function applyPencairanAkadTenorBreakdown(type) {
+  const typeStr = String(type);
+  const hasilAkad = paHasilAkadValue();
+
+  if (typeStr === 'manual') {
+    if (getPencairanAkadTenorSisa() <= 0.01) {
+      return swal("warning", "Sisa Tagihan Habis", "Sisa Dana Akad Bersih sudah Rp 0.");
+    }
+    if ($("#pa-tenor_here tr.pa-tenor-row").length === 0) {
+      $("#pa-tenor_here").empty();
+    }
+    $("#pa-tenor_here").append(paTenorRowHtml(null, 0, "", false, 0, 0));
+    $("#pa-tenor_here .num").keyup();
+    updatePencairanAkadTenorSisa();
+    return;
+  }
+
+  const hasLocked = $("#pa-tenor_here .pa-tenor-row").filter(function () {
+    return $(this).find(".pa-tenor-nominal").prop("disabled") && $(this).data("id");
+  }).length > 0 && pencairanAkadState.items.some(function (i) { return i.jenis === "tenor" && i.is_locked; });
+
+  if (hasLocked) {
+    return swal("warning", "Termin Terkunci", "Sebagian termin sudah diajukan ke bank dan tidak dapat diubah otomatis dengan template. Silakan gunakan opsi Manual.");
+  }
+
+  const existingRowsCount = $("#pa-tenor_here tr.pa-tenor-row").length;
+
+  function doApply() {
+    $("#pa-tenor_here").empty();
+    if (typeStr === '30-60-10') {
+      const n30 = Math.round(hasilAkad * 0.3);
+      const n60 = Math.round(hasilAkad * 0.6);
+      const n10 = Math.max(0, hasilAkad - n30 - n60);
+
+      $("#pa-tenor_here").append(paTenorRowHtml(null, n30, "30%", false, 0, n30));
+      $("#pa-tenor_here").append(paTenorRowHtml(null, n60, "60%", false, 0, n60));
+      $("#pa-tenor_here").append(paTenorRowHtml(null, n10, "10%", false, 0, n10));
+    } else if (typeStr === '100') {
+      $("#pa-tenor_here").append(paTenorRowHtml(null, hasilAkad, "100%", false, 0, hasilAkad));
+    }
+    $("#pa-tenor_here .num").keyup();
+    updatePencairanAkadTenorSisa();
+  }
+
+  if (existingRowsCount > 0) {
+    Swal.fire({
+      title: 'Konfirmasi Template',
+      text: 'Daftar termin saat ini akan digantikan dengan template baru. Lanjutkan?',
+      icon: 'question',
+      showCancelButton: true,
+      confirmButtonText: 'Ya, Terapkan',
+      cancelButtonText: 'Batal',
+      confirmButtonColor: '#2057a3',
+      cancelButtonColor: '#82868b'
+    }).then(function (result) {
+      if (result.isConfirmed) {
+        doApply();
+      }
+    });
+  } else {
+    doApply();
+  }
 }
 
 function removePencairanAkadTenorRow(btn) {
   $(btn).closest(".pa-tenor-row").remove();
+  if ($("#pa-tenor_here tr.pa-tenor-row").length === 0) {
+    $("#pa-tenor_here").html('<tr><td colspan="4" class="text-center text-muted py-2">Belum ada termin. Klik Tambah Termin.</td></tr>');
+  }
   updatePencairanAkadTenorSisa();
 }
 
@@ -301,11 +574,12 @@ function renderPencairanAkadTenor() {
   const tenor = paItemsByJenis("tenor");
   let html = "";
   tenor.forEach(function (item) {
-    html += paTenorRowHtml(item.id, item.nominal, item.catatan, !!item.is_locked);
+    html += paTenorRowHtml(item.id, item.nominal, item.catatan, !!item.is_locked, item.sudah_cair, item.sisa);
   });
-  $("#pa-tenor_here").html(html || '<p class="text-muted">Belum ada termin. Klik Tambah Termin.</p>');
+  $("#pa-tenor_here").html(html || '<tr><td colspan="4" class="text-center text-muted py-2">Belum ada termin. Klik Tambah Termin.</td></tr>');
   $("#pa-tenor_here .num").keyup();
   updatePencairanAkadTenorSisa();
+  pencairanAkadState.savedTenorSnapshot = serializeTenorFormData();
 }
 
 function paTenorTotalInForm() {
@@ -369,9 +643,170 @@ $(document).on("keyup change", "#pa-tenor_here .pa-tenor-nominal", function () {
   updatePencairanAkadTenorSisa();
 });
 
-function savePencairanAkadTenor() {
+$(document).on("keyup change", "#pa-retensi_here .pa-retensi-nominal", function () {
+  paClampRetensiInput(this);
+});
+
+$(document).on("click", ".btn-edit-tenor", function () {
+  const $row = $(this).closest(".pa-tenor-row");
+  $row.find(".pa-tenor-nominal, .pa-tenor-catatan").prop("disabled", false);
+  $row.find(".pa-tenor-nominal").focus();
+  $(this).removeClass("btn-outline-primary").addClass("btn-primary").prop("disabled", true);
+});
+
+$(document).on("click", ".btn-edit-retensi", function () {
+  const $row = $(this).closest(".pa-retensi-row");
+  $row.find(".pa-retensi-nominal, .pa-retensi-catatan").prop("disabled", false);
+  $row.find(".pa-retensi-nominal").focus();
+  $(this).removeClass("btn-outline-primary").addClass("btn-primary").prop("disabled", true);
+});
+
+let paTabSwitchingConfirmed = false;
+$(document).on("show.bs.tab", "#pencairan_akad_modal .nav-tabs a[data-toggle='tab']", function (e) {
+  if (paTabSwitchingConfirmed) {
+    paTabSwitchingConfirmed = false;
+    return;
+  }
+
+  const activeTabHref = $("#pencairan_akad_modal .nav-tabs .nav-link.active").attr("href");
+  const targetTab = $(this);
+  const targetHref = targetTab.attr("href");
+
+  if (activeTabHref === "#pa-tenor-pane" && targetHref !== "#pa-tenor-pane" && isPencairanAkadTenorDirty()) {
+    e.preventDefault();
+
+    Swal.fire({
+      title: 'Data Belum Disimpan',
+      text: 'Anda memiliki perubahan breakdown termin yang belum disimpan. Ingin menyimpan data ini?',
+      icon: 'warning',
+      showDenyButton: true,
+      showCancelButton: true,
+      confirmButtonText: '<i class="fas fa-save mr-25"></i> Simpan',
+      denyButtonText: '<i class="fas fa-undo mr-25"></i> Batalkan',
+      cancelButtonText: 'Tetap di Sini',
+      confirmButtonColor: '#2057a3',
+      denyButtonColor: '#ea5455',
+      cancelButtonColor: '#82868b'
+    }).then(function (result) {
+      if (result.isConfirmed) {
+        savePencairanAkadTenor(function (success) {
+          if (success) {
+            paTabSwitchingConfirmed = true;
+            targetTab.tab("show");
+          }
+        });
+      } else if (result.isDenied) {
+        renderPencairanAkadTenor();
+        paTabSwitchingConfirmed = true;
+        targetTab.tab("show");
+      }
+    });
+  } else if (activeTabHref === "#pa-retensi-pane" && targetHref !== "#pa-retensi-pane" && isPencairanAkadRetensiDirty()) {
+    e.preventDefault();
+
+    Swal.fire({
+      title: 'Data Belum Disimpan',
+      text: 'Anda memiliki perubahan item retensi yang belum disimpan. Ingin menyimpan data ini?',
+      icon: 'warning',
+      showDenyButton: true,
+      showCancelButton: true,
+      confirmButtonText: '<i class="fas fa-save mr-25"></i> Simpan',
+      denyButtonText: '<i class="fas fa-undo mr-25"></i> Batalkan',
+      cancelButtonText: 'Tetap di Sini',
+      confirmButtonColor: '#2057a3',
+      denyButtonColor: '#ea5455',
+      cancelButtonColor: '#82868b'
+    }).then(function (result) {
+      if (result.isConfirmed) {
+        savePencairanAkadRetensi(function (success) {
+          if (success) {
+            paTabSwitchingConfirmed = true;
+            targetTab.tab("show");
+          }
+        });
+      } else if (result.isDenied) {
+        renderPencairanAkadRetensi();
+        paTabSwitchingConfirmed = true;
+        targetTab.tab("show");
+      }
+    });
+  }
+});
+
+let paModalCloseConfirmed = false;
+$(document).on("hide.bs.modal", "#pencairan_akad_modal", function (e) {
+  if (paModalCloseConfirmed) {
+    paModalCloseConfirmed = false;
+    return;
+  }
+
+  const activeTabHref = $("#pencairan_akad_modal .nav-tabs .nav-link.active").attr("href");
+  if (activeTabHref === "#pa-tenor-pane" && isPencairanAkadTenorDirty()) {
+    e.preventDefault();
+
+    Swal.fire({
+      title: 'Data Belum Disimpan',
+      text: 'Anda memiliki perubahan breakdown termin yang belum disimpan. Ingin menyimpan data sebelum menutup?',
+      icon: 'warning',
+      showDenyButton: true,
+      showCancelButton: true,
+      confirmButtonText: '<i class="fas fa-save mr-25"></i> Simpan',
+      denyButtonText: '<i class="fas fa-trash-alt mr-25"></i> Batalkan & Tutup',
+      cancelButtonText: 'Tetap di Sini',
+      confirmButtonColor: '#2057a3',
+      denyButtonColor: '#ea5455',
+      cancelButtonColor: '#82868b'
+    }).then(function (result) {
+      if (result.isConfirmed) {
+        savePencairanAkadTenor(function (success) {
+          if (success) {
+            paModalCloseConfirmed = true;
+            $("#pencairan_akad_modal").modal("hide");
+          }
+        });
+      } else if (result.isDenied) {
+        renderPencairanAkadTenor();
+        paModalCloseConfirmed = true;
+        $("#pencairan_akad_modal").modal("hide");
+      }
+    });
+  } else if (activeTabHref === "#pa-retensi-pane" && isPencairanAkadRetensiDirty()) {
+    e.preventDefault();
+
+    Swal.fire({
+      title: 'Data Belum Disimpan',
+      text: 'Anda memiliki perubahan item retensi yang belum disimpan. Ingin menyimpan data sebelum menutup?',
+      icon: 'warning',
+      showDenyButton: true,
+      showCancelButton: true,
+      confirmButtonText: '<i class="fas fa-save mr-25"></i> Simpan',
+      denyButtonText: '<i class="fas fa-trash-alt mr-25"></i> Batalkan & Tutup',
+      cancelButtonText: 'Tetap di Sini',
+      confirmButtonColor: '#2057a3',
+      denyButtonColor: '#ea5455',
+      cancelButtonColor: '#82868b'
+    }).then(function (result) {
+      if (result.isConfirmed) {
+        savePencairanAkadRetensi(function (success) {
+          if (success) {
+            paModalCloseConfirmed = true;
+            $("#pencairan_akad_modal").modal("hide");
+          }
+        });
+      } else if (result.isDenied) {
+        renderPencairanAkadRetensi();
+        paModalCloseConfirmed = true;
+        $("#pencairan_akad_modal").modal("hide");
+      }
+    });
+  }
+});
+
+function savePencairanAkadTenor(callback) {
   if (paTenorTotalInForm() > paHasilAkadValue() + 0.01) {
-    return swal("error", "Terjadi kesalahan", "Total termin tidak boleh melebihi dana akad bersih");
+    swal("error", "Terjadi kesalahan", "Total termin tidak boleh melebihi dana akad bersih");
+    if (typeof callback === "function") callback(false);
+    return;
   }
 
   const tenor = [];
@@ -402,13 +837,16 @@ function savePencairanAkadTenor() {
       if (r.success === true) {
         swal("success", r.messages || r.message || "Termin berhasil disimpan");
         loadPencairanAkadData(false);
+        if (typeof callback === "function") callback(true);
       } else {
         swal("error", "Terjadi kesalahan", r.messages || r.message || "Terjadi kesalahan");
+        if (typeof callback === "function") callback(false);
       }
     },
     error: function () {
       $("#loading").addClass("hidden");
       swal("error", "Terjadi kesalahan", "Termin gagal disimpan");
+      if (typeof callback === "function") callback(false);
     },
   });
 }

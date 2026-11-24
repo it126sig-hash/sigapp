@@ -1,4 +1,4 @@
 interface:
   display_name: "SIGAPP UI Acuan"
-  short_description: "Standar UI modal, tab, dan file SIGAPP"
-  default_prompt: "Use $sigapp-ui-acuan to update SIGAPP UI while following the modal detail, divider, mobile tab, and FileAccessService rules."
+  short_description: "Standar desain UI, komponen visual, dan arsitektur CSS/JS SIGAPP"
+  default_prompt: "Use $sigapp-ui-acuan to build or update SIGAPP UI with consistent visual tokens (#2057a3), external module CSS using filemtime(), standard page/modal archetypes, divider-left headers, mobile one-line tabs, and FileAccessService URLs."

@@ -305,6 +305,23 @@ function keuNormalizeText(value) {
   return String(value || "").toLowerCase();
 }
 
+function keuFormatDate(value) {
+  if (!value) return "-";
+  const datePart = String(value).trim().split(" ")[0];
+  if (!datePart) return "-";
+  return typeof format_date === "function" ? (format_date(datePart) || datePart) : datePart;
+}
+
+function keuFormatDateTime(value) {
+  if (!value) return "-";
+  const raw = String(value).trim();
+  if (!raw) return "-";
+  if (raw.indexOf(" ") !== -1 && typeof format_datetime === "function") {
+    return format_datetime(raw) || raw;
+  }
+  return keuFormatDate(raw);
+}
+
 function keuCanAllocateItem(item) {
   const bookingItem = keuNormalizeText(item?.kategori) === "bo" || keuNormalizeText(item?.item).includes("booking");
   return !(bookingItem && (keuToNumber(keu_booking?.nominal_mkdt) > 0 || keu_booking?.is_verified));
@@ -318,31 +335,202 @@ function renderBookingFee(booking) {
     ? '<span class="badge badge-success">Terverifikasi</span>'
     : '<span class="badge badge-warning">Belum diverifikasi</span>';
   const promo = booking.is_promo ? '<span class="badge badge-info ml-25">Promo MKDT Rp0</span>' : '';
-  const verifyButton = booking.is_verified ? '' : '<button type="button" class="btn btn-primary btn-sm" title="Verifikasi Booking Fee" onclick="verifyBookingFee()"><i class="fas fa-check-circle mr-25"></i> Verifikasi</button>';
+  const verifyButton = booking.is_verified
+    ? ''
+    : '<button type="button" class="btn btn-primary btn-sm" title="Verifikasi Booking Fee" onclick="verifyBookingFee()"><i class="fas fa-check-circle"></i> Verifikasi</button>';
+  const unverifyButton = booking.can_unverify === true
+    ? '<button type="button" class="btn btn-outline-danger btn-sm" title="Batalkan Verifikasi Booking Fee" onclick="unverifyBookingFee()"><i class="fas fa-undo-alt"></i> Batalkan Verifikasi</button>'
+    : '';
+  const verifiedMeta = booking.is_verified
+    ? `<div class="booking-fee-verified-meta">
+        <span><i class="fas fa-user-check mr-25"></i> Diverifikasi oleh <strong>${keuEscapeHtml(booking.verified_by_name || "-")}</strong></span>
+        <span><i class="far fa-clock mr-25"></i> ${keuEscapeHtml(keuFormatDateTime(booking.verified_at))}</span>
+      </div>`
+    : '';
+  const lockNote = (booking.is_verified && booking.unverify_blocked_reason)
+    ? `<div class="booking-fee-lock-note"><i class="fas fa-lock"></i><span>${keuEscapeHtml(booking.unverify_blocked_reason)}</span></div>`
+    : '';
   const rows = Array.isArray(booking.history) ? booking.history : [];
+  const fallbackActions = `${verifyButton}${unverifyButton}`;
   const history = rows.length ? rows.map((row, index) => `
     <div class="booking-fee-history-row">
-      <span><strong>#${keuEscapeHtml(row.id_pembayaran)}</strong> &middot; ${format_date(row.tanggal_bayar)} &middot; Rp ${num_format(keuToNumber(row.nominal))}${row.is_installment ? ' <span class="badge badge-light">bagian angsuran</span>' : ''}</span>
+      <span><strong>#${keuEscapeHtml(row.id_pembayaran)}</strong> &middot; ${keuEscapeHtml(keuFormatDate(row.tanggal_bayar))} &middot; Rp ${num_format(keuToNumber(row.nominal))}${row.is_installment ? ' <span class="badge badge-light">bagian angsuran</span>' : ''}</span>
       <div class="booking-fee-history-actions">
         ${index === 0 ? verifyButton : ''}
-        <button type="button" class="btn btn-outline-primary btn-sm" onclick="printBookingReceipt('${row.id_pembayaran}')"><i class="fa fa-print"></i> Kuitansi Booking</button>
+        ${index === 0 ? unverifyButton : ''}
+        <button type="button" class="btn btn-outline-primary btn-sm" onclick="printBookingReceipt('${keuEscapeAttribute(row.id_pembayaran)}')"><i class="fa fa-print"></i> Kuitansi Booking</button>
       </div>
     </div>`).join('') : `
     <div class="booking-fee-history-row">
       <span class="text-muted small">Promo Rp0 tanpa penerimaan booking terpisah.</span>
-      ${verifyButton ? `<div class="booking-fee-history-actions">${verifyButton}</div>` : ''}
+      ${fallbackActions ? `<div class="booking-fee-history-actions">${fallbackActions}</div>` : ''}
     </div>`;
   target.html(`
     <div class="booking-fee-card">
       <h5 class="text-primary font-weight-bold mb-75">Booking Fee</h5>
       <div class="booking-fee-grid">
         <div><span class="booking-fee-label">Nominal</span><span class="booking-fee-value">Rp ${num_format(keuToNumber(booking.nominal))}</span></div>
-        <div><span class="booking-fee-label">Tanggal</span><span class="booking-fee-value">${booking.tanggal ? format_date(booking.tanggal) : '-'}</span></div>
+        <div><span class="booking-fee-label">Tanggal</span><span class="booking-fee-value">${keuEscapeHtml(keuFormatDate(booking.tanggal))}</span></div>
         <div><span class="booking-fee-label">Pembayaran</span><span class="badge badge-success">Sudah dibayar</span></div>
         <div><span class="booking-fee-label">Verifikasi</span>${verified}${promo}</div>
       </div>
+      ${verifiedMeta}
+      ${lockNote}
       <div class="booking-fee-history"><strong class="small">Riwayat Booking Fee</strong>${history}</div>
     </div>`);
+}
+
+function syncTagihanViewsAfterBookingChange() {
+  if (typeof window.refreshTagihanList === "function") {
+    window.refreshTagihanList(true);
+    return;
+  }
+  if (window.BookingVerifiedTab && typeof window.BookingVerifiedTab.reload === "function") {
+    window.BookingVerifiedTab.reload();
+  }
+}
+
+window.confirmUnverifyBookingFee = function (options) {
+  if (!options || !options.id_mkdt) return;
+  const namaKonsumen = keuEscapeHtml(options.nama_konsumen || "-");
+  const nominalText = "Rp " + num_format(keuToNumber(options.nominal));
+  const tanggalText = keuEscapeHtml(keuFormatDate(options.tanggal));
+  const promoBadge = options.is_promo ? ' <span class="badge badge-info ml-25">Promo Rp 0</span>' : '';
+
+  Swal.fire({
+    title: "Batalkan Verifikasi Booking Fee?",
+    icon: "warning",
+    html: `
+      <div class="text-left">
+        <div class="border rounded p-1 mb-1 bg-light">
+          <div class="d-flex justify-content-between mb-25">
+            <span class="text-muted small font-weight-bold">Konsumen</span>
+            <span class="font-weight-bold text-dark small text-right">${namaKonsumen}</span>
+          </div>
+          <div class="d-flex justify-content-between mb-25">
+            <span class="text-muted small font-weight-bold">Nominal Booking</span>
+            <span class="font-weight-bold text-primary small text-right">${keuEscapeHtml(nominalText)}${promoBadge}</span>
+          </div>
+          <div class="d-flex justify-content-between">
+            <span class="text-muted small font-weight-bold">Tanggal Booking</span>
+            <span class="font-weight-bold text-dark small text-right">${tanggalText}</span>
+          </div>
+        </div>
+        <div class="alert alert-warning py-75 px-1 mb-1 small">
+          <i class="fas fa-exclamation-triangle mr-25"></i>
+          Pembatalan ini hanya membuka kunci verifikasi agar data booking fee dapat dikoreksi atau diverifikasi ulang, tanpa menghapus penerimaan kas yang sudah tercatat.
+        </div>
+        <div class="form-group mb-0">
+          <label for="booking-unverify-reason" class="font-weight-bold small mb-25">Alasan Pembatalan Verifikasi <span class="text-danger">*</span></label>
+          <textarea id="booking-unverify-reason" class="form-control" rows="3" maxlength="500" placeholder="Tuliskan alasan pembatalan verifikasi..."></textarea>
+          <small class="text-muted d-block mt-25">Wajib diisi 3–500 karakter.</small>
+        </div>
+      </div>`,
+    showCancelButton: true,
+    confirmButtonText: '<i class="fas fa-undo-alt mr-25"></i> Ya, Batalkan Verifikasi',
+    cancelButtonText: "Tutup",
+    confirmButtonColor: "#dc2626",
+    focusConfirm: false,
+    showLoaderOnConfirm: true,
+    allowOutsideClick: function () {
+      return !Swal.isLoading();
+    },
+    didOpen: function (popup) {
+      const textarea = popup ? popup.querySelector("#booking-unverify-reason") : null;
+      if (textarea) {
+        textarea.addEventListener("input", function () {
+          Swal.resetValidationMessage();
+        });
+        textarea.focus();
+      }
+    },
+    preConfirm: function () {
+      const popup = Swal.getPopup();
+      const inputEl = popup ? popup.querySelector("#booking-unverify-reason") : null;
+      const reason = (inputEl ? inputEl.value : "").trim();
+      if (reason.length < 3) {
+        Swal.showValidationMessage("Alasan pembatalan verifikasi wajib diisi minimal 3 karakter.");
+        return false;
+      }
+      if (reason.length > 500) {
+        Swal.showValidationMessage("Alasan pembatalan verifikasi maksimal 500 karakter.");
+        return false;
+      }
+
+      return new Promise(function (resolve) {
+        $.ajax({
+          url: base_url + "api/tagihan/booking/batal-verifikasi",
+          type: "post",
+          dataType: "json",
+          data: {
+            [csrfName]: csrfHash,
+            id_mkdt: options.id_mkdt,
+            reason: reason,
+          },
+          success: function (response) {
+            if (response && response.token) {
+              csrfHash = response.token;
+            }
+            resolve({
+              ok: !!(response && response.success === true),
+              response: response || {},
+            });
+          },
+          error: function (xhr) {
+            const response = xhr && xhr.responseJSON ? xhr.responseJSON : {};
+            if (response.token) {
+              csrfHash = response.token;
+            }
+            resolve({
+              ok: false,
+              response: response,
+            });
+          },
+        });
+      });
+    },
+  }).then(function (result) {
+    if (!result.isConfirmed || !result.value) return;
+    const payload = result.value;
+    const response = payload.response || {};
+    if (payload.ok) {
+      if (typeof options.onSuccess === "function") {
+        options.onSuccess(response.data);
+      }
+      syncTagihanViewsAfterBookingChange();
+      Swal.fire({
+        icon: "success",
+        title: "Berhasil",
+        text: response.messages || "Verifikasi booking fee berhasil dibatalkan.",
+        timer: 1600,
+        showConfirmButton: false,
+      });
+    } else {
+      Swal.fire({
+        icon: "error",
+        title: "Gagal",
+        text: response.messages || "Pembatalan verifikasi booking fee gagal.",
+      });
+    }
+  });
+};
+
+function unverifyBookingFee() {
+  if (!keu_current_id_mkdt || !keu_booking) return;
+  const namaKonsumen = $("#fm-bayar-label_konsumen").text().trim();
+  window.confirmUnverifyBookingFee({
+    id_mkdt: keu_current_id_mkdt,
+    nama_konsumen: namaKonsumen || "-",
+    nominal: keu_booking.nominal,
+    tanggal: keu_booking.tanggal,
+    is_promo: keu_booking.is_promo,
+    onSuccess: function (updatedBooking) {
+      if (updatedBooking) {
+        renderBookingFee(updatedBooking);
+      }
+      refreshKeuanganModal();
+    },
+  });
 }
 
 function verifyBookingFee() {
@@ -396,10 +584,11 @@ function verifyBookingFee() {
         booking_tgl: result.value.tanggal,
       },
       success: function (response) {
-        csrfHash = response.token;
-        if (!response.success) return swal("error", response.messages || "Verifikasi gagal");
+        if (response && response.token) csrfHash = response.token;
+        if (!response || !response.success) return swal("error", (response && response.messages) || "Verifikasi gagal");
         renderBookingFee(response.data);
         refreshKeuanganModal();
+        syncTagihanViewsAfterBookingChange();
         Swal.fire({ icon:"success", title:response.messages, timer:1400, showConfirmButton:false });
       },
       error: function (xhr) {
@@ -412,7 +601,10 @@ function verifyBookingFee() {
 }
 
 function printBookingReceipt(idPembayaran) {
-  window.open(base_url + `pembayaran/kuitansi/cetak?e=${idPembayaran}&e2=${keu_current_id_mkdt}&e3=${dt_proyek["id_proyek"] || ""}`, "_blank", "top=100,left=300,width=700,height=600");
+  const proyekId = (typeof dt_proyek !== "undefined" && dt_proyek && dt_proyek["id_proyek"])
+    || (typeof activeProyekId === "function" && activeProyekId())
+    || "";
+  window.open(base_url + `pembayaran/kuitansi/cetak?e=${encodeURIComponent(idPembayaran)}&e2=${encodeURIComponent(keu_current_id_mkdt)}&e3=${encodeURIComponent(proyekId)}`, "_blank", "top=100,left=300,width=700,height=600");
 }
 
 function keuFindPaidItem(item) {
@@ -1218,9 +1410,7 @@ function removeRiwayatBayar(e) {
               timer: 1500,
             }).then(function () {
               refreshKeuanganModal(false);
-              if (typeof isi_data === "function") {
-                isi_data(true); // refresh list di background, modal tetap terbuka
-              }
+              syncTagihanViewsAfterBookingChange();
             });
           } else {
             Swal.fire({
@@ -1371,9 +1561,7 @@ function save_keuangan(e = "") {
             // Berhasil disimpan: refresh konten modal di tempat, jangan tutup modal.
             refreshKeuanganModal(true);
 
-            if (typeof isi_data === "function") {
-              isi_data(true); // refresh list di background, modal tetap terbuka
-            }
+            syncTagihanViewsAfterBookingChange();
           } else {
             swal("error", r.message || r.messages || "Terjadi kesalahan");
           }
