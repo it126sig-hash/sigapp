@@ -3,7 +3,7 @@
 - **Tanggal Mulai:** 2026-11-24
 - **Modul Terkait:** `MKDT`
 - **Mode Tugas:** `UI_REPORT`
-- **Status Keseluruhan:** `COMPLETED` (`DONE — Lulus QA Independen & Sinkronisasi Docs`)
+- **Status Keseluruhan:** `COMPLETED` (`DONE — Lulus QA Independen Fase F1 & Sinkronisasi Docs`)
 
 ---
 
@@ -12,7 +12,13 @@
 2. **Opsi A (Disetujui):** Sel `NAMA KONSUMEN` + kode QR referal tetap 2 baris super-rapat tanpa pemotongan elipsis dan tanpa mengubah backend (`PosisiKonsumenService.php`).
 3. **Cakupan Tabel:** Fokus khusus pada tabel utama `#data_tables` (Tab *List Posisi Konsumen Aktif*) agar perubahan terisolasi (*minimum necessary diff*).
 4. **Tone Warna & Struktur Kolom:** Tetap mempertahankan palet warna light SIGAPP/Vuexy existing (`#2057a3`, surface terang, plus fallback `.dark-layout`), seluruh **30 kolom (`0..29`)**, dan struktur header 3-baris.
-5. **Pure Frontend / CSS Scoped:** Tidak ada perubahan backend; seluruh aturan tabel ditempatkan di `public/assets/css/poskon-list-kavling.css` di bawah root scope `.poskon-page`.
+5. **Pure Frontend / CSS Scoped (Tahap 1):** Seluruh aturan tabel ditempatkan di `public/assets/css/poskon-list-kavling.css` di bawah root scope `.poskon-page`.
+6. **Penyempurnaan Lanjutan (Disetujui 2026-11-24 13:48):**
+   - **Global Header Opt-In (`.sigapp-table-compact`):** Menambahkan utility class opt-in `.sigapp-table-compact` pada `public/assets/css/style.css` (header compact + border tipis `1px` + phantom-gap guard `scrollX`/`FixedColumns` + `.dark-layout`) tanpa memengaruhi tabel/laporan matriks eksisting.
+   - **Border Header Tipis `1px`:** Mereset `border-bottom-width: 2px` (`bootstrap.css`) pada `border-collapse: separate` agar tidak menumpuk `2px–3px`.
+   - **Perataan Kiri (`BLOK` [2], `NAMA KONSUMEN` [5], `KETERANGAN STATUS` [29]):** Rata kiri pada sel `tbody` maupun header leaf `thead`, sementara `NO` kavling (`col 3`) tetap rata tengah.
+   - **Kolom Tanggal Seragam & Cukup (`130px` `border-box`):** `TGL BOOKING` [7], `TGL WAWANCARA` [8], `TGL AKAD` [9], `TERBIT` [13], dan `EXPIRED` [14] disamakan `130px` (`box-sizing: border-box`).
+   - **Tombol Aksi Titik 3 (`⋮`):** Mengubah trigger dropdown `"Aksi"` di `PosisiKonsumenService::renderPoskonActionHtml()` menjadi `<i class="fa fa-ellipsis-v">` + `.poskon-action-menu-btn` (menyeragamkan `list-kavling.php` & `list-kavling-akad.php`), dengan `.poskon-action-menu-btn.dropdown-toggle::after { display: none; }` di `style.css`.
 
 ---
 
@@ -24,6 +30,11 @@
 | **Fase B** | Compact 3-row header (visible only), compact body rows, inner-cell density, DataTables chrome, dark mode, & mobile | `sigapp-frontend` | `DONE` | Compact 3-row header, body rows, inner-cell density, sorting arrows, chrome, dark-layout, & mobile selesai; `php -l` & `git diff --check` bersih |
 | **Fase C1** | Inspeksi QA Independen (Codegraph callers, Playwright E2E Desktop & Mobile, & audit `sigapp-ui-acuan`) | `sigapp-qa` | `DONE` | Putaran 2 `PASS` — alignment `<= 0.08px`, header `59px`, row sync `<= 0.19px`, sorting aktif, mobile search bersih, 0 console errors |
 | **Fase C2** | Sinkronisasi `docs/modules/MKDT/MODULE.md` & finalisasi Work Doc | `sigapp-docs` | `DONE` | `php spark module:sync MKDT` OK; `MODULE.md` & Work Doc disinkronkan; `MIGRATION_PROGRESS.md` & `modul-notifikasi.md` tidak diubah (`UI_REPORT`) |
+| **Fase D** | Pembaruan tombol aksi titik 3 (`fa-ellipsis-v`) di `PosisiKonsumenService` | `Orchestrator` + `sigapp-engineer` | `DONE` | `renderPoskonActionHtml()` di `PosisiKonsumenService.php:256` diubah ke `fa-ellipsis-v` + `.poskon-action-menu-btn`; `php -l` & `git diff --check` bersih |
+| **Fase E1** | Pembuatan style header global opt-in `.sigapp-table-compact` & helper `.poskon-action-menu-btn` di `style.css` | `sigapp-frontend` | `DONE` | Utility global opt-in `.sigapp-table-compact` (border `1px`, phantom-gap guard, sorting, `.dark-layout`) & `.poskon-action-menu-btn` ditambahkan di `style.css:1974–2252`; `git diff --check` bersih |
+| **Fase E2** | Penerapan `.sigapp-table-compact`, rata kiri (`2, 5, 29`), kolom tanggal `130px`, alignment titik 3, & cleanup dead JS | `sigapp-frontend` | `DONE` | `.sigapp-table-compact` dipasang; `columnDefs` `[2,5]` (`poskon-col-left`) & `[7,8,9,13,14]` (`poskon-col-date` `130px` `border-box`); `.poskon-col-blok` `120px`; dead JS dibersihkan; `php -l` & `git diff --check` bersih |
+| **Fase F1** | QA Independen (`/list-kavling`, `/list-kavling/akad`, `/laporan/booking-akad`, & `codegraph_explore`) | `sigapp-qa` | `DONE` | `PASS` — border header `1px` (`54px` total), rata kiri (`2,5,29`), kolom tanggal seragam `130px`, titik 3 tanpa caret ganda, `.dark-layout`, mobile, & regresi `/list-kavling/akad` + `/laporan/booking-akad` lulus 0 console error |
+| **Fase F2** | Sinkronisasi `docs/modules/MKDT/MODULE.md` & finalisasi Work Doc | `sigapp-docs` | `DONE` | `php spark module:sync MKDT` OK; `MODULE.md` & Work Doc disinkronkan; `MIGRATION_PROGRESS.md` & `modul-notifikasi.md` tidak diubah (`UI_REPORT`) |
 
 ---
 
@@ -102,11 +113,58 @@
   - `docs/MIGRATION_PROGRESS.md`: **tidak diubah** (mode `UI_REPORT`, bukan `REFACTOR` modul penuh).
   - `docs/modul-notifikasi.md`: **tidak diubah** (tidak ada penambahan/perubahan notifikasi).
 
+### [2026-11-24 13:45] Fase 1 Lanjutan — Eksplorasi & Persetujuan Plan Penyempurnaan (`sigapp-explorer`)
+- **Temuan & Blast Radius:**
+  - Border header menumpuk `2px–3px` karena `.table-bordered thead th { border-bottom-width: 2px; }` (`bootstrap.css`) + `border-collapse: separate !important` (`dataTables.bootstrap4.min.css`).
+  - Style header global aman dijadikan utility opt-in `.sigapp-table-compact` di `public/assets/css/style.css` dengan guard hidden sizing `thead`, spesifisitas lebih tinggi dari vendor CSS, dan `.dark-layout`.
+  - Indeks kolom dinamis DataTables (toggle `visible(false)` pada col `9` & `15`) mengharuskan `columnDefs` `className` (`poskon-col-left` untuk `[2, 5]`, `poskon-col-date` `130px` `border-box` untuk `[7, 8, 9, 13, 14]`), bukan `nth-child`.
+  - `PosisiKonsumenService::renderPoskonActionHtml()` (`L227–266`) dipakai oleh `getDataTable()` (`/list-kavling` & `/list-kavling/akad`) dan `getDataTablesBatal()`, dan FontAwesome proyek adalah v5.15.3 (`fa fa-ellipsis-v`). Plan lanjutan disetujui User pada `2026-11-24 13:48`.
+
+### [2026-11-24 13:51] Fase D — Pembaruan Tombol Aksi Titik 3 di Backend (`sigapp-engineer`)
+- **Perubahan:**
+  - `app/Services/Mkdt/PosisiKonsumenService.php` (`L256`, `renderPoskonActionHtml()`): mengubah tombol dropdown `"Aksi"` menjadi `<button type="button" class="btn btn-outline-primary btn-sm dropdown-toggle poskon-action-menu-btn" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" title="Menu Aksi" aria-label="Menu Aksi"><i class="fa fa-ellipsis-v" aria-hidden="true"></i></button>`.
+- **Verifikasi:** `php -l app/Services/Mkdt/PosisiKonsumenService.php` bersih (exit 0); `git diff --check` exit 0.
+
+### [2026-11-24 13:55] Fase E1 — Global Header Opt-In `.sigapp-table-compact` & Action Helper (`sigapp-frontend`)
+- **Perubahan:**
+  - `public/assets/css/style.css` (`L1974–2252`): menambahkan `.poskon-action-menu-btn.dropdown-toggle::after { display: none; }` dan utility opt-in `table.dataTable.sigapp-table-compact` mencakup header compact (`2px 6px` parent, `3px 6px` leaf, `10px`, `#f3f4f8`), border tipis `1px` (`#e2e8f0`, bebas penumpukan `2px–3px`), sorting arrows `#2057a3`, guard hidden sizing `thead` (`.dataTables_scrollBody > table`, `.DTFC_LeftBodyWrapper`, `.DTFC_RightBodyWrapper`), konsistensi border body `1px`, serta fallback `.dark-layout`.
+- **Verifikasi:** `git diff --check` bersih (exit 0); zero bare `thead th` selectors.
+
+### [2026-11-24 13:59] Fase E2 — View & Module CSS `list-kavling` (`sigapp-frontend`)
+- **Perubahan:**
+  - `app/Views/kavling/list-kavling.php`: menambahkan class `sigapp-table-compact` pada `#data_tables` (`L457`), menyelaraskan `renderPoskonActionCell()` (`L884`) ke tombol titik 3 `.poskon-action-menu-btn` (`fa-ellipsis-v`), memperbarui `columnDefs` (`L1185–1219`: `[2]` → `poskon-col-left poskon-col-blok`, `[5]` → `poskon-col-left`, `[7, 8, 9, 13, 14]` → `poskon-col-date` `130px`), dan menghapus dead inline jQuery `$('#tb-BLOK')` / `#tb_nama_konsumen` (`L1932`).
+  - `public/assets/css/poskon-list-kavling.css` (`L135–529`): mengonsolidasikan header agar dikelola tunggal oleh `.sigapp-table-compact` di `style.css` (menghapus duplikasi header/sorting lama), menambahkan rata kiri `text-align: left !important` untuk `.poskon-col-left` & `.poskon-keterangan-status` (body & leaf header), `.poskon-col-blok` `120px` `border-box`, `.poskon-col-date` `130px` `border-box` + `white-space: nowrap`, serta ukuran sejajar `.poskon-action-cell .btn.btn-sm` (desktop & mobile).
+- **Verifikasi:** `php -l app/Views/kavling/list-kavling.php` exit 0; `git diff --check` exit 0. Siap QA Fase F1.
+
+### [2026-11-24 14:09] Fase F1 — Inspeksi QA Independen Lanjutan & Regresi (`sigapp-qa`: `PASS`)
+- **Hasil Uji Playwright E2E, Codegraph, & Regresi:**
+  - **Codegraph & CLI:** 0 broken callers pada `PosisiKonsumenService::renderPoskonActionHtml()` (`getDataTable()`, `getDataTablesBatal()`); zero bare `thead th` di `style.css`; `php -l` bersih (`PosisiKonsumenService.php` & `list-kavling.php`); `git diff --check` exit 0.
+  - **Border Header `1px` (`/list-kavling`):** `tr:first-child th` `borderTop: 1px, borderBottom: 1px`, baris 2–3 `borderTop: 0px, borderBottom: 1px`, `#tb-BLOK` `borderLeft: 0px`, pemisah beku col 5 (`NAMA KONSUMEN`) ke col 6 (`SALES`) tepat `1px`; visible header `54px` (`diff = 0px`), hidden `thead = 0px`, row sync `maxDiff = 0.19px`.
+  - **Rata Kiri & Lebar Kolom:** `BLOK` (`120px`), `NAMA KONSUMEN`, dan `KETERANGAN STATUS` `textAlign: "left"` (header leaf & body), `KAVLING` & `NO` tetap `"center"`; semua 5 kolom tanggal (`TGL BOOKING`, `TGL WAWANCARA`, `TGL AKAD`, `TERBIT`, `EXPIRED`) tepat `130px` (`box-sizing: border-box`, selisih `0px`) pada mode `Kavling Aktif` maupun `Semua Status`, sorting `#tb-TGL_BOOKING` & `#tb-TGL_AKAD` aktif `#2057a3` (`HTTP 200`).
+  - **Tombol Titik 3, Dark Layout, & Mobile:** `.poskon-action-menu-btn` (`fa-ellipsis-v`, `::after display: "none"`) sejajar tombol mata dan dropdown terbuka (`8` item); `.dark-layout` header `rgb(30,38,56)` / body `rgb(40,48,70)` border `1px`; mobile `375×812` `mobileMaxXDiff = 0.08px`, `searchOverflowPx = -21.39px`, `0` console error.
+  - **Regresi Lintas Halaman:** `/list-kavling/akad` menampilkan tombol titik 3 tanpa caret ganda & dropdown berfungsi (`0` console error); `/laporan/booking-akad` (`#booking_akad_matrix`) tidak terpengaruh `.sigapp-table-compact` (`0` console error).
+- **Keputusan QA:** Sertifikat **`PASS`** — lanjut ke **Fase F2 (`sigapp-docs`)**.
+
+### [2026-11-24 14:11] Fase F2 (Fase 4) — Sinkronisasi Dokumentasi & Finalisasi (`sigapp-docs`) — `DONE`
+- **Verifikasi Katalog & `module:sync`:**
+  - `app/Libraries/ModuleManager/ModuleCatalog.php` (`MKDT`): seluruh asset modul (`kavling/list-kavling.php`, `poskon-list-kavling.css`) sudah terdaftar; asset global Tier 1 (`public/assets/css/style.css`) didokumentasikan sebagai utility opt-in yang dikonsumsi oleh `MKDT`.
+  - `php spark module:sync MKDT`: berhasil (`[SYNCED] MKDT -> docs\modules\MKDT\MODULE.md`, `Last Synced: 2026-11-24 14:11:01 @ b0c70af`, Status `REFACTORED`, Readiness Score `100/100`).
+- **Pembaruan `docs/modules/MKDT/MODULE.md`:**
+  - `## Key Functions`: mencatat `PosisiKonsumenService::renderPoskonActionHtml()` (`fa-ellipsis-v` + `.poskon-action-menu-btn` pada `L256`), pembaruan `app/Views/kavling/list-kavling.php` (`.sigapp-table-compact` `L457`, `renderPoskonActionCell()` `L884`, `columnDefs` `L1185–1219`, penghapusan dead selectors `L1932`), konsolidasi `public/assets/css/poskon-list-kavling.css` (`L135–529`), dan utility opt-in `public/assets/css/style.css` (`L1975–2252`).
+  - `## Deprecated & Legacy Shims`: mencatat penghapusan dead inline jQuery width selectors (`$('#tb-BLOK')`, `$('#tb_nama_konsumen')`, `$('#tb_tgl_booking, ...')`) dan konsolidasi rule header/sorting lama dari `poskon-list-kavling.css` ke `.sigapp-table-compact` di `style.css`.
+  - `## Notes`: mencatat konsumsi utility opt-in `.sigapp-table-compact` & `.poskon-action-menu-btn` dari `public/assets/css/style.css` tanpa dampak regresi ke `list-kavling-akad.php`, `list-kavling-batal.php`, maupun `/laporan/booking-akad`.
+  - `## Change Log`: menambahkan entri teratas `2026-11-24 [UI_REPORT] — Penyempurnaan Border Header 1px, Rata Kiri, Kolom Tanggal Seragam 130px, Tombol Titik 3, & Global Header .sigapp-table-compact`.
+- **Kepatuhan Lingkup Dokumen:**
+  - `docs/MIGRATION_PROGRESS.md`: **tidak diubah** (mode `UI_REPORT`, bukan `REFACTOR` modul penuh).
+  - `docs/modul-notifikasi.md`: **tidak diubah** (tidak ada penambahan/perubahan notifikasi).
+
 ---
 
 ## 4. Ringkasan File Final
 Sinkron 100% dengan `git status --short`:
-- `M  app/Views/kavling/list-kavling.php` — Penambahan root class `.poskon-page`, pemindahan CSS tabel inline ke CSS eksternal, penambahan `syncPoskonFixedHeaderWidths()` (+ trigger `document.fonts.ready` & `columns.adjust()`), perbaikan urutan `columnDefs` sorting `[7, 9]`, target 29 `260px`, dan `#tb-BLOK` `120px`.
-- `M  public/assets/css/poskon-list-kavling.css` — Mempertahankan `#modal_export_progress` (L1–133) dan menambahkan section scoped `.poskon-page` (L135–629) untuk compact table `#data_tables`, FixedColumns sync/surface, panah sorting presisi, inner-cell density, chrome, dark mode, dan responsivitas mobile (termasuk fix overflow `.dataTables_filter label`).
-- `M  docs/modules/MKDT/MODULE.md` — Sinkronisasi via `php spark module:sync MKDT` serta pembaruan `Key Functions`, `Deprecated & Legacy Shims`, `Notes`, dan `Change Log` (`2026-11-24 [UI_REPORT]`).
-- `?? docs/2026-11-24-redesign-compact-table-list-kavling.md` — Work doc log progres, debugging Putaran 1–2, dan ringkasan final (`COMPLETED`).
+- `M  app/Services/Mkdt/PosisiKonsumenService.php` — Memperbarui `renderPoskonActionHtml()` (`L256`) dari tombol teks `"Aksi"` menjadi ikon titik 3 vertikal (`<i class="fa fa-ellipsis-v"></i>`) dengan class `.poskon-action-menu-btn` untuk DataTables legacy (`getDataTable()`, `getDataTablesBatal()`); kontrak raw JSON `getRawDataTables()` tetap utuh.
+- `M  public/assets/css/style.css` — Menambahkan helper `.poskon-action-menu-btn.dropdown-toggle::after { display: none; }` dan utility global opt-in `table.dataTable.sigapp-table-compact` (`L1975–2252`: compact header, border tipis `1px`, sorting arrows `#2057a3`, guard hidden sizing `thead`, border body `1px`, dan varian `.dark-layout`).
+- `M  app/Views/kavling/list-kavling.php` — Memasang class `sigapp-table-compact` pada `#data_tables` (`L457`), menyelaraskan `renderPoskonActionCell()` (`L884`) ke `.poskon-action-menu-btn`, memperbarui `columnDefs` (`L1185–1219`: `[2]` → `poskon-col-left poskon-col-blok`, `[5]` → `poskon-col-left`, `[7, 8, 9, 13, 14]` → `poskon-col-date` `130px`), dan menghapus dead inline jQuery selectors `$('#tb-BLOK')`, `$('#tb_nama_konsumen')`, `$('#tb_tgl_booking, ...')`.
+- `M  public/assets/css/poskon-list-kavling.css` — Mengonsolidasikan header/sorting/border ke `.sigapp-table-compact` (`style.css`), menambahkan rata kiri `.poskon-col-left` & `.poskon-keterangan-status` (body & leaf header), lebar `.poskon-col-blok` `120px` `border-box`, lebar `.poskon-col-date` `130px` `border-box` + `white-space: nowrap`, dan menyamakan dimensi `.poskon-action-cell .btn.btn-sm` (desktop & mobile).
+- `M  docs/modules/MKDT/MODULE.md` — Sinkronisasi via `php spark module:sync MKDT` (`@ b0c70af`) serta pembaruan `Key Functions`, `Deprecated & Legacy Shims`, `Notes`, dan `Change Log` untuk Fase D, E1, E2, dan F1.
+- `M  docs/2026-11-24-redesign-compact-table-list-kavling.md` — Work doc log progres, debugging, verifikasi QA Fase C1 & F1, dan ringkasan file final (`COMPLETED`).

@@ -454,7 +454,7 @@
             <div class="tab-content">
               <div class="tab-pane show active" id="list_poskon"
                 aria-labelledby="list_poskon-tab" role="tabpanel">
-                <table id="data_tables" class="datatables-basic table compact table-hover table-bordered">
+                <table id="data_tables" class="datatables-basic table compact sigapp-table-compact table-hover table-bordered">
                   <thead>
                     <tr>
                       <th rowspan="3" id="tb-action">AKSI</th>
@@ -881,7 +881,7 @@ if (!empty($roles)) {
 
     const dropdown = menuHtml ?
       '<div class="btn-group ml-50">' +
-      '<button type="button" class="btn btn-outline-primary btn-sm dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Aksi</button>' +
+      '<button type="button" class="btn btn-outline-primary btn-sm dropdown-toggle poskon-action-menu-btn" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" title="Menu Aksi" aria-label="Menu Aksi"><i class="fa fa-ellipsis-v" aria-hidden="true"></i></button>' +
       '<div class="dropdown-menu dropdown-menu-right">' + menuHtml + '</div>' +
       '</div>' :
       '';
@@ -1189,6 +1189,19 @@ if (!empty($roles)) {
           {
             targets: '_all',
             orderable: false
+          },
+          {
+            targets: [2],
+            className: 'poskon-col-left poskon-col-blok'
+          },
+          {
+            targets: [5],
+            className: 'poskon-col-left'
+          },
+          {
+            targets: [7, 8, 9, 13, 14],
+            className: 'poskon-col-date',
+            width: '130px'
           },
           {
             targets: 9,
@@ -1916,19 +1929,6 @@ if (!empty($roles)) {
     $("#poskon-filter .select2-selection__arrow, #modal-tambah-poskon .select2-selection__arrow, #modal-filter-lanjutan .select2-selection__arrow")
       .css("pointer-events", "none");
 
-  });
-
-  $('#tb-BLOK').css({
-    'min-width': '120px',
-    'max-width': '120px'
-  });
-  $('#tb_nama_konsumen').css({
-    'min-width': '150px',
-    'max-width': '150px'
-  });
-  $('#tb_tgl_booking, #tb_tgl_wwc, #tb_terbit, #tb_expired, #tb_pricelist').css({
-    'min-width': '100px',
-    'max-width': '100px'
   });
 </script>
 

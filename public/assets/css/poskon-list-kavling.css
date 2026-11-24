@@ -166,145 +166,53 @@
 }
 
 /* --------------------------------------------------------------------------
-   1. Compact 3-Row Visible Header & Hidden Sizing thead Protection
+   1. Column Alignment & Widths (.sigapp-table-compact header/borders in style.css)
    -------------------------------------------------------------------------- */
-.poskon-page #list_poskon > #data_tables > thead th,
-.poskon-page #data_tables_wrapper .dataTables_scrollHead thead th,
-.poskon-page #data_tables_wrapper .DTFC_LeftHeadWrapper thead th,
-.poskon-page #data_tables_wrapper .dataTables_scrollBody > div > table:not(#data_tables) thead th {
-    padding: calc(3px * var(--sigapp-ui-scale, 1)) calc(6px * var(--sigapp-ui-scale, 1)) !important;
-    font-size: calc(10px * var(--sigapp-font-scale, 1)) !important;
-    font-weight: 700;
-    line-height: 1.15 !important;
-    letter-spacing: 0.15px;
+.poskon-page #list_poskon > #data_tables > thead th.poskon-col-left,
+.poskon-page #list_poskon > #data_tables > thead th.poskon-keterangan-status,
+.poskon-page #data_tables_wrapper .dataTables_scrollHead thead th.poskon-col-left,
+.poskon-page #data_tables_wrapper .dataTables_scrollHead thead th.poskon-keterangan-status,
+.poskon-page #data_tables_wrapper .DTFC_LeftHeadWrapper thead th.poskon-col-left,
+.poskon-page #data_tables_wrapper .DTFC_LeftHeadWrapper thead th.poskon-keterangan-status,
+.poskon-page #data_tables tbody td.poskon-col-left,
+.poskon-page #data_tables tbody td.poskon-keterangan-status,
+.poskon-page #data_tables_wrapper table.dataTable tbody td.poskon-col-left,
+.poskon-page #data_tables_wrapper table.dataTable tbody td.poskon-keterangan-status {
+    text-align: left !important;
+}
+
+.poskon-page #list_poskon > #data_tables > thead th.poskon-col-blok,
+.poskon-page #data_tables_wrapper .dataTables_scrollHead thead th.poskon-col-blok,
+.poskon-page #data_tables_wrapper .DTFC_LeftHeadWrapper thead th.poskon-col-blok,
+.poskon-page #data_tables_wrapper .dataTables_scrollBody > div > table:not(#data_tables) thead th.poskon-col-blok,
+.poskon-page #data_tables_wrapper .dataTables_scrollBody > #data_tables thead th.poskon-col-blok,
+.poskon-page #data_tables_wrapper .DTFC_LeftBodyWrapper thead th.poskon-col-blok,
+.poskon-page #data_tables tbody td.poskon-col-blok,
+.poskon-page #data_tables_wrapper .dataTables_scrollBody tbody td.poskon-col-blok,
+.poskon-page #data_tables_wrapper .DTFC_LeftBodyWrapper tbody td.poskon-col-blok {
+    box-sizing: border-box !important;
+    width: 120px !important;
+    min-width: 120px !important;
+    max-width: 120px !important;
+}
+
+.poskon-page #list_poskon > #data_tables > thead th.poskon-col-date,
+.poskon-page #data_tables_wrapper .dataTables_scrollHead thead th.poskon-col-date,
+.poskon-page #data_tables_wrapper .DTFC_LeftHeadWrapper thead th.poskon-col-date,
+.poskon-page #data_tables_wrapper .dataTables_scrollBody > div > table:not(#data_tables) thead th.poskon-col-date,
+.poskon-page #data_tables_wrapper .dataTables_scrollBody > #data_tables thead th.poskon-col-date,
+.poskon-page #data_tables tbody td.poskon-col-date,
+.poskon-page #data_tables_wrapper .dataTables_scrollBody tbody td.poskon-col-date,
+.poskon-page #data_tables_wrapper .dataTables_scrollBody > div > table:not(#data_tables) tbody td.poskon-col-date {
+    box-sizing: border-box !important;
+    width: 130px !important;
+    min-width: 130px !important;
+    max-width: 130px !important;
+}
+
+.poskon-page #data_tables tbody td.poskon-col-date,
+.poskon-page #data_tables_wrapper .dataTables_scrollBody tbody td.poskon-col-date {
     white-space: nowrap;
-    vertical-align: middle !important;
-    background-color: #f3f4f8;
-    color: #374151;
-    border-color: #dfe5ec;
-}
-
-.poskon-page #list_poskon > #data_tables > thead tr:first-child th,
-.poskon-page #list_poskon > #data_tables > thead tr:nth-child(2) th,
-.poskon-page #data_tables_wrapper .dataTables_scrollHead thead tr:first-child th,
-.poskon-page #data_tables_wrapper .dataTables_scrollHead thead tr:nth-child(2) th,
-.poskon-page #data_tables_wrapper .DTFC_LeftHeadWrapper thead tr:first-child th,
-.poskon-page #data_tables_wrapper .DTFC_LeftHeadWrapper thead tr:nth-child(2) th,
-.poskon-page #data_tables_wrapper .dataTables_scrollBody > div > table:not(#data_tables) thead tr:first-child th,
-.poskon-page #data_tables_wrapper .dataTables_scrollBody > div > table:not(#data_tables) thead tr:nth-child(2) th {
-    padding: calc(2px * var(--sigapp-ui-scale, 1)) calc(6px * var(--sigapp-ui-scale, 1)) !important;
-}
-
-.poskon-page #data_tables_wrapper .dataTables_scrollBody #data_tables thead th,
-.poskon-page #data_tables_wrapper .DTFC_LeftBodyWrapper thead th {
-    padding: 0 calc(6px * var(--sigapp-ui-scale, 1)) !important;
-    padding-top: 0 !important;
-    padding-bottom: 0 !important;
-    border-top-width: 0 !important;
-    border-bottom-width: 0 !important;
-    height: 0 !important;
-    line-height: 0 !important;
-    font-size: calc(10px * var(--sigapp-font-scale, 1)) !important;
-    font-weight: 700;
-    letter-spacing: 0.15px;
-    white-space: nowrap;
-}
-
-.poskon-page #data_tables_wrapper .dataTables_scrollBody #data_tables thead th .dataTables_sizing,
-.poskon-page #data_tables_wrapper .DTFC_LeftBodyWrapper thead th .dataTables_sizing {
-    height: 0 !important;
-    overflow: hidden !important;
-    margin: 0 !important;
-    padding: 0 !important;
-}
-
-.poskon-page #data_tables_wrapper .dataTables_scrollBody #data_tables thead tr th.sorting,
-.poskon-page #data_tables_wrapper .dataTables_scrollBody #data_tables thead tr th.sorting_asc,
-.poskon-page #data_tables_wrapper .dataTables_scrollBody #data_tables thead tr th.sorting_desc,
-.poskon-page #data_tables_wrapper .DTFC_LeftBodyWrapper thead tr th.sorting,
-.poskon-page #data_tables_wrapper .DTFC_LeftBodyWrapper thead tr th.sorting_asc,
-.poskon-page #data_tables_wrapper .DTFC_LeftBodyWrapper thead tr th.sorting_desc {
-    padding-right: calc(18px * var(--sigapp-ui-scale, 1)) !important;
-}
-
-.poskon-page #data_tables_wrapper .dataTables_scrollBody #data_tables thead th:before,
-.poskon-page #data_tables_wrapper .dataTables_scrollBody #data_tables thead th:after,
-.poskon-page #data_tables_wrapper .DTFC_LeftBodyWrapper thead th:before,
-.poskon-page #data_tables_wrapper .DTFC_LeftBodyWrapper thead th:after {
-    display: none !important;
-}
-
-.poskon-page #list_poskon > #data_tables > thead tr th.sorting,
-.poskon-page #list_poskon > #data_tables > thead tr th.sorting_asc,
-.poskon-page #list_poskon > #data_tables > thead tr th.sorting_desc,
-.poskon-page #data_tables_wrapper .dataTables_scrollHead thead tr th.sorting,
-.poskon-page #data_tables_wrapper .dataTables_scrollHead thead tr th.sorting_asc,
-.poskon-page #data_tables_wrapper .dataTables_scrollHead thead tr th.sorting_desc,
-.poskon-page #data_tables_wrapper .DTFC_LeftHeadWrapper thead tr th.sorting,
-.poskon-page #data_tables_wrapper .DTFC_LeftHeadWrapper thead tr th.sorting_asc,
-.poskon-page #data_tables_wrapper .DTFC_LeftHeadWrapper thead tr th.sorting_desc,
-.poskon-page #data_tables_wrapper .dataTables_scrollBody > div > table:not(#data_tables) thead tr th.sorting,
-.poskon-page #data_tables_wrapper .dataTables_scrollBody > div > table:not(#data_tables) thead tr th.sorting_asc,
-.poskon-page #data_tables_wrapper .dataTables_scrollBody > div > table:not(#data_tables) thead tr th.sorting_desc {
-    padding-right: calc(18px * var(--sigapp-ui-scale, 1)) !important;
-}
-
-.poskon-page #data_tables_wrapper .dataTables_scrollHead thead th.sorting:before,
-.poskon-page #data_tables_wrapper .dataTables_scrollHead thead th.sorting:after,
-.poskon-page #data_tables_wrapper .dataTables_scrollHead thead th.sorting_asc:before,
-.poskon-page #data_tables_wrapper .dataTables_scrollHead thead th.sorting_asc:after,
-.poskon-page #data_tables_wrapper .dataTables_scrollHead thead th.sorting_desc:before,
-.poskon-page #data_tables_wrapper .dataTables_scrollHead thead th.sorting_desc:after,
-.poskon-page #data_tables_wrapper .DTFC_LeftHeadWrapper thead th.sorting:before,
-.poskon-page #data_tables_wrapper .DTFC_LeftHeadWrapper thead th.sorting:after,
-.poskon-page #data_tables_wrapper .DTFC_LeftHeadWrapper thead th.sorting_asc:before,
-.poskon-page #data_tables_wrapper .DTFC_LeftHeadWrapper thead th.sorting_asc:after,
-.poskon-page #data_tables_wrapper .DTFC_LeftHeadWrapper thead th.sorting_desc:before,
-.poskon-page #data_tables_wrapper .DTFC_LeftHeadWrapper thead th.sorting_desc:after {
-    top: 50% !important;
-    bottom: auto !important;
-    transform: translateY(-50%);
-    width: auto;
-    height: auto;
-    background-image: none !important;
-    font-size: .85em;
-    line-height: 1;
-    opacity: 0.35;
-}
-
-.poskon-page #data_tables_wrapper .dataTables_scrollHead thead th.sorting:before,
-.poskon-page #data_tables_wrapper .dataTables_scrollHead thead th.sorting_asc:before,
-.poskon-page #data_tables_wrapper .dataTables_scrollHead thead th.sorting_desc:before,
-.poskon-page #data_tables_wrapper .DTFC_LeftHeadWrapper thead th.sorting:before,
-.poskon-page #data_tables_wrapper .DTFC_LeftHeadWrapper thead th.sorting_asc:before,
-.poskon-page #data_tables_wrapper .DTFC_LeftHeadWrapper thead th.sorting_desc:before {
-    right: calc(9px * var(--sigapp-ui-scale, 1));
-    content: "\2191";
-}
-
-.poskon-page #data_tables_wrapper .dataTables_scrollHead thead th.sorting:after,
-.poskon-page #data_tables_wrapper .dataTables_scrollHead thead th.sorting_asc:after,
-.poskon-page #data_tables_wrapper .dataTables_scrollHead thead th.sorting_desc:after,
-.poskon-page #data_tables_wrapper .DTFC_LeftHeadWrapper thead th.sorting:after,
-.poskon-page #data_tables_wrapper .DTFC_LeftHeadWrapper thead th.sorting_asc:after,
-.poskon-page #data_tables_wrapper .DTFC_LeftHeadWrapper thead th.sorting_desc:after {
-    right: calc(4px * var(--sigapp-ui-scale, 1));
-    content: "\2193";
-}
-
-.poskon-page #data_tables_wrapper .dataTables_scrollHead thead th.sorting_asc:before,
-.poskon-page #data_tables_wrapper .dataTables_scrollHead thead th.sorting_desc:after,
-.poskon-page #data_tables_wrapper .DTFC_LeftHeadWrapper thead th.sorting_asc:before,
-.poskon-page #data_tables_wrapper .DTFC_LeftHeadWrapper thead th.sorting_desc:after {
-    opacity: 1;
-    color: #2057a3;
-}
-
-.poskon-page #data_tables_wrapper .dataTables_scrollHead thead th.sorting_asc_disabled:before,
-.poskon-page #data_tables_wrapper .dataTables_scrollHead thead th.sorting_desc_disabled:after,
-.poskon-page #data_tables_wrapper .DTFC_LeftHeadWrapper thead th.sorting_asc_disabled:before,
-.poskon-page #data_tables_wrapper .DTFC_LeftHeadWrapper thead th.sorting_desc_disabled:after {
-    opacity: 0;
 }
 
 /* --------------------------------------------------------------------------
@@ -346,11 +254,15 @@
 .poskon-page #data_tables tbody td .poskon-action-cell .btn.btn-sm,
 .poskon-page #data_tables_wrapper .dataTables_scrollBody tbody td .poskon-action-cell .btn.btn-sm,
 .poskon-page #data_tables_wrapper .DTFC_LeftBodyWrapper tbody td .poskon-action-cell .btn.btn-sm {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: calc(24px * var(--sigapp-ui-scale, 1));
+    min-height: calc(22px * var(--sigapp-ui-scale, 1));
     padding: calc(2px * var(--sigapp-ui-scale, 1)) calc(6px * var(--sigapp-ui-scale, 1)) !important;
     font-size: calc(10px * var(--sigapp-font-scale, 1)) !important;
     line-height: 1.2 !important;
     border-radius: 5px !important;
-    min-height: calc(21px * var(--sigapp-ui-scale, 1));
 }
 
 .poskon-page #data_tables tbody td .poskon-action-cell .ml-50,
@@ -524,21 +436,6 @@
     background-color: #283046 !important;
 }
 
-.dark-layout .poskon-page #list_poskon > #data_tables > thead th,
-.dark-layout .poskon-page #data_tables_wrapper .dataTables_scrollHead thead th,
-.dark-layout .poskon-page #data_tables_wrapper .DTFC_LeftHeadWrapper thead th {
-    background-color: #1e2638;
-    color: #d0d2d6;
-    border-color: rgba(255, 255, 255, .08);
-}
-
-.dark-layout .poskon-page #data_tables_wrapper .dataTables_scrollHead thead th.sorting_asc:before,
-.dark-layout .poskon-page #data_tables_wrapper .dataTables_scrollHead thead th.sorting_desc:after,
-.dark-layout .poskon-page #data_tables_wrapper .DTFC_LeftHeadWrapper thead th.sorting_asc:before,
-.dark-layout .poskon-page #data_tables_wrapper .DTFC_LeftHeadWrapper thead th.sorting_desc:after {
-    color: #6ea8fe;
-}
-
 .dark-layout .poskon-page #data_tables tbody td,
 .dark-layout .poskon-page #data_tables_wrapper .dataTables_scrollBody tbody td,
 .dark-layout .poskon-page #data_tables_wrapper .DTFC_LeftBodyWrapper tbody td {
@@ -589,6 +486,7 @@
 
     .poskon-page #data_tables tbody td .poskon-action-cell .btn.btn-sm,
     .poskon-page #data_tables_wrapper .dataTables_scrollBody tbody td .poskon-action-cell .btn.btn-sm {
+        min-width: calc(26px * var(--sigapp-ui-scale, 1));
         min-height: calc(24px * var(--sigapp-ui-scale, 1));
         padding: calc(3px * var(--sigapp-ui-scale, 1)) calc(7px * var(--sigapp-ui-scale, 1)) !important;
         font-size: calc(10.5px * var(--sigapp-font-scale, 1)) !important;

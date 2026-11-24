@@ -253,7 +253,7 @@ class PosisiKonsumenService
 
         $dropdown = $menuHtml !== ''
             ? '<div class="btn-group ml-50">'
-                . '<button type="button" class="btn btn-outline-primary btn-sm dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Aksi</button>'
+                . '<button type="button" class="btn btn-outline-primary btn-sm dropdown-toggle poskon-action-menu-btn" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" title="Menu Aksi" aria-label="Menu Aksi"><i class="fa fa-ellipsis-v" aria-hidden="true"></i></button>'
                 . '<div class="dropdown-menu dropdown-menu-right">' . $menuHtml . '</div>'
                 . '</div>'
             : '';
