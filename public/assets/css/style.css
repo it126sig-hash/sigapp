@@ -1158,6 +1158,107 @@ select,
     padding: 4px 12px;
 }
 
+.notification-center-modal .notification-permohonan-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: .3rem;
+    padding: .24rem .6rem;
+    border-radius: 999px;
+    font-size: .74rem;
+    font-weight: 700;
+    line-height: 1.2;
+    color: #2057a3;
+    background: #edf4ff;
+    border: 1px solid #cfe0fa;
+    text-decoration: none;
+    white-space: nowrap;
+    transition: background-color .15s ease, border-color .15s ease, color .15s ease;
+}
+
+.notification-center-modal .notification-permohonan-btn:hover,
+.notification-center-modal .notification-permohonan-btn:focus {
+    background: #dceafe;
+    border-color: #93c5fd;
+    color: #163f78;
+    text-decoration: none;
+}
+
+.notification-center-modal .notification-permohonan-btn svg {
+    width: 13px;
+    height: 13px;
+    flex-shrink: 0;
+}
+
+.notification-center-modal .notif-intent-scroll {
+    display: flex;
+    align-items: center;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    gap: 6px;
+    padding: .55rem .75rem .3rem;
+    scrollbar-width: thin;
+    scrollbar-color: #d0d2d6 transparent;
+    overscroll-behavior: contain;
+}
+
+.notification-center-modal .notif-intent-scroll::-webkit-scrollbar {
+    height: 4px;
+}
+
+.notification-center-modal .notif-intent-scroll::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.notification-center-modal .notif-intent-scroll::-webkit-scrollbar-thumb {
+    background: #d0d2d6;
+    border-radius: 10px;
+}
+
+.notification-center-modal .notif-intent-pill {
+    display: inline-flex;
+    align-items: center;
+    flex: 0 0 auto;
+    white-space: nowrap;
+    padding: .26rem .68rem;
+    border-radius: 999px;
+    border: 1px solid #d8dde3;
+    background: #fff;
+    color: #4b5563;
+    font-size: .74rem;
+    font-weight: 600;
+    line-height: 1.25;
+    cursor: pointer;
+    transition: background-color .15s ease, border-color .15s ease, color .15s ease;
+}
+
+.notification-center-modal .notif-intent-pill:hover {
+    border-color: #2057a3;
+    color: #2057a3;
+    background: #f5f9ff;
+}
+
+.notification-center-modal .notif-intent-pill.active {
+    background: #edf4ff;
+    border-color: #2057a3;
+    color: #2057a3;
+    font-weight: 700;
+}
+
+.notification-center-modal .activity-intent-badge,
+.activity-item .activity-intent-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: .14rem .45rem;
+    border-radius: 999px;
+    font-size: .68rem;
+    font-weight: 700;
+    line-height: 1.2;
+    background: #fff7ed;
+    color: #9a3412;
+    border: 1px solid #d97706;
+    white-space: nowrap;
+}
+
 .notification-center-modal .notif-project-logo {
     width: 14px;
     height: 14px;
@@ -1360,6 +1461,52 @@ select,
     background: #2f3954;
     border-color: rgba(255, 255, 255, .16);
     color: #e5e7eb;
+}
+
+.dark-layout .notification-center-modal .notification-permohonan-btn {
+    background: rgba(32, 87, 163, .22);
+    border-color: rgba(147, 197, 253, .35);
+    color: #93c5fd;
+}
+
+.dark-layout .notification-center-modal .notification-permohonan-btn:hover,
+.dark-layout .notification-center-modal .notification-permohonan-btn:focus {
+    background: rgba(32, 87, 163, .35);
+    border-color: rgba(147, 197, 253, .55);
+    color: #bfdbfe;
+}
+
+.dark-layout .notification-center-modal .notif-intent-scroll {
+    scrollbar-color: rgba(255, 255, 255, .2) transparent;
+}
+
+.dark-layout .notification-center-modal .notif-intent-scroll::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, .2);
+}
+
+.dark-layout .notification-center-modal .notif-intent-pill {
+    background: #1f2937;
+    border-color: rgba(255, 255, 255, .12);
+    color: #d1d5db;
+}
+
+.dark-layout .notification-center-modal .notif-intent-pill:hover {
+    border-color: #60a5fa;
+    color: #93c5fd;
+    background: rgba(32, 87, 163, .18);
+}
+
+.dark-layout .notification-center-modal .notif-intent-pill.active {
+    background: rgba(32, 87, 163, .28);
+    border-color: #2057a3;
+    color: #93c5fd;
+}
+
+.dark-layout .notification-center-modal .activity-intent-badge,
+.dark-layout .activity-item .activity-intent-badge {
+    background: rgba(217, 119, 6, .2);
+    color: #fcd34d;
+    border-color: rgba(245, 158, 11, .45);
 }
 
 .dark-layout .notification-center-modal .notification-center-item-title,

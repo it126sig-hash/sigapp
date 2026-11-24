@@ -149,13 +149,35 @@ final class DeviceManagementServiceTest extends CIUnitTestCase
 
     public function testPushDeliveryOnlyReturnsSubscriptionsForActiveLinkedDevices(): void
     {
+        $now = date('Y-m-d H:i:s');
+        $idleAt = date('Y-m-d H:i:s', strtotime('-31 days'));
+        $expiresAt = date('Y-m-d H:i:s', strtotime('+30 days'));
+
         $active = $this->register(10, 'push-active-token', 'push-active-selector');
         $revoked = $this->register(10, 'push-revoked-token', 'push-revoked-selector');
+        $idle = $this->register(10, 'push-idle-token', 'push-idle-selector');
         $this->deviceSessions->revokeOne(10, (int) $revoked['id'], 10, 'test');
+
+        $this->testDb->table('auth_device_sessions')
+            ->whereIn('id', [(int) $active['id'], (int) $revoked['id']])
+            ->update([
+                'created_at' => $now,
+                'last_seen_at' => $now,
+                'expires_at' => $expiresAt,
+            ]);
+
+        $this->testDb->table('auth_device_sessions')
+            ->where('id', (int) $idle['id'])
+            ->update([
+                'created_at' => $idleAt,
+                'last_seen_at' => $idleAt,
+                'expires_at' => $expiresAt,
+            ]);
 
         foreach ([
             ['endpoint' => 'https://push.example/active', 'device_session_id' => $active['id']],
             ['endpoint' => 'https://push.example/revoked', 'device_session_id' => $revoked['id']],
+            ['endpoint' => 'https://push.example/idle', 'device_session_id' => $idle['id']],
             ['endpoint' => 'https://push.example/orphan', 'device_session_id' => null],
         ] as $subscription) {
             $this->testDb->table('push_subscriptions')->insert([

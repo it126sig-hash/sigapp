@@ -7,6 +7,7 @@ use App\Repositories\Notifikasi\NotificationRepository;
 use App\Services\FileAccessService;
 use App\Services\Notifikasi\NotifikasiService;
 use App\Services\SiteplanUrgentService;
+use App\Support\NotificationTaxonomy;
 use App\Support\NotificationTextFormatter;
 use CodeIgniter\HTTP\ResponseInterface;
 
@@ -112,12 +113,14 @@ class NotifikasiController extends BaseApiController
         $idProyek = $this->resolveIdProyek();
         $groupId = $this->getCurrentGroupId();
         $userId = function_exists('user_id') ? (int) user_id() : 0;
+        $intent = $this->resolveFilterParam('intent');
+        $category = $this->resolveFilterParam('category');
 
         $urgent = $idProyek > 0
             ? $this->siteplanUrgentService->getUrgentSummary($idProyek, $groupId, $userId)
             : $this->siteplanUrgentService->emptySummary();
 
-        $activity = $this->sanitizeActivityItems($this->getActivity(false, 0, $idProyek > 0 ? $idProyek : null, 10));
+        $activity = $this->sanitizeActivityItems($this->getActivity(false, 0, $idProyek > 0 ? $idProyek : null, 10, $intent, $category));
         $activityUnreadCount = $this->getUnreadActivityCount($idProyek > 0 ? $idProyek : null);
         $urgentTotal = (int) ($urgent['total'] ?? 0);
 
@@ -185,8 +188,10 @@ class NotifikasiController extends BaseApiController
         $offset = (int) ($this->request->getVar('offset') ?? 0);
         $rawIdProyek = $this->request->getVar('id_proyek');
         $idProyek = $rawIdProyek === 'all' ? 0 : (int) ($rawIdProyek ?: session()->get('id_proyek'));
+        $intent = $this->resolveFilterParam('intent');
+        $category = $this->resolveFilterParam('category');
 
-        $items = $this->sanitizeActivityItems($this->getActivity($all, $offset, $idProyek > 0 ? $idProyek : null));
+        $items = $this->sanitizeActivityItems($this->getActivity($all, $offset, $idProyek > 0 ? $idProyek : null, 10, $intent, $category));
 
         if ($this->isRawApiRequest()) {
             return $this->success([
@@ -209,8 +214,17 @@ class NotifikasiController extends BaseApiController
     public function getNotif($all = false)
     {
         $offset = 0;
-        $items = $this->sanitizeActivityItems($this->getActivity($all, $offset));
+        $intent = $this->resolveFilterParam('intent');
+        $category = $this->resolveFilterParam('category');
+        $items = $this->sanitizeActivityItems($this->getActivity($all, $offset, null, 10, $intent, $category));
         $unreadCount = $this->getUnreadActivityCount();
+
+        if ($this->isRawApiRequest()) {
+            return $this->success([
+                'items' => $items,
+                'unread_count' => $unreadCount,
+            ]);
+        }
 
         return $this->response->setJSON([
             'token' => csrf_hash(),
@@ -226,8 +240,10 @@ class NotifikasiController extends BaseApiController
         $limit = (int) ($this->request->getGet('limit') ?? 10);
         $rawIdProyek = $this->request->getGet('id_proyek');
         $idProyek = $rawIdProyek === 'all' ? 0 : (int) ($rawIdProyek ?: session()->get('id_proyek'));
+        $intent = $this->resolveFilterParam('intent');
+        $category = $this->resolveFilterParam('category');
 
-        $items = $this->sanitizeActivityItems($this->getActivity($all, $offset, $idProyek > 0 ? $idProyek : null, $limit));
+        $items = $this->sanitizeActivityItems($this->getActivity($all, $offset, $idProyek > 0 ? $idProyek : null, $limit, $intent, $category));
         $unreadCount = $this->getUnreadActivityCount($idProyek > 0 ? $idProyek : null);
 
         return $this->success([
@@ -273,7 +289,7 @@ class NotifikasiController extends BaseApiController
         return $this->response->setJSON(['status' => 'success', 'token' => csrf_hash()]);
     }
 
-    public function getActivity($all = false, $offset = null, $id_proyek = null, $limit = 10): array
+    public function getActivity($all = false, $offset = null, $id_proyek = null, $limit = 10, ?string $intent = null, ?string $category = null): array
     {
         $userId = function_exists('user_id') ? (int) user_id() : 0;
 
@@ -283,7 +299,9 @@ class NotifikasiController extends BaseApiController
             $id_proyek ? (int) $id_proyek : null,
             (int) ($offset ?? 0),
             (int) $limit,
-            (bool) $all
+            (bool) $all,
+            $intent,
+            $category
         );
     }
 
@@ -293,8 +311,10 @@ class NotifikasiController extends BaseApiController
         $offset = (int) ($this->request->getVar('offset') ?? 0);
         $rawIdProyek = $this->request->getVar('id_proyek');
         $idProyek = $rawIdProyek === 'all' ? 0 : (int) ($rawIdProyek ?: session()->get('id_proyek'));
+        $intent = $this->resolveFilterParam('intent');
+        $category = $this->resolveFilterParam('category');
 
-        $items = $this->sanitizeActivityItems($this->getActivity($all, $offset, $idProyek > 0 ? $idProyek : null));
+        $items = $this->sanitizeActivityItems($this->getActivity($all, $offset, $idProyek > 0 ? $idProyek : null, 10, $intent, $category));
 
         if ($this->isRawApiRequest()) {
             return $this->success([
@@ -306,6 +326,17 @@ class NotifikasiController extends BaseApiController
             'token' => csrf_hash(),
             'notif' => $items,
         ]);
+    }
+
+    protected function resolveFilterParam(string $name): ?string
+    {
+        if (! $this->request) {
+            return null;
+        }
+
+        $value = trim((string) $this->request->getVar($name));
+
+        return $value !== '' ? $value : null;
     }
 
     protected function resolveIdProyek(): int
@@ -362,11 +393,27 @@ class NotifikasiController extends BaseApiController
                 if (!empty($item->id_proyek)) {
                     $item->logo_access_url = $this->fileAccessService->accessUrl('proyek_logo', (int) $item->id_proyek);
                 }
+
+                $taxonomy = NotificationTaxonomy::resolve($item);
+                $item->event_type    = $taxonomy['event_type'];
+                $item->category      = $taxonomy['category'];
+                $item->intent        = $taxonomy['intent'];
+                $item->target_module = $taxonomy['target_module'];
+                $item->ref_id        = $taxonomy['ref_id'];
+                $item->spa_route     = $taxonomy['spa_route'];
             } elseif (is_array($item)) {
                 $item['notif_text'] = $this->plainNotificationText($item['notif'] ?? '', $item['nama_jalan'] ?? null, $item['no_kavling'] ?? null);
                 if (!empty($item['id_proyek'])) {
                     $item['logo_access_url'] = $this->fileAccessService->accessUrl('proyek_logo', (int) $item['id_proyek']);
                 }
+
+                $taxonomy = NotificationTaxonomy::resolve($item);
+                $item['event_type']    = $taxonomy['event_type'];
+                $item['category']      = $taxonomy['category'];
+                $item['intent']        = $taxonomy['intent'];
+                $item['target_module'] = $taxonomy['target_module'];
+                $item['ref_id']        = $taxonomy['ref_id'];
+                $item['spa_route']     = $taxonomy['spa_route'];
             }
         }
 

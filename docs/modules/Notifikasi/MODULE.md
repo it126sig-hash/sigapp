@@ -2,7 +2,7 @@
 
 **Status:** `REFACTORED`  
 **Readiness Score:** `100/100`  
-**Last Synced:** `2026-11-24 15:12:42` @ `d5c1091`  
+**Last Synced:** `2026-11-24 20:25:25` @ `e156bb6`  
 
 ## Purpose
 Pemberitahuan terpusat: navbar in-app alerts, queue email digest, browser Web Push, dan pengaturan preferensi user.
@@ -30,6 +30,7 @@ Pemberitahuan terpusat: navbar in-app alerts, queue email digest, browser Web Pu
 ### Shared Tables (Dibaca dari modul lain)
 - `users`
 - `proyek`
+- `auth_device_sessions`
 
 ## Contracts
 ### A. Public HTTP Endpoints & Routes Inventory
@@ -70,6 +71,7 @@ Pemberitahuan terpusat: navbar in-app alerts, queue email digest, browser Web Pu
 - `getActivity($all = false, $offset = null, $id_proyek = null, $limit = 10)`
 #### `NotificationDispatchService.php`
 - `dispatch(string $channel = 'web_push', int $limit = 100)`
+- `dispatchForNotification(int $notificationId, string $channel = 'web_push', int $limit = 50)`
 #### `NotificationPreferenceService.php`
 - `isAllowed(int $userId, string $eventType, string $channel)`
 - `getUserPreferences(int $userId, ?int $userGroupId = null)`
@@ -107,13 +109,13 @@ Pemberitahuan terpusat: navbar in-app alerts, queue email digest, browser Web Pu
 ### Controllers (5)
 - `app/Controllers/Web/Notifikasi/NotifikasiController.php` (45 baris, 2 public methods: `open(int $notificationId)`, `icon(int $idProyek)`)
 - `app/Controllers/Web/Notifikasi/GoogleCalendarController.php` (55 baris, 3 public methods: `connect()`, `callback()`, `disconnect()`)
-- `app/Controllers/Api/Notifikasi/NotifikasiController.php` (381 baris, 14 public methods: `tambah_notif($target = null, $notif = null, $add_by = null, $id_kavling = null, $id_konsumen = null, $type = null, $id_proyek = null, ?string $actionUrl = null, ?string $eventType = null)`, `summary()`, `getSummary()`, `center()`, `getCenter()`, `snooze()`, `load()`, `loadNotif($all = false)`, `getNotif($all = false)`, `list()`, `markAsRead($id)`, `markAllAsRead()`, `getActivity($all = false, $offset = null, $id_proyek = null, $limit = 10)`, `getActivityRoute()`)
-- `app/Controllers/Api/Notifikasi/NotifPushController.php` (133 baris, 4 public methods: `status()`, `subscribe()`, `unsubscribe()`, `test()`)
+- `app/Controllers/Api/Notifikasi/NotifikasiController.php` (428 baris, 14 public methods: `tambah_notif($target = null, $notif = null, $add_by = null, $id_kavling = null, $id_konsumen = null, $type = null, $id_proyek = null, ?string $actionUrl = null, ?string $eventType = null)`, `summary()`, `getSummary()`, `center()`, `getCenter()`, `snooze()`, `load()`, `loadNotif($all = false)`, `getNotif($all = false)`, `list()`, `markAsRead($id)`, `markAllAsRead()`, `getActivity($all = false, $offset = null, $id_proyek = null, $limit = 10, ?string $intent = null, ?string $category = null)`, `getActivityRoute()`)
+- `app/Controllers/Api/Notifikasi/NotifPushController.php` (212 baris, 4 public methods: `status()`, `subscribe()`, `unsubscribe()`, `test()`)
 - `app/Controllers/Api/Notifikasi/NotificationPreferenceController.php` (86 baris, 3 public methods: `index()`, `save()`, `reset()`)
 
 ### Services (8)
-- `app/Services/Notifikasi/NotifikasiService.php` (441 baris, 4 public methods)
-- `app/Services/Notifikasi/NotificationDispatchService.php` (249 baris, 1 public methods)
+- `app/Services/Notifikasi/NotifikasiService.php` (470 baris, 4 public methods)
+- `app/Services/Notifikasi/NotificationDispatchService.php` (275 baris, 2 public methods)
 - `app/Services/Notifikasi/NotificationPreferenceService.php` (316 baris, 4 public methods)
 - `app/Services/Notifikasi/NotificationNavigationService.php` (91 baris, 1 public methods)
 - `app/Services/Notifikasi/NotificationIconService.php` (43 baris, 1 public methods)
@@ -122,7 +124,7 @@ Pemberitahuan terpusat: navbar in-app alerts, queue email digest, browser Web Pu
 - `app/Services/Notifikasi/GoogleCalendarService.php` (611 baris, 8 public methods)
 
 ### Repositories (2)
-- `app/Repositories/Notifikasi/NotificationRepository.php` (323 baris, 7 public methods: `listForUser(int $userId, int $groupId, ?int $idProyek = null, int $offset = 0, int $limit = 10, bool $all = false)`, `unreadCountForUser(int $userId, int $groupId, ?int $idProyek = null)`, `markAsReadForUser(int $notificationId, int $userId)`, `markAllAsReadForUser(int $userId)`, `getUserGroupId(int $userId)`, `getProyekName(int $idProyek)`, `getActorDepartmentContext(int $userId)`)
+- `app/Repositories/Notifikasi/NotificationRepository.php` (413 baris, 7 public methods: `listForUser(int $userId, int $groupId, ?int $idProyek = null, int $offset = 0, int $limit = 10, bool $all = false, ?string $intent = null, ?string $category = null)`, `unreadCountForUser(int $userId, int $groupId, ?int $idProyek = null)`, `markAsReadForUser(int $notificationId, int $userId)`, `markAllAsReadForUser(int $userId)`, `getUserGroupId(int $userId)`, `getProyekName(int $idProyek)`, `getActorDepartmentContext(int $userId)`)
 - `app/Repositories/Notifikasi/NotifRepository.php` (29 baris, 1 public methods: `tambah_notif($target, $notif, $add_by, $id_kavling, $id_konsumen, $type = null)`)
 
 ### Models (1)
@@ -130,12 +132,6 @@ Pemberitahuan terpusat: navbar in-app alerts, queue email digest, browser Web Pu
 
 ### Views (1 folder)
 - `app/Views/emails` (1 file: `email_digest.php`)
-
-### Views & Global Frontend Assets (UI Shell & Notification Center)
-- `app/Views/template/generate_menu.php` — Global navbar & shell view: trigger `#header-notif` (`data-toggle="modal" data-target="#list-notif"`), side modal `#list-notif` (`.modal.fade.notification-center-modal`) di luar `<nav class="header-navbar">`, serta markup `.dropdown-user`.
-- `public/assets/css/style.css` — Global Tier 1 styling untuk `.notification-center-modal` (drawer kanan full-height `100vh`/`100dvh`, `min(440px, 100vw)` desktop, `100vw` mobile, `.notif-project-scroll`, `.dark-layout`) dan `.dropdown-user .dropdown-menu`.
-- `public/assets/js/scripts.js` — Global Notification Center controller (`window.openNotificationCenter()`, `closeNotificationCenterModal()`, `shown.bs.modal`, auto-close aksi in-page, infinite scroll `scrollHeight - 24`).
-- `public/assets/js/dashboard.js` — Caller eksternal `#dashboard-view-all-activity` yang memanggil `window.openNotificationCenter()` (fallback `$('#list-notif').modal('show')`).
 
 ### JavaScript (1 file)
 - `public/assets/js/push-subscription.js` (249 baris)
@@ -163,33 +159,41 @@ Pemberitahuan terpusat: navbar in-app alerts, queue email digest, browser Web Pu
 - **Web Controller (`App\Controllers\Web\Notifikasi\GoogleCalendarController`):**
   - `connect()`, `callback()`, `disconnect()`: Alur OAuth2 Google Calendar terisolasi untuk sinkronisasi otomatis tiket masalah urgent ke kalender pribadi user.
 - **API Controller (`App\Controllers\Api\Notifikasi\NotifikasiController`):**
-  - `summary()` & `getSummary()`: Dual-Mode response — menghasilkan REST API JSON standar (`BaseApiController`) untuk consumer modern/Vue/Capacitor dan payload kompatibel legacy untuk navbar dropdown (`unread`, `urgent_count`, dsb.).
-  - `center()` & `getCenter()`: Dual-Mode notification center feed dengan pemisahan tab `urgent` dan `activities`.
-  - `load()` & `loadNotif()`: Paginasi feed aktivitas notifikasi dengan format plain-text ramah UI.
+  - `summary()` & `getSummary()`: Dual-Mode response — menghasilkan REST API JSON standar (`BaseApiController`) untuk consumer modern/Vue/Capacitor dan payload kompatibel legacy untuk navbar dropdown (`unread`, `urgent_count`, dsb.). Mendukung filter query `intent` & `category`.
+  - `center()` & `getCenter()`: Dual-Mode notification center feed dengan pemisahan tab `urgent` dan `activities` serta dukungan filter `intent` & `category`.
+  - `load()`, `loadNotif()`, `getNotif()`, & `list()`: Paginasi feed aktivitas notifikasi dengan format plain-text ramah UI, dukungan filter `intent` & `category`, serta metadata taksonomi (`event_type`, `category`, `intent`, `target_module`, `ref_id`, `spa_route`).
   - `markAsRead(int $id)` & `markAllAsRead()`: Operasi mark-as-read per recipient tanpa mengubah status pengguna lain.
   - `snooze()`: Penundaan notifikasi berulang per user.
 - **API Controller (`App\Controllers\Api\Notifikasi\NotifPushController`):**
-  - `status()`, `subscribe()`, `unsubscribe()`, `test()`: Manajemen langganan Web Push browser dengan validasi CSRF, pengikatan ke sesi perangkat aktif (`auth_device_sessions`), dan throttle limit pada testing.
+  - `status()`, `subscribe()`, `unsubscribe()`, `test()`: Manajemen langganan push dual-provider (`web_push` VAPID & `fcm` token Capacitor Android/iOS) dengan validasi payload, pengikatan ke sesi perangkat aktif (`auth_device_sessions`) melalui session atau cookie `sigapp_spa_token` / Bearer token (`DeviceSessionService`), filter `provider = 'web_push'` pada `test()`, dan throttle limit pada testing.
 - **API Controller (`App\Controllers\Api\Notifikasi\NotificationPreferenceController`):**
   - `index()`, `save()`, `reset()`: Manajemen matriks preferensi granular pengguna (kanal in-app, email, web_push) dengan pencegahan override pada event berstatus `is_mandatory`.
 - **Service (`App\Services\Notifikasi\NotifikasiService`):**
-  - `create(NotificationData $data, NotificationAudience $audience)`: Eksekusi transaksi DB (`transStart`/`transComplete`), resolusi penerima dinamis lintas departemen, pembuatan antrean outbox deliveries, dan dukungan fallback email queue legacy.
-  - `tambah_notif()` & `tambah_notif_user()`: Kontrak publik universal lintas modul yang menghubungkan panggilan legacy dari seluruh modul bisnis SIGAPP ke arsitektur notifikasi modern.
+  - `create(NotificationData $data, NotificationAudience $audience)`: Eksekusi transaksi DB (`transStart`/`transComplete`), resolusi penerima dinamis lintas departemen, pembuatan antrean outbox deliveries, dukungan fallback email queue legacy, serta pemanggilan `scheduleImmediatePushDispatch()` pasca-commit (`register_shutdown_function` + `fastcgi_finish_request()`/`litespeed_finish_request()` dengan guard CLI/testing dan toggle `NOTIF_IMMEDIATE_DISPATCH`).
+  - `tambah_notif()` & `tambah_notif_user()`: Kontrak publik universal lintas modul yang menghubungkan panggilan dari seluruh modul bisnis SIGAPP ke arsitektur notifikasi modern.
 - **Service (`App\Services\Notifikasi\NotificationDispatchService`):**
-  - `dispatch(string $channel, int $limit)`: Background worker pemroses delivery outbox dengan token claim concurrency guard, handling retry otomatis, dan penonaktifan endpoint kadaluwarsa (HTTP 404/410).
+  - `dispatch(string $channel, int $limit)` & `dispatchForNotification(int $notificationId, string $channel = 'web_push', int $limit = 50)`: Pemroses delivery outbox (baik via cron sweeper maupun post-response immediate push per `notification_id`) dengan token claim concurrency guard, filter `provider = 'web_push'` pada `dispatchWebPush()`, handling retry otomatis, dan penonaktifan endpoint kadaluwarsa (HTTP 404/410).
 - **Service (`App\Services\Notifikasi\WebPushService`):**
   - `getActiveSubscriptionsForUser(int $userId)`: Mengambil endpoint aktif yang hanya terafiliasi dengan sesi perangkat valid (`auth_device_sessions`), mencegah pengiriman push ke browser zombie/logout.
   - `sendToSubscriptions()`: Pengiriman batch terenkripsi via Guzzle PSR-18 client dengan header otentikasi VAPID.
 - **Service (`App\Services\Notifikasi\NotificationPreferenceService`):**
   - `getUserPreferences()`, `savePreferences()`, `syncInAppVisibility()`: Pengaturan preferensi opt-in/opt-out dinamis dan sinkronisasi visibilitas in-app secara otomatis.
 - **Repository (`App\Repositories\Notifikasi\NotificationRepository`):**
-  - `listForUser()` & `unreadCountForUser()`: Query Data Access teroptimasi dengan pemfilteran status baca dan visibilitas in-app per recipient.
+  - `listForUser(..., ?string $intent = null, ?string $category = null)` & `unreadCountForUser()`: Query Data Access teroptimasi dengan pemfilteran status baca, visibilitas in-app per recipient, filter taksonomi `intent`/`category` (batch scan), dan pelampiran metadata taksonomi via `NotificationTaxonomy::resolve()`.
   - `getUserGroupId(int $userId)`: Helper query aman untuk mendapatkan group ID pengguna tanpa melanggar layer di controller.
   - `getProyekName(int $idProyek)`: Query nama proyek untuk pembentukan payload teks notifikasi.
   - `getActorDepartmentContext(int $userId)`: Query agregasi aman (`MIN(auth_groups.name)`) untuk format notifikasi push yang patuh terhadap MySQL `ONLY_FULL_GROUP_BY`.
-- **Frontend & UI Shell (`public/assets/js/scripts.js`, `public/assets/js/dashboard.js`, `app/Views/template/generate_menu.php`, `public/assets/css/style.css`):**
-  - `window.openNotificationCenter()` (`scripts.js`): Helper global untuk membuka right-side full-height modal `#list-notif` (`$('#list-notif').modal('show')`), digunakan juga oleh `#dashboard-view-all-activity` di `dashboard.js`.
-  - `closeNotificationCenterModal()` (`scripts.js`): Menutup modal `#list-notif` secara terprogram saat klik item urgent/activity memicu aksi atau modal in-page (`openCOSubkon`, `openSiteplanKeuanganFromUrgent`, `openSiteplanKeuanganFromNotification`, `modal_tagihan`, `openSiteplanKavlingFromNotification`, `window.openTiketMasalah`, `view_detail`).
+- **Model (`App\Models\PushSubscriptionModel`):**
+  - `saveSubscription()`: Menyimpan atau memigrasikan langganan dual-provider (`web_push` via `endpoint_hash` SHA-256 & `fcm` via `fcm://<token>` + `platform`: `web`/`android`/`ios`).
+  - `deleteSubscription(int $userId, string $endpointOrToken)`: Menonaktifkan subscription (`disabled_at`) berdasarkan endpoint Web Push maupun raw/prefixed `fcm_token`.
+  - `activeForUser(int $userId, ?string $provider = null)`: Mengembalikan subscription aktif yang tertaut ke `auth_device_sessions` yang belum dicabut, belum kedaluwarsa, dan tidak idle > 30 hari (`last_seen_at >= -30 days`, fallback `created_at`).
+- **Support & Taxonomy (`App\Support\NotificationTaxonomy`):**
+  - `resolve(array|object $item)`: Pemetaan deterministik item notifikasi ke taksonomi 2-dimensi (`event_type`, `category`, `intent`: `action_required` | `urgent_alert` | `operational_info` | `system_master`, `target_module`, `ref_id`, `spa_route` termasuk deep-link `/permohonan?module=...&id=...`).
+- **Frontend, Service Worker, & UI Shell (`public/sw.js`, `public/assets/js/scripts.js`, `public/assets/js/dashboard.js`, `app/Views/template/generate_menu.php`, `public/assets/css/style.css`):**
+  - `public/sw.js`: Mengirim event realtime `BroadcastChannel('sigapp_notif_realtime')` (`PUSH_RECEIVED`) dan `client.postMessage({ type: 'SIGAPP_PUSH_RECEIVED' })` ke tab aktif saat event `push` diterima.
+  - `initNotificationRealtimeListeners()`, `scheduleRealtimeNotifSync()`, & `visibilitychange` (`scripts.js`): Listener `BroadcastChannel` + `navigator.serviceWorker` `message` dengan debounce 400ms dan sinkronisasi ulang otomatis saat tab kembali fokus (>15 detik).
+  - `#notif-intent-filter` (`.notif-intent-pill`), `#notif-permohonan-link`, & `.activity-intent-badge` (`generate_menu.php`, `style.css`, `scripts.js`): Filter intent di tab Aktivitas `#list-notif` (`Semua`, `Perlu Tindakan`, `Operasional`, `Sistem`), badge `Perlu Tindakan`, pintasan ke `/permohonan`, serta deep-link `handleNotificationClick()` untuk 6 event gap baru.
+  - `window.openNotificationCenter()` (`scripts.js`) & `closeNotificationCenterModal()` (`scripts.js`): Membuka/menutup right-side full-height modal `#list-notif`, digunakan juga oleh `#dashboard-view-all-activity` di `dashboard.js`.
   - `#list-notif` `shown.bs.modal` & infinite scroll `#notification-center-body` (`scrollTop + innerHeight >= scrollHeight - 24`): Memuat/menyegarkan notification center saat drawer dibuka serta memuat halaman aktivitas berikutnya lewat `/loadnotif` saat tab `Aktivitas` aktif.
 
 ## Deprecated & Legacy Shims
@@ -228,6 +232,9 @@ Seluruh komponen di bawah ini dipertahankan secara sengaja demi **Zero-Downtime 
 - Class `.scrollable-container` & `.media-list` pada `#notification-center-body` (`app/Views/template/generate_menu.php`) -> **REMOVED**, mencegah binding `PerfectScrollbar` (`app.js`) dan `max-height: 25rem` (`bootstrap-extended.css`) agar native flex scroll berjalan penuh.
 - Pemanggilan `$('#header-notif').dropdown('toggle')` (`public/assets/js/dashboard.js`) & listener `shown.bs.dropdown` (`public/assets/js/scripts.js`) -> **REMOVED**, digantikan `window.openNotificationCenter()` / `$('#list-notif').modal('show')` dan listener `shown.bs.modal`.
 
+### 4. Pembersihan Konsumen Shim Lintas Modul (`2026-11-24`)
+- Pemanggilan legacy `\App\Controllers\Notif` di `App\Services\Keuangan\Cashout\CashoutSubkonService` dan import shim `App\Services\NotifikasiService` di `App\Services\Bpb\BpbService` -> **REMOVED**, keduanya telah beralih ke service modular `App\Services\Notifikasi\NotifikasiService`.
+
 ## Readiness Checklist
 - [x] Has Service Layer
 - [x] Has Repository Layer
@@ -242,7 +249,21 @@ _Jalankan `php spark module:deadcode Notifikasi` untuk mengaudit dead code kandi
 ## Notes
 - Modul Notifikasi adalah modul fondasi infrastruktur (Wave 0) yang menjadi backend notification engine bagi seluruh aplikasi web monolitik dan frontend mobile (Vue/Capacitor).
 - **Arsitektur Zero Layer Violations:** Seluruh controller di namespace `Web\Notifikasi` dan `Api\Notifikasi` bersih 100% dari akses direct database (`db_connect()`, `$this->db`), seluruh data access didelegasikan ke `NotificationRepository`.
-- **Integrasi Sesi Perangkat:** Web Push Service memvalidasi sesi perangkat aktif (`auth_device_sessions`), menjamin bahwa user yang logout tidak akan menerima push notification di perangkat tersebut.
+- **Integrasi Sesi Perangkat & Cutoff 30 Hari:** `PushSubscriptionModel::activeForUser()` memvalidasi sesi perangkat aktif (`auth_device_sessions`) yang belum dicabut, belum kedaluwarsa, dan tidak idle > 30 hari (`last_seen_at >= -30 days`), serta mendukung dual-provider (`web_push` VAPID dan `fcm` token Capacitor Android/iOS).
+- **Support, Enums, Migrations, & Global Assets Terkait:**
+  - `app/Support/NotificationTaxonomy.php` (`NotificationTaxonomy::resolve()` — pemetaan taksonomi 2-dimensi & `spa_route` ke `/permohonan` / modul target).
+  - `app/Support/NotificationTextFormatter.php` (normalisasi plain-text & prefix jalan/kavling).
+  - `app/Enums/NotificationEvent.php` & `app/Database/Seeds/NotificationEventTypeSeeder.php` (47 event registry, termasuk 6 event gap baru).
+  - `app/Database/Migrations/2026-11-25-000001_UpgradePushSubscriptionsAndNotificationTaxonomy.php` (Batch 50: upgrade `push_subscriptions` dual-provider, sinkronisasi seeder, & registrasi menu `Permohonan & Approval` `id=52`).
+  - `public/sw.js` (`BroadcastChannel('sigapp_notif_realtime')` + `client.postMessage`), `app/Views/template/generate_menu.php` (`#list-notif`, `#notif-intent-filter`, `#notif-permohonan-link`), `public/assets/css/style.css`, `public/assets/js/scripts.js`, & `public/assets/js/dashboard.js`.
+- **Cross-Module Callers (`NotifikasiService` & `NotificationEvent`):**
+  - `App\Services\Legal\LegalService` (`simpan`, `uploadDocument`) -> `legal_dokumen_updated` ke `'3;4;5;10'`.
+  - `App\Services\Keuangan\PenagihanService` (`simpanPenagihan`, `updateStatusPenagihan`) -> `tagihan_signature_requested` ke `'9'`.
+  - `App\Services\Keuangan\DireksiService` (`signTagihan`, `rejectTagihan`) -> `tagihan_signature_responded` ke `'3'`.
+  - `App\Services\Bpb\BpbService` (`sign`, `submit`, dll.) -> `bpb_signature_requested`, `bpb_signature_completed`, `bpb_rejected`, `bpb_approved`, `bpb_status_changed`, serta `bpb_execution_requested` ke `'2;3'`.
+  - `App\Services\Keuangan\DanaJaminanService` (`storePengajuan`, `cairkanPengajuan`) -> `dajam_pengajuan_created` (`'3;4'`) & `dajam_pencairan_completed` (`'3;4;9'`).
+  - `App\Services\Keuangan\Cashout\CashoutSubkonService` (`pembayaran`, `notifyCashoutSubkon`) -> `cashout_subkon` ke `[7]`.
+  - Modul lain pengonsumsi `NotifikasiService`: `SalesExternalService`, `KavlingRequestService`, `TiketMasalahService`, `ReferralService`, `PosisiKonsumenService`, `PembayaranService`, `ProduksiService`, dll.
 - **Perubahan Historis (2026-10-23):**
   - **Registrasi 5 Event Kategori `Fee Sales`:** Menambahkan konstanta resmi di `App\Enums\NotificationEvent` dan `NotificationEventTypeSeeder` (`fee_sales_pengajuan_created`, `fee_sales_termin_generated`, `fee_sales_harga_net_updated`, `fee_sales_ttd_signed`, `fee_sales_pencairan`) dengan `relevant_groups = '3;4'`.
   - **Scoping Default Preferensi Berbasis `relevant_groups`:** `NotificationPreferenceService::getUserPreferences()` dan `syncInAppVisibility()` menggunakan `resolveUserGroups()` serta `isRelevantForGroups()` untuk mengevaluasi `e.relevant_groups` terhadap grup user (`auth_groups_users` + `$userGroupId`). User di luar grup terkait otomatis mendapatkan default `false` pada ketiga channel (`in_app`, `email`, `web_push`).
@@ -261,6 +282,17 @@ _Jalankan `php spark module:deadcode Notifikasi` untuk mengaudit dead code kandi
     - `GoogleCalendarService`: `db_connect()` tanpa transaksi (L36) dan `$this->db->table()` (L85, L156, L183, L188, L198, L316, L473, L495, L508, L518, L540, L547).
 
 ## Change Log
+- `2026-11-24` [`FEATURE`] — **Infrastruktur Notifikasi Realtime (Vue/Capacitor-Ready), Dual-Provider Push, Taksonomi 2-Dimensi, & 6 Event Gap Lintas Modul (PASS QA)**:
+  - **Routes & Public Contracts:** Endpoint `GET /notif/summary`, `/notif/center`, `/loadnotif`, `/api/notif/summary`, `/api/notif/center`, `/api/notif/load`, `/api/notif/list`, dan `/getnotif` kini mendukung query filter `intent` & `category` serta mengembalikan metadata taksonomi (`event_type`, `category`, `intent`, `target_module`, `ref_id`, `spa_route`). `POST /api/notif/push/subscribe` & `unsubscribe` mendukung dual-provider (`web_push` & `fcm` + `platform`) serta resolusi `device_session_id` dari cookie `sigapp_spa_token` / Bearer token.
+  - **Controller / Service / Repo / Model:**
+    - `app/Enums/NotificationEvent.php`, `app/Database/Seeds/NotificationEventTypeSeeder.php`, & `app/Database/Migrations/2026-11-25-000001_UpgradePushSubscriptionsAndNotificationTaxonomy.php`: tambah 6 event (`legal_dokumen_updated`, `tagihan_signature_requested`, `tagihan_signature_responded`, `bpb_execution_requested`, `dajam_pengajuan_created`, `dajam_pencairan_completed`), sinkronisasi `fee_sales_pengajuan_rejected`, perapihan `relevant_groups`, upgrade `push_subscriptions` dual-provider, & menu `Permohonan & Approval` (`id=52`).
+    - `app/Support/NotificationTaxonomy.php`: kelas baru `NotificationTaxonomy::resolve()`.
+    - `app/Repositories/Notifikasi/NotificationRepository.php` & `app/Controllers/Api/Notifikasi/NotifikasiController.php`: filter `intent`/`category` & pelampiran taksonomi 2-dimensi.
+    - `app/Services/Notifikasi/NotifikasiService.php` & `NotificationDispatchService.php`: `scheduleImmediatePushDispatch()` (post-response shutdown dispatch pasca-commit) & `dispatchForNotification()` + filter `provider = 'web_push'`.
+    - `app/Models/PushSubscriptionModel.php` & `app/Controllers/Api/Notifikasi/NotifPushController.php`: dual-provider `web_push`/`fcm`, `deleteSubscription()` by endpoint/token, & cutoff sesi idle > 30 hari di `activeForUser()`.
+    - Cross-module callers: `LegalService`, `PenagihanService`, `DireksiService`, `BpbService`, `DanaJaminanService`, dan `CashoutSubkonService`.
+  - **View / CSS / JS:** `public/sw.js` (`BroadcastChannel('sigapp_notif_realtime')` + `client.postMessage`), `public/assets/js/scripts.js` (`initNotificationRealtimeListeners()`, `scheduleRealtimeNotifSync()`, `visibilitychange`, filter `intent`, badge `Perlu Tindakan`, deep-link event baru), `app/Views/template/generate_menu.php` (`#notif-permohonan-link`, `#notif-intent-filter`), & `public/assets/css/style.css`.
+  - **Deprecations:** Menghapus pemanggilan shim `\App\Controllers\Notif` di `CashoutSubkonService` dan shim `App\Services\NotifikasiService` di `BpbService`.
 - `2026-11-24` [`UI_REPORT`] — **Perbaikan Popup User Profile & Konversi Popup Notifikasi ke Side Modal Kanan Full-Height (`#list-notif`) (PASS QA)**:
   - **Routes & Public Contracts:** Tidak ada perubahan rute/API backend; tetap memakai kontrak `/notif/summary`, `/notif/center`, `/loadnotif`, `/notif/snooze`, `/notif/mark-as-read/{id}`, `/notif/mark-all-as-read`, dan `/notif/open/{id}`.
   - **Controller / Service / Repo / Model:** Tidak ada perubahan file backend (`N/A`).

@@ -230,6 +230,25 @@ class DireksiService
         ]);
 
         if ($updated) {
+            try {
+                $inv = $this->repo->findInvoiceByNoInv($noInv);
+                $nomorSurat = $inv && ! empty($inv->nomor_surat) ? $inv->nomor_surat : $noInv;
+                $msg = "Surat tagihan {$nomorSurat} telah ditandatangani oleh Direksi.";
+                $this->notif->tambah_notif(
+                    '3',
+                    $msg,
+                    $userId,
+                    $inv->id_kavling ?? null,
+                    $inv->id_konsumen ?? null,
+                    NotificationEvent::TAGIHAN_SIGNATURE_RESPONDED,
+                    null,
+                    'tagihan/list',
+                    NotificationEvent::TAGIHAN_SIGNATURE_RESPONDED
+                );
+            } catch (\Throwable $e) {
+                log_message('error', '[DireksiService::signTagihan] Notif failed: {message}', ['message' => $e->getMessage()]);
+            }
+
             return [
                 'success' => true,
                 'message' => 'Surat tagihan berhasil ditandatangani.',
@@ -307,21 +326,23 @@ class DireksiService
 
         try {
             $inv = $this->repo->findInvoiceByNoInv($noInv);
-            if ($inv && ! empty($inv->add_by)) {
-                $msg = "Tanda tangan surat tagihan {$inv->nomor_surat} ditolak oleh Direksi. Alasan: {$alasan}";
+            if ($inv) {
+                $nomorSurat = ! empty($inv->nomor_surat) ? $inv->nomor_surat : $noInv;
+                $msg = "Tanda tangan surat tagihan {$nomorSurat} ditolak oleh Direksi. Alasan: {$alasan}";
                 $this->notif->tambah_notif(
                     '3',
                     $msg,
                     $userId,
                     $inv->id_kavling ?? null,
+                    $inv->id_konsumen ?? null,
+                    NotificationEvent::TAGIHAN_SIGNATURE_RESPONDED,
                     null,
-                    null,
-                    null,
-                    'tagihan/list'
+                    'tagihan/list',
+                    NotificationEvent::TAGIHAN_SIGNATURE_RESPONDED
                 );
             }
-        } catch (\Throwable) {
-            // Ignore notif error
+        } catch (\Throwable $e) {
+            log_message('error', '[DireksiService::rejectTagihan] Notif failed: {message}', ['message' => $e->getMessage()]);
         }
 
         return [

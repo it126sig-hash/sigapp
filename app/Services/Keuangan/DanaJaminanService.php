@@ -2,8 +2,10 @@
 
 namespace App\Services\Keuangan;
 
+use App\Enums\NotificationEvent;
 use App\Services\AuditTrail\HistoryService;
 use App\Services\FileAccessService;
+use App\Services\Notifikasi\NotifikasiService;
 
 /**
  * @deprecated Service ini deprecated dan dijadwalkan untuk dihapus.
@@ -15,13 +17,15 @@ class DanaJaminanService
     protected FileAccessService $fileAccessService;
     protected FinanceLedgerService $ledgerService;
     protected HistoryService $historyService;
+    protected NotifikasiService $notifikasiService;
 
-    public function __construct()
+    public function __construct(?NotifikasiService $notifikasiService = null)
     {
         $this->db = \Config\Database::connect();
         $this->fileAccessService = new FileAccessService();
         $this->ledgerService = new FinanceLedgerService();
         $this->historyService = new HistoryService();
+        $this->notifikasiService = $notifikasiService ?? new NotifikasiService();
     }
 
     public function getData(int $idMkdt, int $idKavling): array
@@ -292,6 +296,22 @@ class DanaJaminanService
                 throw new \RuntimeException('Transaksi gagal');
             }
 
+            try {
+                $this->notifikasiService->tambah_notif(
+                    '3;4',
+                    'Pengajuan pencairan dana jaminan telah dibuat.',
+                    $actorId,
+                    $idKavling,
+                    $context->id_konsumen ?? null,
+                    NotificationEvent::DAJAM_PENGAJUAN_CREATED,
+                    null,
+                    'siteplan/view?id_kavling=' . $idKavling . '&tab=keuangan',
+                    NotificationEvent::DAJAM_PENGAJUAN_CREATED
+                );
+            } catch (\Throwable $e) {
+                log_message('error', '[DanaJaminanService::storePengajuan] Notif failed: {message}', ['message' => $e->getMessage()]);
+            }
+
             return $this->response(true, 'Pengajuan dana jaminan berhasil disimpan', [
                 'id_pengajuan' => $idPengajuan,
                 'id_kavling' => $idKavling,
@@ -321,7 +341,8 @@ class DanaJaminanService
             $idMkdt = $context ? (int) $context->id_mkdt : 0;
         }
 
-        if (! $this->getAkadContext($idMkdt, $idKavling)) {
+        $akadContext = $this->getAkadContext($idMkdt, $idKavling);
+        if (! $akadContext) {
             return $this->response(false, 'Pencairan hanya bisa dilakukan untuk kavling dengan status Akad');
         }
 
@@ -420,6 +441,22 @@ class DanaJaminanService
             $db->transComplete();
             if ($db->transStatus() === false) {
                 throw new \RuntimeException('Transaksi gagal');
+            }
+
+            try {
+                $this->notifikasiService->tambah_notif(
+                    '3;4;9',
+                    'Pencairan dana jaminan telah disimpan.',
+                    $actorId,
+                    $idKavling,
+                    $akadContext->id_konsumen ?? null,
+                    NotificationEvent::DAJAM_PENCAIRAN_COMPLETED,
+                    null,
+                    'siteplan/view?id_kavling=' . $idKavling . '&tab=keuangan',
+                    NotificationEvent::DAJAM_PENCAIRAN_COMPLETED
+                );
+            } catch (\Throwable $e) {
+                log_message('error', '[DanaJaminanService::cairkanPengajuan] Notif failed: {message}', ['message' => $e->getMessage()]);
             }
 
             return $this->response(true, 'Pencairan dana jaminan berhasil disimpan', [
@@ -670,7 +707,7 @@ class DanaJaminanService
     protected function getAkadContext(int $idMkdt, int $idKavling, bool $akadOnly = true): ?object
     {
         $builder = $this->db->table('mkdt m')
-            ->select('m.id_mkdt, m.id_kavling, m.status_mkdt, m.harga_kpr_acc, m.dajam_selesai, k.id_kavling as kavling_id')
+            ->select('m.id_mkdt, m.id_kavling, m.id_konsumen, m.status_mkdt, m.harga_kpr_acc, m.dajam_selesai, k.id_kavling as kavling_id')
             ->join('kavling k', 'k.id_mkdt = m.id_mkdt', 'left')
             ->where('m.id_mkdt', $idMkdt)
             ->groupStart()

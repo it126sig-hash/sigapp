@@ -1109,5 +1109,13 @@ $routes->group('api/sales-external', ['namespace' => 'App\Controllers\Api\SalesE
     $routes->post('recalculate-termin', 'SalesExternalController::recalculateTermin');
 });
 
+// ── Pusat Permohonan & Approval (Web & API Routes) ─────────────────
+$routes->get('permohonan', '\App\Controllers\Web\Permohonan\PermohonanController::index', ['filter' => 'login']);
+$routes->group('api/permohonan', ['namespace' => 'App\Controllers\Api\Permohonan', 'filter' => 'login'], function ($routes) {
+    $routes->get('meta', 'PermohonanController::meta');
+    $routes->get('summary', 'PermohonanController::summary');
+    $routes->get('list', 'PermohonanController::list');
+});
+
 
 

@@ -2,11 +2,13 @@
 
 namespace App\Services\Keuangan;
 
+use App\Enums\NotificationEvent;
 use App\Libraries\Mpdf_lib;
 use App\Repositories\BookingPaymentRepository;
 use App\Repositories\Keuangan\PenagihanRepository;
 use App\Services\FileAccessService;
 use App\Services\KeuanganService as LegacyKeuanganService;
+use App\Services\Notifikasi\NotifikasiService;
 use Dompdf\Dompdf;
 
 class PenagihanService
@@ -16,6 +18,7 @@ class PenagihanService
     protected LegacyKeuanganService $keuanganService;
     protected FileAccessService $fileAccessService;
     protected Mpdf_lib $mpdf;
+    protected NotifikasiService $notifikasiService;
 
     public const KOPSURAT_ALLOWED_GROUPS = [
         'Admin',
@@ -35,13 +38,15 @@ class PenagihanService
         ?BookingPaymentRepository $bookingPaymentRepo = null,
         ?LegacyKeuanganService $keuanganService = null,
         ?FileAccessService $fileAccessService = null,
-        ?Mpdf_lib $mpdf = null
+        ?Mpdf_lib $mpdf = null,
+        ?NotifikasiService $notifikasiService = null
     ) {
         $this->penagihanRepo = $penagihanRepo ?? new PenagihanRepository();
         $this->bookingPaymentRepo = $bookingPaymentRepo ?? new BookingPaymentRepository($this->penagihanRepo->getDb());
         $this->keuanganService = $keuanganService ?? new LegacyKeuanganService();
         $this->fileAccessService = $fileAccessService ?? new FileAccessService();
         $this->mpdf = $mpdf ?? new Mpdf_lib();
+        $this->notifikasiService = $notifikasiService ?? new NotifikasiService();
     }
 
     public function getMetaPayload(?int $activeProjectId = null): array
@@ -445,6 +450,17 @@ class PenagihanService
                 throw new \RuntimeException('Transaksi gagal');
             }
 
+            if ($statusTagihan === 'publish') {
+                $this->notifyTagihanSignatureRequested(
+                    trim((string) $nomorSurat),
+                    $idKavling ? (int) $idKavling : null,
+                    $idKonsumen ? (int) $idKonsumen : null,
+                    $idMkdt,
+                    $tagihan,
+                    $actorId
+                );
+            }
+
             return [
                 'token'    => csrf_hash(),
                 'success'  => true,
@@ -522,6 +538,18 @@ class PenagihanService
             'add_by'     => $actorId,
             'date_add'   => date('Y-m-d H:i:s'),
         ]);
+
+        if ($statusTagihan === 'publish') {
+            $invoice = $this->penagihanRepo->findInvoiceByNoInv($noInv);
+            $this->notifyTagihanSignatureRequested(
+                trim((string) ($nomorSurat ?: ($invoice->nomor_surat ?? $noInv))),
+                $invoice && ! empty($invoice->id_kavling) ? (int) $invoice->id_kavling : null,
+                $invoice && ! empty($invoice->id_konsumen) ? (int) $invoice->id_konsumen : null,
+                $invoice && ! empty($invoice->id_mkdt) ? (int) $invoice->id_mkdt : 0,
+                $invoice->tagihan ?? null,
+                $actorId
+            );
+        }
 
         return [
             'token'    => csrf_hash(),
@@ -897,6 +925,57 @@ class PenagihanService
         $dompdf->setPaper('A4', 'portrait');
         $dompdf->render();
         $dompdf->stream($filename);
+    }
+
+    protected function notifyTagihanSignatureRequested(
+        string $nomorSurat,
+        ?int $idKavling,
+        ?int $idKonsumen,
+        int $idMkdt,
+        mixed $tagihan,
+        int $actorId
+    ): void {
+        try {
+            $totalNominal = 0.0;
+            $items = $tagihan;
+            if (is_string($items)) {
+                $items = json_decode(str_replace('&quot;', '"', $items), true);
+            }
+            if (is_array($items)) {
+                foreach ($items as $item) {
+                    $totalNominal += $this->cleanNumeric($item['nominal'] ?? 0);
+                }
+            }
+
+            $namaKonsumen = '';
+            if ($idMkdt > 0) {
+                $mkdt = $this->penagihanRepo->getMkdtWithKonsumen($idMkdt);
+                $namaKonsumen = trim((string) ($mkdt->nama_konsumen ?? ''));
+            }
+
+            $message = 'Surat tagihan ' . $nomorSurat;
+            if ($namaKonsumen !== '') {
+                $message .= ' a.n. ' . $namaKonsumen;
+            }
+            if ($totalNominal > 0) {
+                $message .= ' (Rp ' . number_format($totalNominal, 0, ',', '.') . ')';
+            }
+            $message .= ' membutuhkan tanda tangan Direksi.';
+
+            $this->notifikasiService->tambah_notif(
+                '9',
+                $message,
+                $actorId,
+                $idKavling,
+                $idKonsumen,
+                NotificationEvent::TAGIHAN_SIGNATURE_REQUESTED,
+                null,
+                'direksi/tagihan',
+                NotificationEvent::TAGIHAN_SIGNATURE_REQUESTED
+            );
+        } catch (\Throwable $e) {
+            log_message('error', '[PenagihanService::notifyTagihanSignatureRequested] {message}', ['message' => $e->getMessage()]);
+        }
     }
 
     protected function buildDuplicateNomorSuratMessage(object $dup): string

@@ -2,6 +2,7 @@
 
 namespace App\Repositories\Notifikasi;
 
+use App\Support\NotificationTaxonomy;
 use CodeIgniter\Database\BaseBuilder;
 use CodeIgniter\Database\BaseConnection;
 
@@ -15,23 +16,67 @@ class NotificationRepository
         $this->db = $db ?? db_connect();
     }
 
-    public function listForUser(int $userId, int $groupId, ?int $idProyek = null, int $offset = 0, int $limit = 10, bool $all = false): array
-    {
-        if ($this->usesRecipientReadPath()) {
-            return $this->newListQuery($userId, $idProyek, $offset, $limit, $all)->get()->getResult();
+    public function listForUser(
+        int $userId,
+        int $groupId,
+        ?int $idProyek = null,
+        int $offset = 0,
+        int $limit = 10,
+        bool $all = false,
+        ?string $intent = null,
+        ?string $category = null
+    ): array {
+        $intentFilter   = $intent !== null && trim($intent) !== '' ? trim($intent) : null;
+        $categoryFilter = $category !== null && trim($category) !== '' ? trim($category) : null;
+
+        if ($intentFilter === null && $categoryFilter === null) {
+            $rows = $this->buildListBuilder($userId, $groupId, $idProyek, $offset, $limit, $all)
+                ->get()
+                ->getResult();
+
+            return $this->attachTaxonomy($rows);
         }
 
-        $builder = $this->legacyBaseQuery();
-        if ($idProyek) {
-            $this->applyProjectFilter($builder, $idProyek);
-        }
-        $this->applyLegacyAudienceFilter($builder, $userId, $groupId);
+        $targetCount = max(1, $offset + $limit);
+        $batchSize   = 100;
+        $maxScan     = 1000;
+        $scanOffset  = 0;
+        $matched     = [];
 
-        return $builder
-            ->orderBy('notification.created_at', 'desc')
-            ->limit($limit, $offset)
-            ->get()
-            ->getResult();
+        while ($scanOffset < $maxScan && count($matched) < $targetCount) {
+            $batch = $this->buildListBuilder($userId, $groupId, $idProyek, $scanOffset, $batchSize, $all)
+                ->get()
+                ->getResult();
+
+            if ($batch === []) {
+                break;
+            }
+
+            foreach ($batch as $row) {
+                $taxonomy = NotificationTaxonomy::resolve($row);
+                if ($intentFilter !== null && $taxonomy['intent'] !== $intentFilter) {
+                    continue;
+                }
+                if ($categoryFilter !== null && strcasecmp($taxonomy['category'], $categoryFilter) !== 0) {
+                    continue;
+                }
+
+                $this->applyTaxonomyToRow($row, $taxonomy);
+                $matched[] = $row;
+
+                if (count($matched) >= $targetCount) {
+                    break;
+                }
+            }
+
+            if (count($batch) < $batchSize) {
+                break;
+            }
+
+            $scanOffset += $batchSize;
+        }
+
+        return array_slice($matched, $offset, $limit);
     }
 
     public function unreadCountForUser(int $userId, int $groupId, ?int $idProyek = null): int
@@ -181,6 +226,51 @@ class NotificationRepository
             ->getRowArray();
 
         return $row ?: [];
+    }
+
+    private function buildListBuilder(int $userId, int $groupId, ?int $idProyek, int $offset, int $limit, bool $all): BaseBuilder
+    {
+        if ($this->usesRecipientReadPath()) {
+            return $this->newListQuery($userId, $idProyek, $offset, $limit, $all);
+        }
+
+        $builder = $this->legacyBaseQuery();
+        if ($idProyek) {
+            $this->applyProjectFilter($builder, $idProyek);
+        }
+        $this->applyLegacyAudienceFilter($builder, $userId, $groupId);
+
+        return $builder
+            ->orderBy('notification.created_at', 'desc')
+            ->limit($limit, $offset);
+    }
+
+    private function attachTaxonomy(array $rows): array
+    {
+        foreach ($rows as $row) {
+            $this->applyTaxonomyToRow($row, NotificationTaxonomy::resolve($row));
+        }
+
+        return $rows;
+    }
+
+    private function applyTaxonomyToRow(array|object $row, array $taxonomy): void
+    {
+        if (is_object($row)) {
+            $row->event_type    = $taxonomy['event_type'];
+            $row->category      = $taxonomy['category'];
+            $row->intent        = $taxonomy['intent'];
+            $row->target_module = $taxonomy['target_module'];
+            $row->ref_id        = $taxonomy['ref_id'];
+            $row->spa_route     = $taxonomy['spa_route'];
+        } elseif (is_array($row)) {
+            $row['event_type']    = $taxonomy['event_type'];
+            $row['category']      = $taxonomy['category'];
+            $row['intent']        = $taxonomy['intent'];
+            $row['target_module'] = $taxonomy['target_module'];
+            $row['ref_id']        = $taxonomy['ref_id'];
+            $row['spa_route']     = $taxonomy['spa_route'];
+        }
     }
 
     private function newListQuery(int $userId, ?int $idProyek, int $offset, int $limit, bool $all): BaseBuilder

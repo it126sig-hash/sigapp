@@ -196,10 +196,16 @@ $activeProyekLogoUrl = ($activeProyek && ! empty($activeProyek->logo_thumbnail_u
                 </ul>
             </div>
             <div class="notification-project-filter px-1 py-50 border-bottom">
-                <div class="d-flex align-items-center mb-50" style="gap: 6px;">
+                <div class="d-flex align-items-center justify-content-between mb-50" style="gap: 8px;">
+                    <div class="d-flex align-items-center min-w-0" style="gap: 6px;">
                     <i data-feather="folder" class="text-primary" style="width: 16px; height: 16px;"></i>
-                    <span class="text-dark font-weight-bolder" id="notif-active-project-name" style="font-size: 0.9rem;"><?= $activeProyekId ? esc($activeProyekName) : 'Semua Proyek' ?></span>
-                    <i data-feather="chevron-down" class="text-muted" style="width: 14px; height: 14px;"></i>
+                        <span class="text-dark font-weight-bolder text-truncate" id="notif-active-project-name" style="font-size: 0.9rem;"><?= $activeProyekId ? esc($activeProyekName) : 'Semua Proyek' ?></span>
+                        <i data-feather="chevron-down" class="text-muted flex-shrink-0" style="width: 14px; height: 14px;"></i>
+                    </div>
+                    <a href="<?= site_url('permohonan') ?>" class="notification-permohonan-btn flex-shrink-0" id="notif-permohonan-link" title="Buka Pusat Permohonan" aria-label="Buka Pusat Permohonan">
+                        <i data-feather="check-square"></i>
+                        <span>Pusat Permohonan</span>
+                    </a>
                 </div>
                 <div class="notif-project-scroll">
                     <button type="button" class="btn btn-sm <?= !$activeProyekId ? 'btn-primary active text-white' : 'border bg-white text-secondary' ?> rounded-pill notif-project-btn flex-shrink-0" data-id-proyek="all" data-nama-proyek="Semua Proyek">
@@ -226,6 +232,12 @@ $activeProyekLogoUrl = ($activeProyek && ! empty($activeProyek->logo_thumbnail_u
                         </div>
                     </div>
                     <div class="notification-center-pane" id="notif-activity-pane" role="tabpanel" aria-labelledby="notif-activity-tab">
+                        <div class="notif-intent-scroll" id="notif-intent-filter" role="group" aria-label="Filter jenis aktivitas">
+                            <button type="button" class="notif-intent-pill active" data-intent="" aria-pressed="true">Semua</button>
+                            <button type="button" class="notif-intent-pill" data-intent="action_required" aria-pressed="false">Perlu Tindakan</button>
+                            <button type="button" class="notif-intent-pill" data-intent="operational_info" aria-pressed="false">Operasional</button>
+                            <button type="button" class="notif-intent-pill" data-intent="system_master" aria-pressed="false">Sistem</button>
+                        </div>
                         <div id="notif-here">
                             <div class="notification-center-empty">Memuat aktivitas...</div>
                         </div>

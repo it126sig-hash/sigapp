@@ -135,6 +135,7 @@ initSigappModalStacking();
     false,
   );
 
+  initNotificationRealtimeListeners();
   window.setTimeout(loadNotificationBadge, 0);
 })(window);
 
@@ -610,12 +611,14 @@ function paint(t, a, e, d = null) {
 /******************************** getNotif *********************************/
 
 let notificationCenterUrgentItems = {};
+let notificationActivityItemsMap = {};
 let notificationCenterRequest = null;
 let notificationBadgeRequest = null;
 let notificationCenterLoaded = false;
 let notificationCenterUserSelectedTab = false;
 let notificationActivityHasMore = true;
 let currentNotifProjectId = "auto"; // Default: ikut proyek aktif
+let currentNotifIntent = "";
 
 function notificationProjectId() {
   if (currentNotifProjectId && currentNotifProjectId !== "auto") {
@@ -710,9 +713,55 @@ function renderNotificationSummary(response) {
   $("#notif-activity-count").text(activityUnread);
 }
 
-// Smart Polling AJAX (Menggantikan SSE yang bikin freeze)
+// Smart Polling AJAX (Fallback realtime) + BroadcastChannel & SW Push Listener
 let notifPollTimer = null;
+let notifRealtimeDebounceTimer = null;
+let lastNotifSyncAt = 0;
 const NOTIF_POLL_INTERVAL = 30000; // 30 detik
+const NOTIF_VISIBILITY_STALE_MS = 15000; // 15 detik
+
+function scheduleRealtimeNotifSync() {
+  if (notifRealtimeDebounceTimer) {
+    clearTimeout(notifRealtimeDebounceTimer);
+  }
+  notifRealtimeDebounceTimer = window.setTimeout(function () {
+    notifRealtimeDebounceTimer = null;
+    loadNotificationBadge();
+    if ($("#list-notif").hasClass("show")) {
+      getNotif(true);
+    }
+  }, 400);
+}
+
+function initNotificationRealtimeListeners() {
+  if (window.SIGAPP_NOTIF_REALTIME_READY) {
+    return;
+  }
+  window.SIGAPP_NOTIF_REALTIME_READY = true;
+
+  if (typeof BroadcastChannel !== "undefined") {
+    try {
+      const notifChannel = new BroadcastChannel("sigapp_notif_realtime");
+      notifChannel.addEventListener("message", function (event) {
+        const msg = event && event.data ? event.data : {};
+        if (msg.type === "PUSH_RECEIVED" || msg.type === "SIGAPP_PUSH_RECEIVED") {
+          scheduleRealtimeNotifSync();
+        }
+      });
+    } catch (e) {
+      // Abaikan jika BroadcastChannel diblokir oleh context browser
+    }
+  }
+
+  if ("serviceWorker" in navigator && navigator.serviceWorker) {
+    navigator.serviceWorker.addEventListener("message", function (event) {
+      const msg = event && event.data ? event.data : {};
+      if (msg.type === "SIGAPP_PUSH_RECEIVED" || msg.type === "PUSH_RECEIVED") {
+        scheduleRealtimeNotifSync();
+      }
+    });
+  }
+}
 
 function loadNotificationBadge() {
   if (notifPollTimer) {
@@ -729,7 +778,8 @@ function loadNotificationBadge() {
   if (notificationBadgeRequest && notificationBadgeRequest.readyState !== 4) {
     notificationBadgeRequest.abort();
   }
-  
+
+  lastNotifSyncAt = Date.now();
   notificationBadgeRequest = $.ajax({
     type: "get",
     url: base_url + "/notif/summary",
@@ -749,10 +799,15 @@ function loadNotificationBadge() {
   });
 }
 
-// Refresh badge seketika saat user kembali membuka tab
+// Refresh summary saat user kembali membuka tab setelah > 15 detik
 document.addEventListener('visibilitychange', function() {
     if (document.visibilityState === 'visible') {
-        loadNotificationBadge();
+        if (Date.now() - lastNotifSyncAt > NOTIF_VISIBILITY_STALE_MS) {
+            loadNotificationBadge();
+            if ($("#list-notif").hasClass("show")) {
+                getNotif(true);
+            }
+        }
     }
 });
 
@@ -766,19 +821,26 @@ function getNotif(forceReload = true) {
   }
 
   start = 0;
+  notificationActivityHasMore = true;
+  const centerParams = {
+    [csrfName]: csrfHash,
+    id_proyek: notificationProjectId(),
+  };
+  if (currentNotifIntent) {
+    centerParams.intent = currentNotifIntent;
+  }
+
   notificationCenterRequest = $.ajax({
     type: "get",
     url: base_url + "/notif/center",
-    data: {
-      [csrfName]: csrfHash,
-      id_proyek: notificationProjectId(),
-    },
+    data: centerParams,
     dataType: "json",
     beforeSend: function () {
       setNotificationRefreshLoading(true);
       $("#notification-center-body").addClass("is-loading");
     },
     success: function (r) {
+      lastNotifSyncAt = Date.now();
       updateNotificationToken(r.token);
 
       setNotificationRefreshLoading(false);
@@ -938,7 +1000,23 @@ const DIVISI_AVATAR_COLOR = {
   10: "#82868b",
 };
 
+function notificationAttrEscape(value) {
+  if (value === null || value === undefined) {
+    return "";
+  }
+  return String(value)
+    .replace(/&/g, "&amp;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;");
+}
+
 function renderActivityItem(v) {
+  if (v && v.id !== undefined && v.id !== null) {
+    notificationActivityItemsMap[String(v.id)] = v;
+  }
+
   const unread = v.is_read == 0;
   const username = v.username || "Sistem";
   const initial = username.trim().charAt(0).toUpperCase() || "?";
@@ -946,6 +1024,9 @@ function renderActivityItem(v) {
   const avatarColor = DIVISI_AVATAR_COLOR[v.divisi_id] || "#82868b";
   const divisiBadge = v.divisi
     ? `<span class="badge badge-pill ${badgeClass}">${notificationEscape(v.divisi)}</span>`
+    : "";
+  const intentBadge = v.intent === "action_required"
+    ? '<span class="activity-intent-badge">Perlu Tindakan</span>'
     : "";
   const notifText = notificationEscape(v.notif_text || notificationPlainText(v.notif));
   const hasLocation = v.nama_jalan || v.no_kavling;
@@ -955,9 +1036,13 @@ function renderActivityItem(v) {
 
   const defaultLogo = (typeof base_url !== 'undefined' ? base_url : '/') + 'assets/images/pwa/icon-192.png';
   const logoUrl = v.logo_thumbnail_url || v.logo_access_url || defaultLogo;
-  
+  const eventTypeAttr = notificationAttrEscape(v.event_type || "");
+  const actionUrlAttr = notificationAttrEscape(v.action_url || "");
+  const safeTypeJs = notificationAttrEscape(v.type || "");
+  const safeKavlingJs = notificationAttrEscape(v.id_kavling ?? "");
+
   return `
-    <div class="activity-item${unread ? " is-unread" : ""}" onclick="handleNotificationClick(${v.id}, '${v.id_kavling}', '${v.type || ""}', this)">
+    <div class="activity-item${unread ? " is-unread" : ""}" data-notif-id="${notificationAttrEscape(v.id)}" data-event-type="${eventTypeAttr}" data-action-url="${actionUrlAttr}" onclick="handleNotificationClick(${Number(v.id) || 0}, '${safeKavlingJs}', '${safeTypeJs}', this)">
       <div class="activity-avatar bg-transparent" style="padding:0; overflow:hidden; border: 1px solid #ebe9f1;">
         <img src="${notificationEscape(logoUrl)}" alt="logo" style="width:100%; height:100%; object-fit:cover; border-radius:50%;">
       </div>
@@ -965,6 +1050,7 @@ function renderActivityItem(v) {
         <div class="activity-title-row">
           <strong>${notificationEscape(username)}</strong>
           ${divisiBadge}
+          ${intentBadge}
         </div>
         <p class="activity-text">${notifText}</p>
         <div class="activity-meta">
@@ -1046,12 +1132,28 @@ $("#list-notif").on("click", ".notif-project-btn", function(e) {
   }
 });
 
-// Enable horizontal scrolling with mouse wheel for the project filter
-$(document).on("wheel", ".notif-project-scroll", function(e) {
+// Enable horizontal scrolling with mouse wheel for the project & intent filters
+$(document).on("wheel", ".notif-project-scroll, .notif-intent-scroll", function(e) {
   if (e.originalEvent.deltaY !== 0) {
     e.preventDefault();
     this.scrollLeft += e.originalEvent.deltaY;
   }
+});
+
+$("#list-notif").on("click", ".notif-intent-pill", function (e) {
+  e.preventDefault();
+  e.stopPropagation();
+
+  currentNotifIntent = String($(this).data("intent") || "");
+
+  $("#list-notif .notif-intent-pill")
+    .removeClass("active")
+    .attr("aria-pressed", "false");
+  $(this).addClass("active").attr("aria-pressed", "true");
+
+  start = 0;
+  notificationActivityHasMore = true;
+  getNotif(true);
 });
 
 function setNotificationCenterTab(target, fromUser = true) {
@@ -1086,14 +1188,19 @@ function loadData() {
   }
 
   isLoading = true;
+  const loadParams = {
+    [csrfName]: csrfHash,
+    offset: start,
+    id_proyek: notificationProjectId(),
+  };
+  if (currentNotifIntent) {
+    loadParams.intent = currentNotifIntent;
+  }
+
   $.ajax({
     url: base_url + "/loadnotif",
     method: "GET",
-    data: {
-      [csrfName]: csrfHash,
-      offset: start,
-      id_proyek: notificationProjectId(),
-    },
+    data: loadParams,
     success: function (r) {
       if (r.token) {
         csrfHash = r.token;
@@ -1228,9 +1335,33 @@ function openNotificationUrgentItem(key) {
 }
 
 function handleNotificationClick(id_notif, id_kavling, type, el) {
+  const itemMeta = notificationActivityItemsMap[String(id_notif)] || {};
+  const eventType = String(
+    itemMeta.event_type || (el ? $(el).attr("data-event-type") : "") || type || "",
+  );
+  const actionUrl = String(
+    itemMeta.action_url || (el ? $(el).attr("data-action-url") : "") || "",
+  );
+  const baseRoot = typeof base_url === "string" ? base_url.replace(/\/+$/, "") : "";
+  const openNotifUrl = baseRoot + "/notif/open/" + id_notif;
+  const hasValidKavling =
+    id_kavling !== null &&
+    id_kavling !== undefined &&
+    id_kavling !== "" &&
+    id_kavling !== "null" &&
+    id_kavling !== "undefined";
+  const navigateEvents = [
+    "legal_dokumen_updated",
+    "tagihan_signature_requested",
+    "tagihan_signature_responded",
+    "bpb_execution_requested",
+    "dajam_pengajuan_created",
+    "dajam_pencairan_completed",
+  ];
+
   // Tandai notifikasi sebagai dibaca
   $.ajax({
-    url: base_url + "/notif/mark-as-read/" + id_notif,
+    url: baseRoot + "/notif/mark-as-read/" + id_notif,
     type: "POST",
     data: {
       [csrfName]: csrfHash,
@@ -1248,27 +1379,33 @@ function handleNotificationClick(id_notif, id_kavling, type, el) {
         $(el).removeClass("is-unread");
       }
 
-      // Refresh list notifikasi (agar badge & warna bg terupdate)
-      getNotif();
-
       if (type === "cashout_subkon") {
+        getNotif();
         if (typeof openCOSubkon === "function") {
           closeNotificationCenterModal();
           openCOSubkon({
             id_kavlings: [String(id_kavling)],
           });
+        } else if (actionUrl) {
+          closeNotificationCenterModal();
+          window.location.href = openNotifUrl;
         } else {
           console.log("openCOSubkon function is not available.");
         }
       } else if (type === "tagihan") {
+        getNotif();
         if (typeof openSiteplanKeuanganFromNotification === "function") {
           closeNotificationCenterModal();
           openSiteplanKeuanganFromNotification(id_kavling);
         } else if (typeof modal_tagihan === "function") {
           closeNotificationCenterModal();
           modal_tagihan(id_kavling);
+        } else if (actionUrl) {
+          closeNotificationCenterModal();
+          window.location.href = openNotifUrl;
         }
       } else if (type && type.startsWith("tiket_masalah")) {
+        getNotif();
         let parts = type.split("|");
         let tmRefType = parts[1] || null;
         let tmRefId = parts[2] || null;
@@ -1283,24 +1420,53 @@ function handleNotificationClick(id_notif, id_kavling, type, el) {
         }
         
         if (tmRefType && tmRefId && typeof window.openTiketMasalah === 'function') {
-            closeNotificationCenterModal();
-            window.openTiketMasalah(tmRefType, tmRefId);
-        } else if (id_kavling && id_kavling !== 'null' && typeof window.openTiketMasalah === 'function') {
-            closeNotificationCenterModal();
-            window.openTiketMasalah('kavling', id_kavling);
+          closeNotificationCenterModal();
+          window.openTiketMasalah(tmRefType, tmRefId);
+        } else if (hasValidKavling && typeof window.openTiketMasalah === 'function') {
+          closeNotificationCenterModal();
+          window.openTiketMasalah('kavling', id_kavling);
+        } else if (actionUrl) {
+          closeNotificationCenterModal();
+          window.location.href = openNotifUrl;
         }
       } else if (type && type.startsWith("fee_sales")) {
-        window.location.href = base_url + "/notif/open/" + id_notif;
+        closeNotificationCenterModal();
+        window.location.href = openNotifUrl;
+      } else if (
+        navigateEvents.includes(eventType) ||
+        navigateEvents.includes(type)
+      ) {
+        if (
+          eventType === "legal_dokumen_updated" &&
+          hasValidKavling &&
+          typeof openSiteplanKavlingFromNotification === "function" &&
+          (!actionUrl || actionUrl.indexOf("siteplan") !== -1)
+        ) {
+          getNotif();
+          closeNotificationCenterModal();
+          openSiteplanKavlingFromNotification(id_kavling);
+        } else {
+          closeNotificationCenterModal();
+          window.location.href = openNotifUrl;
+        }
+      } else if (actionUrl) {
+        closeNotificationCenterModal();
+        window.location.href = openNotifUrl;
       } else if (type === "progress" && typeof openSiteplanKavlingFromNotification === "function") {
+        getNotif();
         closeNotificationCenterModal();
         openSiteplanKavlingFromNotification(id_kavling);
       } else {
-        if (typeof openSiteplanKavlingFromNotification === "function") {
+        getNotif();
+        if (hasValidKavling && typeof openSiteplanKavlingFromNotification === "function") {
           closeNotificationCenterModal();
           openSiteplanKavlingFromNotification(id_kavling);
-        } else if (typeof view_detail === "function") {
+        } else if (hasValidKavling && typeof view_detail === "function") {
           closeNotificationCenterModal();
           view_detail(id_kavling);
+        } else if (id_notif) {
+          closeNotificationCenterModal();
+          window.location.href = openNotifUrl;
         }
       }
     },

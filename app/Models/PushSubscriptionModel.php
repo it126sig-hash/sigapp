@@ -14,8 +14,11 @@ class PushSubscriptionModel extends Model
     protected $protectFields    = true;
     protected $allowedFields    = [
         'user_id',
+        'provider',
         'endpoint',
         'endpoint_hash',
+        'fcm_token',
+        'platform',
         'p256dh_key',
         'auth_token',
         'user_agent',
@@ -32,17 +35,48 @@ class PushSubscriptionModel extends Model
 
     public function saveSubscription(int $userId, array $subscriptionData, ?string $userAgent = null, ?int $deviceSessionId = null): bool
     {
-        $endpoint = trim((string) ($subscriptionData['endpoint'] ?? ''));
-        $keys = $subscriptionData['keys'] ?? [];
-        $p256dh = trim((string) ($keys['p256dh'] ?? ''));
-        $auth = trim((string) ($keys['auth'] ?? ''));
-
-        if ($endpoint === '' || $p256dh === '' || $auth === '') {
+        $provider = strtolower(trim((string) ($subscriptionData['provider'] ?? 'web_push')));
+        if (! in_array($provider, ['web_push', 'fcm'], true)) {
             return false;
         }
 
+        if ($provider === 'fcm') {
+            if (! $this->hasProviderColumn() || ! $this->hasFcmTokenColumn()) {
+                return false;
+            }
+
+            $fcmToken = trim((string) ($subscriptionData['fcm_token'] ?? ''));
+            if ($fcmToken === '') {
+                return false;
+            }
+
+            $platform = strtolower(trim((string) ($subscriptionData['platform'] ?? 'android')));
+            if (! in_array($platform, ['android', 'ios', 'web'], true)) {
+                $platform = 'android';
+            }
+
+            $endpoint = 'fcm://' . $fcmToken;
+            $p256dh = null;
+            $auth = null;
+        } else {
+            $endpoint = trim((string) ($subscriptionData['endpoint'] ?? ''));
+            $keys = $subscriptionData['keys'] ?? [];
+            $p256dh = trim((string) (is_array($keys) ? ($keys['p256dh'] ?? '') : ''));
+            $auth = trim((string) (is_array($keys) ? ($keys['auth'] ?? '') : ''));
+
+            if ($endpoint === '' || $p256dh === '' || $auth === '') {
+                return false;
+            }
+
+            $fcmToken = null;
+            $platform = strtolower(trim((string) ($subscriptionData['platform'] ?? 'web')));
+            if (! in_array($platform, ['web', 'android', 'ios'], true)) {
+                $platform = 'web';
+            }
+        }
+
         if (! $this->hasEndpointHashColumn()) {
-            return $this->saveLegacySubscription($userId, $endpoint, $p256dh, $auth, $userAgent, $deviceSessionId);
+            return $this->saveLegacySubscription($userId, $endpoint, (string) $p256dh, (string) $auth, $userAgent, $deviceSessionId);
         }
 
         $hash = $this->endpointHash($endpoint);
@@ -64,6 +98,15 @@ class PushSubscriptionModel extends Model
             'disabled_at' => null,
             'failure_count' => 0,
         ];
+        if ($this->hasProviderColumn()) {
+            $data['provider'] = $provider;
+        }
+        if ($this->hasFcmTokenColumn()) {
+            $data['fcm_token'] = $fcmToken;
+        }
+        if ($this->hasPlatformColumn()) {
+            $data['platform'] = $platform;
+        }
         if ($this->hasDeviceSessionColumn()) {
             $data['device_session_id'] = $deviceSessionId;
         }
@@ -75,40 +118,72 @@ class PushSubscriptionModel extends Model
         return (bool) $this->save($data);
     }
 
-    public function deleteSubscription(int $userId, string $endpoint): bool
+    public function deleteSubscription(int $userId, string $endpointOrToken): bool
     {
-        $endpoint = trim($endpoint);
-        if ($endpoint === '') {
+        $value = trim($endpointOrToken);
+        if ($value === '') {
             return false;
         }
 
         if (! $this->hasEndpointHashColumn()) {
-            return (bool) $this->where('user_id', $userId)
-                ->where('endpoint', $endpoint)
-                ->delete();
+            $builder = $this->where('user_id', $userId)
+                ->groupStart()
+                    ->where('endpoint', $value)
+                    ->orWhere('endpoint', 'fcm://' . $value)
+                ->groupEnd();
+
+            return (bool) $builder->delete();
         }
 
-        return (bool) $this->where('user_id', $userId)
-            ->where('endpoint_hash', $this->endpointHash($endpoint))
-            ->set([
-                'disabled_at' => date('Y-m-d H:i:s'),
-                'updated_at' => date('Y-m-d H:i:s'),
-            ])
-            ->update();
+        $hashes = [$this->endpointHash($value)];
+        $isUri = str_starts_with($value, 'http://') || str_starts_with($value, 'https://') || str_starts_with($value, 'fcm://');
+        if (! $isUri) {
+            $hashes[] = $this->endpointHash('fcm://' . $value);
+        }
+
+        $rawToken = str_starts_with($value, 'fcm://') ? substr($value, 6) : $value;
+
+        $builder = $this->where('user_id', $userId)
+            ->groupStart()
+                ->whereIn('endpoint_hash', $hashes);
+
+        if ($this->hasFcmTokenColumn() && $rawToken !== '') {
+            $builder->orWhere('fcm_token', $rawToken);
+        }
+
+        $builder->groupEnd();
+
+        return (bool) $builder->set([
+            'disabled_at' => date('Y-m-d H:i:s'),
+            'updated_at' => date('Y-m-d H:i:s'),
+        ])->update();
     }
 
-    public function activeForUser(int $userId): array
+    public function activeForUser(int $userId, ?string $provider = null): array
     {
         if ($this->hasDeviceSessionColumn()) {
+            $now = date('Y-m-d H:i:s');
+            $idleCutoff = date('Y-m-d H:i:s', strtotime('-30 days'));
+
             $builder = $this->db->table('push_subscriptions')
                 ->select('push_subscriptions.*')
                 ->join('auth_device_sessions', 'auth_device_sessions.id = push_subscriptions.device_session_id')
                 ->where('push_subscriptions.user_id', $userId)
                 ->where('auth_device_sessions.user_id', $userId)
                 ->where('auth_device_sessions.revoked_at', null)
-                ->where('auth_device_sessions.expires_at >', date('Y-m-d H:i:s'));
+                ->where('auth_device_sessions.expires_at >', $now)
+                ->groupStart()
+                    ->where('auth_device_sessions.last_seen_at >=', $idleCutoff)
+                    ->orGroupStart()
+                        ->where('auth_device_sessions.last_seen_at IS NULL', null, false)
+                        ->where('auth_device_sessions.created_at >=', $idleCutoff)
+                    ->groupEnd()
+                ->groupEnd();
             if ($this->hasDisabledAtColumn()) {
                 $builder->where('push_subscriptions.disabled_at', null);
+            }
+            if ($provider !== null && $this->hasProviderColumn()) {
+                $builder->where('push_subscriptions.provider', $provider);
             }
 
             return $builder->get()->getResult();
@@ -117,6 +192,9 @@ class PushSubscriptionModel extends Model
         $query = $this->where('user_id', $userId);
         if ($this->hasDisabledAtColumn()) {
             $query->where('disabled_at IS NULL', null, false);
+        }
+        if ($provider !== null && $this->hasProviderColumn()) {
+            $query->where('provider', $provider);
         }
         return $query->findAll();
     }
@@ -215,5 +293,20 @@ class PushSubscriptionModel extends Model
     private function hasDeviceSessionColumn(): bool
     {
         return $this->db->fieldExists('device_session_id', $this->table);
+    }
+
+    private function hasProviderColumn(): bool
+    {
+        return $this->db->fieldExists('provider', $this->table);
+    }
+
+    private function hasFcmTokenColumn(): bool
+    {
+        return $this->db->fieldExists('fcm_token', $this->table);
+    }
+
+    private function hasPlatformColumn(): bool
+    {
+        return $this->db->fieldExists('platform', $this->table);
     }
 }

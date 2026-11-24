@@ -20,6 +20,27 @@ class NotificationDispatchService
 
     public function dispatch(string $channel = 'web_push', int $limit = 100): array
     {
+        return $this->dispatchInternal($channel, max(1, $limit), null);
+    }
+
+    public function dispatchForNotification(int $notificationId, string $channel = 'web_push', int $limit = 50): array
+    {
+        if ($notificationId <= 0) {
+            return [
+                'claimed' => 0,
+                'sent' => 0,
+                'failed' => 0,
+                'skipped' => 0,
+                'retrying' => 0,
+                'message' => 'ID notifikasi tidak valid.',
+            ];
+        }
+
+        return $this->dispatchInternal($channel, max(1, $limit), $notificationId);
+    }
+
+    private function dispatchInternal(string $channel, int $limit, ?int $notificationId): array
+    {
         if (! $this->db->tableExists('notification_deliveries')) {
             return [
                 'claimed' => 0,
@@ -42,7 +63,7 @@ class NotificationDispatchService
             ];
         }
 
-        $deliveries = $this->claim($channel, max(1, $limit));
+        $deliveries = $this->claim($channel, $limit, $notificationId);
         $stats = [
             'claimed' => count($deliveries),
             'sent' => 0,
@@ -60,18 +81,23 @@ class NotificationDispatchService
         return $stats;
     }
 
-    private function claim(string $channel, int $limit): array
+    private function claim(string $channel, int $limit, ?int $notificationId = null): array
     {
         $now = date('Y-m-d H:i:s');
         $claimToken = $this->claimToken();
 
-        $rows = $this->db->table('notification_deliveries')
+        $query = $this->db->table('notification_deliveries')
             ->select('id')
             ->where('channel', $channel)
             ->whereIn('status', ['pending', 'failed'])
             ->where('available_at <=', $now)
-            ->where('attempts <', self::MAX_ATTEMPTS)
-            ->orderBy('available_at', 'asc')
+            ->where('attempts <', self::MAX_ATTEMPTS);
+
+        if ($notificationId !== null) {
+            $query->where('notification_id', $notificationId);
+        }
+
+        $rows = $query->orderBy('available_at', 'asc')
             ->orderBy('id', 'asc')
             ->limit($limit)
             ->get()
@@ -116,7 +142,7 @@ class NotificationDispatchService
 
     private function dispatchWebPush(object $delivery): string
     {
-        $subscriptions = (new \App\Models\PushSubscriptionModel())->activeForUser((int) $delivery->user_id);
+        $subscriptions = (new \App\Models\PushSubscriptionModel($this->db))->activeForUser((int) $delivery->user_id, 'web_push');
 
         if ($subscriptions === []) {
             $this->finishDelivery((int) $delivery->id, 'skipped', (int) $delivery->attempts, 'Tidak ada subscription push aktif.');

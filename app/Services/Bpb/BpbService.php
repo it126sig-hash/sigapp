@@ -11,7 +11,7 @@ use App\Models\BpbSignatureModel;
 use App\Models\UserSignatureProfileModel;
 use App\Repositories\Bpb\BpbRepository;
 use App\Services\FileAccessService;
-use App\Services\NotifikasiService;
+use App\Services\Notifikasi\NotifikasiService;
 use Myth\Auth\Password;
 use RuntimeException;
 
@@ -226,6 +226,23 @@ class BpbService
                 $notify[] = [(int) $request['applicant_user_id'], NotificationEvent::BPB_APPROVED, "BPB {$request['nomor']} telah disetujui."];
             }
             $this->sendNotifications($notify, $userId, $id);
+            if ($next === BpbWorkflow::APPROVED) {
+                try {
+                    (new NotifikasiService())->tambah_notif(
+                        '2;3',
+                        "BPB {$request['nomor']} telah disetujui dan siap diproses/dicairkan.",
+                        $userId,
+                        null,
+                        null,
+                        NotificationEvent::BPB_EXECUTION_REQUESTED,
+                        null,
+                        '/bpb?open=' . $id,
+                        NotificationEvent::BPB_EXECUTION_REQUESTED
+                    );
+                } catch (\Throwable $e) {
+                    log_message('error', 'BPB execution notification failed: {message}', ['message' => $e->getMessage()]);
+                }
+            }
             return $this->detail($id, $userId);
         } catch (\Throwable $e) {
             if (! $committed) {

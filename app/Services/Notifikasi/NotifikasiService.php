@@ -74,7 +74,36 @@ class NotifikasiService
             throw new RuntimeException('Gagal menyimpan notifikasi dan delivery outbox.');
         }
 
+        if ($this->featureEnabled('NOTIF_WRITE_DELIVERY_OUTBOX', true) && $this->featureEnabled('NOTIF_IMMEDIATE_DISPATCH', true)) {
+            $this->scheduleImmediatePushDispatch($notificationId);
+        }
+
         return $notificationId;
+    }
+
+    protected function scheduleImmediatePushDispatch(int $notificationId): void
+    {
+        if ($notificationId <= 0 || is_cli() || (defined('ENVIRONMENT') && ENVIRONMENT === 'testing')) {
+            return;
+        }
+
+        register_shutdown_function(static function () use ($notificationId): void {
+            if (function_exists('session_status') && session_status() === PHP_SESSION_ACTIVE) {
+                @session_write_close();
+            }
+
+            if (function_exists('fastcgi_finish_request')) {
+                @fastcgi_finish_request();
+            } elseif (function_exists('litespeed_finish_request')) {
+                @litespeed_finish_request();
+            }
+
+            try {
+                (new NotificationDispatchService())->dispatchForNotification($notificationId, 'web_push');
+            } catch (\Throwable $e) {
+                log_message('error', 'Immediate push dispatch failed for notification ' . $notificationId . ': ' . $e->getMessage());
+            }
+        });
     }
 
     public function tambah_notif($target, $notif, $add_by, $id_kavling, $id_konsumen, $type = null, $id_proyek = null, ?string $actionUrl = null, ?string $eventType = null)

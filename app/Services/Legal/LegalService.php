@@ -2,8 +2,10 @@
 
 namespace App\Services\Legal;
 
+use App\Enums\NotificationEvent;
 use App\Repositories\Legal\LegalRepository;
 use App\Services\FileAccessService;
+use App\Services\Notifikasi\NotifikasiService;
 
 class LegalService
 {
@@ -19,14 +21,17 @@ class LegalService
 
     protected LegalRepository $legalRepository;
     protected FileAccessService $fileAccessService;
+    protected NotifikasiService $notifikasiService;
     protected $db;
 
     public function __construct(
         ?LegalRepository $legalRepository = null,
-        ?FileAccessService $fileAccessService = null
+        ?FileAccessService $fileAccessService = null,
+        ?NotifikasiService $notifikasiService = null
     ) {
         $this->legalRepository   = $legalRepository ?? new LegalRepository();
         $this->fileAccessService = $fileAccessService ?? new FileAccessService();
+        $this->notifikasiService = $notifikasiService ?? new NotifikasiService();
         $this->db                = \Config\Database::connect();
     }
 
@@ -143,6 +148,13 @@ class LegalService
                 throw new \Exception('Transaksi database gagal.');
             }
 
+            if ($idKavling > 0) {
+                $this->notifyLegalUpdated(
+                    $idKavling,
+                    'Data legalitas (' . $this->resolveLegalUpdateLabel($data) . ') kavling telah diperbarui.'
+                );
+            }
+
             return $idLegal;
         } catch (\Throwable $e) {
             $this->db->transRollback();
@@ -238,6 +250,17 @@ class LegalService
             throw new \Exception('Gagal menyimpan referensi file ke database.');
         }
 
+        $idKavling = (int) ($data['id_kavling'] ?? 0);
+        if ($idKavling > 0) {
+            $kategoriLabel = $this->getDocumentCategoryLabel($data['kategori'] ?? 0);
+            $fileName      = trim((string) ($data['file_name'] ?? $originalname));
+            $docDesc       = $fileName !== '' ? "{$kategoriLabel} ({$fileName})" : $kategoriLabel;
+            $this->notifyLegalUpdated(
+                $idKavling,
+                "Dokumen legal {$docDesc} telah diunggah."
+            );
+        }
+
         return $insertId;
     }
 
@@ -251,5 +274,52 @@ class LegalService
         }
 
         return true;
+    }
+
+    protected function resolveLegalUpdateLabel(array $data): string
+    {
+        $prefixLabels = [
+            'ajb_'        => 'AJB',
+            'ppjb_'       => 'PPJB',
+            'pbb_'        => 'PBB',
+            'bphtb_'      => 'BPHTB',
+            'pbg_'        => 'IMB / PBG',
+            'sertifikat_' => 'Sertifikat',
+            'pph_'        => 'PPh',
+        ];
+
+        $found = [];
+        foreach ($data as $key => $value) {
+            if (!is_string($key)) {
+                continue;
+            }
+            foreach ($prefixLabels as $prefix => $label) {
+                if (str_starts_with($key, $prefix) && $value !== null && $value !== '') {
+                    $found[$label] = true;
+                }
+            }
+        }
+
+        return $found !== [] ? implode(', ', array_keys($found)) : 'Data Legalitas';
+    }
+
+    protected function notifyLegalUpdated(int $idKavling, string $message): void
+    {
+        try {
+            $actorId = function_exists('user_id') && user_id() ? (int) user_id() : 0;
+            $this->notifikasiService->tambah_notif(
+                '3;4;5;10',
+                $message,
+                $actorId,
+                $idKavling,
+                null,
+                NotificationEvent::LEGAL_DOKUMEN_UPDATED,
+                null,
+                'siteplan/view?id_kavling=' . $idKavling . '&tab=legal',
+                NotificationEvent::LEGAL_DOKUMEN_UPDATED
+            );
+        } catch (\Throwable $e) {
+            log_message('error', '[LegalService::notifyLegalUpdated] {message}', ['message' => $e->getMessage()]);
+        }
     }
 }

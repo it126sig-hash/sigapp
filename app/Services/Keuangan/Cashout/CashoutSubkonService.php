@@ -2,10 +2,12 @@
 
 namespace App\Services\Keuangan\Cashout;
 
+use App\Enums\NotificationEvent;
 use App\Repositories\Keuangan\Cashout\CashoutSubkonRepo;
 use App\Repositories\KavlingRepository;
 use App\Services\FileAccessService;
 use App\Services\FinanceLedgerService;
+use App\Services\Notifikasi\NotifikasiService;
 use App\Services\StorageService;
 
 class CashoutSubkonService
@@ -16,8 +18,9 @@ class CashoutSubkonService
     protected $storageService;
     protected $fileAccessService;
     protected $ledgerService;
+    protected NotifikasiService $notifikasiService;
 
-    public function __construct()
+    public function __construct(?NotifikasiService $notifikasiService = null)
     {
         $this->repo = new CashoutSubkonRepo();
         $this->kavlingRepo = new KavlingRepository();
@@ -25,6 +28,7 @@ class CashoutSubkonService
         $this->storageService = new StorageService();
         $this->fileAccessService = new FileAccessService();
         $this->ledgerService = new FinanceLedgerService();
+        $this->notifikasiService = $notifikasiService ?? new NotifikasiService();
     }
 
     public function getIndexData(): array
@@ -637,6 +641,12 @@ class CashoutSubkonService
                 ];
             }
 
+            $this->notifyCashoutSubkon(
+                (int) $detail['id_cashout_subkon'],
+                [7],
+                'Pembayaran Cek No ' . $cek_no . ' Cashout Subkon telah disimpan untuk: ' . ($detail['berita_acara'] ?? '-')
+            );
+
             return [
                 'status' => 'success',
                 'message' => 'Pembayaran berhasil disimpan',
@@ -681,23 +691,28 @@ class CashoutSubkonService
 
     private function notifyCashoutSubkon(int $id_cashout_subkon, array $targets, string $message): void
     {
-        $id_kavlings = $this->repo->getKavlingBySubkonId($id_cashout_subkon);
-        if (empty($id_kavlings)) {
-            return;
-        }
+        try {
+            $id_kavlings = $this->repo->getKavlingBySubkonId($id_cashout_subkon);
+            if (empty($id_kavlings)) {
+                return;
+            }
 
-        $notif = new \App\Controllers\Notif();
-        foreach ($id_kavlings as $id_kavling) {
-            $notif->tambah_notif(
-                $targets,
-                $message,
-                user_id(),
-                $id_kavling,
-                null,
-                \App\Enums\NotificationEvent::CASHOUT_SUBKON,
-                null,
-                'cashout/subkon?open_kavling=' . $id_kavling
-            );
+            $actorId = function_exists('user_id') && user_id() ? (int) user_id() : 0;
+            foreach ($id_kavlings as $id_kavling) {
+                $this->notifikasiService->tambah_notif(
+                    $targets,
+                    $message,
+                    $actorId,
+                    $id_kavling,
+                    null,
+                    NotificationEvent::CASHOUT_SUBKON,
+                    null,
+                    'cashout/subkon?open_kavling=' . $id_kavling,
+                    NotificationEvent::CASHOUT_SUBKON
+                );
+            }
+        } catch (\Throwable $e) {
+            log_message('error', '[CashoutSubkonService::notifyCashoutSubkon] {message}', ['message' => $e->getMessage()]);
         }
     }
 

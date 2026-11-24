@@ -59,6 +59,18 @@ final class NotificationEvent
     const BPB_REJECTED            = 'bpb_rejected';
     const BPB_APPROVED            = 'bpb_approved';
     const BPB_STATUS_CHANGED      = 'bpb_status_changed';
+    public const BPB_EXECUTION_REQUESTED = 'bpb_execution_requested';
+
+    // ── Legal ──
+    public const LEGAL_DOKUMEN_UPDATED = 'legal_dokumen_updated';
+
+    // ── Direksi / Tagihan ──
+    public const TAGIHAN_SIGNATURE_REQUESTED = 'tagihan_signature_requested';
+    public const TAGIHAN_SIGNATURE_RESPONDED = 'tagihan_signature_responded';
+
+    // ── Dana Jaminan (Dajam) ──
+    public const DAJAM_PENGAJUAN_CREATED   = 'dajam_pengajuan_created';
+    public const DAJAM_PENCAIRAN_COMPLETED = 'dajam_pencairan_completed';
 
     // ── Fee Sales ──
     public const FEE_SALES_PENGAJUAN_CREATED  = 'fee_sales_pengajuan_created';

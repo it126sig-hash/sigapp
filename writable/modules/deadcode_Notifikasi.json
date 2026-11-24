@@ -1,5 +1,10 @@
 [
     {
+        "layer": "Controller",
+        "file": "NotifikasiController.php",
+        "name": "getActivityRoute"
+    },
+    {
         "layer": "Service",
         "file": "NotifikasiService.php",
         "name": "create"
